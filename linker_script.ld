@@ -41,8 +41,13 @@ SECTIONS
         __bss_start__ = _sbss;
         *(.bss)
         *(.bss.*)
+        *(COMMON)
         . = ALIGN(4);
         _ebss = .;
         __bss_end__ = _ebss;
     } >SRAM1
+
+    . = ALIGN(8);
+    _end = .;
+    PROVIDE(end = .);
 }

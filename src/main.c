@@ -26,6 +26,16 @@ void delay_ms(uint32_t milliseconds) {
         while (ticks > start);
     }
     while(ticks < end);
+}
+
+int my_write(char *ptr, int len) {
+    int todo;
+  
+    for (todo = 0; todo < len; todo++) {
+      lpuart1_write(*ptr++);
+    }
+    return len;
+}
 
 
 void main(void) {
@@ -55,7 +65,9 @@ void main(void) {
     // toggle the pin on and off
     while(1) {
         GPIOA->ODR ^= (1 << LED_PIN);
-        //printf("a long work\r\n"); // this doesn't work yet
+        puts("hello world from puts\r\n");
+        //my_write("hello world!\r\n", 14);
+        //printf("hello world from printf!\r\n"); // this doesn't work yet
         //lpuart1_write('A'); // but this does
         delay_ms(*i);
     }
