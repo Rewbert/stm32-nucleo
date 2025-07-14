@@ -34,6 +34,8 @@ SECTIONS
         _edata = .;
     } >SRAM1 AT> FLASH
 
+    _sidata = LOADADDR(.data);
+
     .bss :
     {
         . = ALIGN(4);

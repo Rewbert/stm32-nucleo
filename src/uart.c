@@ -52,3 +52,5 @@ void lpuart1_write(char c) {
     LPUART1->TDR = c; // Write character to transmit
     while (!(LPUART1->ISR & USART_ISR_TC)); // Wait for transmission to complete
 }
+
+// TODO add a uart receive function

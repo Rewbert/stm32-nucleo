@@ -6,6 +6,7 @@ We configure the PLL to generate a 110 MHz clock.
 
 */
 
+#include "clock.h"
 #include "stm32l5xx.h"
 
 void configure_clock(void) {

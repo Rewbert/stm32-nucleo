@@ -5,4 +5,4 @@ void enable_lpuart1(void);
 
 void lpuart1_write(char c);
 
-#endif
+#endif /* UART_H */

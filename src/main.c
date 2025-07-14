@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "stm32l5xx.h"
 
 #include "uart.h"
@@ -28,16 +29,6 @@ void delay_ms(uint32_t milliseconds) {
     while(ticks < end);
 }
 
-int my_write(char *ptr, int len) {
-    int todo;
-  
-    for (todo = 0; todo < len; todo++) {
-      lpuart1_write(*ptr++);
-    }
-    return len;
-}
-
-
 void main(void) {
     configure_clock(); // configure clock to run faster
 
@@ -59,16 +50,10 @@ void main(void) {
     GPIOA->MODER |= (1 << GPIO_MODER_MODE9_Pos);
     /* END OF LITTLE BLOCK */
 
-    int *i = malloc(sizeof(int));
-    *i = 500;
-
     // toggle the pin on and off
     while(1) {
         GPIOA->ODR ^= (1 << LED_PIN);
-        puts("hello world from puts\r\n");
-        //my_write("hello world!\r\n", 14);
-        //printf("hello world from printf!\r\n"); // this doesn't work yet
-        //lpuart1_write('A'); // but this does
-        delay_ms(*i);
+        printf("hello world from printf!\r\n");
+        delay_ms(500);
     }
 }

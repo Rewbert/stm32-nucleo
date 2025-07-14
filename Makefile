@@ -2,7 +2,8 @@ CC=arm-none-eabi-gcc
 CFLAGS=-mcpu=cortex-m33 -mthumb --specs=nano.specs -g
 CPPFLAGS=-DSTM32L552xx \
      -ICMSIS/Device/ST/STM32L5/Include \
-	 -ICMSIS/CMSIS/Core/Include
+	 -ICMSIS/CMSIS/Core/Include \
+	 -Iinclude
 
 # place built object files in here
 BUILD_DIR=.build
@@ -10,6 +11,7 @@ BUILD_DIR=.build
 # names of source files (and their location relative to root)
 source_files = src/syscalls src/startup src/main CMSIS/Device/ST/STM32L5/Source/Templates/system_stm32l5xx \
                src/clock src/uart
+header_files = include/uart.h
 # object files
 object_files = $(addprefix $(BUILD_DIR)/, $(addsuffix .o, $(notdir $(source_files))))
 

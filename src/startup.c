@@ -58,14 +58,14 @@ void HardFault_Handler(void) {
   while(1);
 }
 
-extern uint32_t _etext, _sdata, _edata, _sbss, _ebss; // defined by the linker
+extern uint32_t _etext, _sdata, _sidata, _edata, _sbss, _ebss; // defined by the linker
 void main(void);
 extern void __libc_init_array();
 
 void reset_handler(void) {
     // Copy .data from FLASH to SRAM
     uint32_t data_size = (uint32_t)&_edata - (uint32_t)&_sdata;
-    uint8_t *flash_data = (uint8_t*) &_etext;
+    uint8_t *flash_data = (uint8_t*) &_sidata; //etext;
     uint8_t *sram_data = (uint8_t*) &_sdata;
   
     for (uint32_t i = 0; i < data_size; i++)
