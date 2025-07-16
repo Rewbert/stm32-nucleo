@@ -53,4 +53,11 @@ void lpuart1_write(char c) {
     while (!(LPUART1->ISR & USART_ISR_TC)); // Wait for transmission to complete
 }
 
+char lpuart1_read(void) {
+    // Wait until the receive data register is not empty
+    while (!(LPUART1->ISR & USART_ISR_RXNE));
+    return (char)(LPUART1->RDR & 0xFF); // Read received character
+}
+
+
 // TODO add a uart receive function

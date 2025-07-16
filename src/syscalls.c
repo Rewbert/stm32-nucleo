@@ -10,8 +10,6 @@ extern int errno;
 
 #include "uart.h"
 
-void delay_ms(uint32_t milliseconds);
-
 int _close(int file) {
     return -1;
 }
@@ -61,7 +59,14 @@ int open(const char *name, int flags, int mode) {
 }
 
 int _read(int file, char *ptr, int len) {
-  return 0;
+  (void) file;
+
+  int i;
+  for(i = 0; i < len; i++) {
+    ptr[i] = lpuart1_read();
+  }
+
+  return len;
 }
 
 register char * stack_ptr asm("sp");

@@ -5,9 +5,12 @@
 #include "stm32l5xx.h"
 
 #include "uart.h"
+#include "gpio.h"
 
-#define LED_PIN 9 // PA9 is one of the LEDs
+#define LED_PIN_PA9 9 // PA9 is one of the LEDs
 // GPIOA_PIN9 is off 0x14 base 0x42020000
+#define LED_PIN_PC7 7
+#define LED_PIN_PB7 7
 
 void configure_clock(void);
 
@@ -29,30 +32,31 @@ void delay_ms(uint32_t milliseconds) {
     while(ticks < end);
 }
 
-void main(void) {
-    configure_clock(); // configure clock to run faster
-
-    SysTick_Config(110000); // this gives us millisecond precision
+void sys_init(void) {
+    configure_clock();
+    SysTick_Config(110000);
     __enable_irq();
-
     enable_lpuart1();
+}
 
-    /* THIS LITTLE BLOCK MANUALLY ENABLES AN LED (PA9) */
-    // enable the peripheral clock
-    RCC->AHB2ENR |= (1 << RCC_AHB2ENR_GPIOAEN_Pos);
+void main(void) {
+    sys_init();
 
-    volatile uint32_t dummy;
-    dummy = RCC->AHB2ENR;
-    dummy = RCC->AHB2ENR;
+    initialise_led(red_led);
+    initialise_led(blue_led);
+    initialise_led(green_led);
 
-    // set PA9 as output
-    GPIOA->MODER &= ~(GPIO_MODER_MODE9_Msk);
-    GPIOA->MODER |= (1 << GPIO_MODER_MODE9_Pos);
-    /* END OF LITTLE BLOCK */
+    // setvbuf(stdin, NULL, _IONBF, 0);
+    // while(1) {
+    //     printf("please type a character\r\n");
+    //     char c = getchar();
+    //     printf("received %c\r\n", c);
+    // }
 
-    // toggle the pin on and off
     while(1) {
-        GPIOA->ODR ^= (1 << LED_PIN);
+        toggle_led(red_led);
+        toggle_led(blue_led);
+        toggle_led(green_led);
         printf("hello world from printf!\r\n");
         delay_ms(500);
     }
