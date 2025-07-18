@@ -4565,6 +4565,9 @@ void mhs_openrdbuf(int s) { mhs_from_Ptr(s, 2, openb_rd_buf(mhs_to_Ptr(s, 0), mh
 void mhs_getbuf(int s) { get_buf(mhs_to_Ptr(s, 0), mhs_to_Ptr(s, 1), mhs_to_Ptr(s, 2));  mhs_from_Unit(s, 3); }
 void mhs_system(int s) { mhs_from_Int(s, 1, system(mhs_to_Ptr(s, 0))); }
 void mhs_tmpname(int s) { mhs_from_Ptr(s, 2, TMPNAME(mhs_to_Ptr(s, 0), mhs_to_Ptr(s, 1))); }
+
+int unlink(char *ptr);
+
 void mhs_unlink(int s) { mhs_from_Int(s, 1, unlink(mhs_to_Ptr(s, 0))); }
 #endif  /* WANT_STDIO */
 
