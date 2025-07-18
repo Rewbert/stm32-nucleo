@@ -58,6 +58,3 @@ char lpuart1_read(void) {
     while (!(LPUART1->ISR & USART_ISR_RXNE));
     return (char)(LPUART1->RDR & 0xFF); // Read received character
 }
-
-
-// TODO add a uart receive function

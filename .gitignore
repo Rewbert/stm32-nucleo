@@ -1,1 +1,5 @@
-build/
+.build/
+newlib-cygwin/
+tmp_libc/
+
+prog.elf

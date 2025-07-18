@@ -20,6 +20,11 @@ SECTIONS
         *(.text.*)
         *(.rodata)
         *(.rodata.*)
+
+        __exidx_start = .;
+        KEEP(*(.ARM.exidx*))
+        __exidx_end = .;
+
         . = ALIGN(4);
         _etext = .;
     } >FLASH

@@ -32,7 +32,7 @@ int _fstat(int file, struct stat *st) {
   return 0;
 }
 
-int getpid(void) {
+int _getpid(void) {
   return 1;
 }
 
@@ -40,7 +40,7 @@ int _isatty(int file) {
   return 1;
 }
 
-int kill(int pid, int sig) {
+int _kill(int pid, int sig) {
   errno = EINVAL;
   return -1;
 }
@@ -54,7 +54,7 @@ int _lseek(int file, int ptr, int dir) {
   return 0;
 }
 
-int open(const char *name, int flags, int mode) {
+int _open(const char *name, int flags, int mode) {
   return -1;
 }
 
