@@ -1,5 +1,7 @@
 ##### define the target to build #####
 
+# there are two targets, main and mhs
+
 # We can call make clean or make help, or make openocd without specifying the TARGET
 ifneq ($(filter-out clean help openocd,$(MAKECMDGOALS)),)
   ifeq ($(origin TARGET), undefined)
@@ -18,7 +20,7 @@ ifneq ($(origin TARGET), undefined) # we conditionally include different sources
   endif
 endif
 
-##### my little mini OS source files #####
+##### my little mini OS source files, always included for now #####
 
 CMSIS_SRC = CMSIS/Device/ST/STM32L5/Source/Templates/system_stm32l5xx
 
@@ -29,14 +31,14 @@ ROBOS_INC = $(ROBOS)/include
 #####
 
 CC=arm-none-eabi-gcc
-CFLAGS=-mcpu=cortex-m33 -mthumb --specs=nano.specs -g
+CFLAGS=-mcpu=cortex-m33 -mthumb --specs=nano.specs -g # can remove -g later
 CPPFLAGS=-DSTM32L552xx \
      -ICMSIS/Device/ST/STM32L5/Include \
 	 -ICMSIS/CMSIS/Core/Include \
 	 $(if $(ROBOS_INC), -I$(ROBOS_INC)) \
 	 $(if $(TARGET_INC), -I$(TARGET_INC))
 
-# place built object files in here
+# place built object files in here, .o files are placed directly in here. Perhaps it would be better to create subdirs, like .build/.object/?
 BUILD_DIR=.build
 
 # names of source files (and their location relative to root)

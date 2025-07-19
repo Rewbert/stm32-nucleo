@@ -6,13 +6,13 @@
 void enable_lpuart1(void) {
    volatile uint32_t dummy;
 
-    // I forget what this does, it enables something
+    // I forget what this does, it enables something. Look in the reference manual
     RCC->CCIPR1 &= ~(3 << RCC_CCIPR1_LPUART1SEL_Pos);
     RCC->CCIPR1 |= (1 << RCC_CCIPR1_LPUART1SEL_Pos);
 
     // turn on the LPUART
     RCC->APB1ENR2 |= (1 << RCC_APB1ENR2_LPUART1EN_Pos);
-    dummy = RCC->APB1ENR2; // do some dummy instructions to make some time pass
+    dummy = RCC->APB1ENR2; // do some dummy instructions to make some time pass, otherwise it doesn't work. I learned to do this online
     dummy = RCC->APB1ENR2;
 
     RCC->APB1ENR1 |= RCC_APB1ENR1_PWREN; // this turns on VDDIO2, the power to the GPIOG part of the board
@@ -31,14 +31,14 @@ void enable_lpuart1(void) {
     GPIOG->PUPDR &= ~(0b11 << GPIO_PUPDR_PUPD8_Pos); // Clear previous setting
     GPIOG->PUPDR |= (0b01 << GPIO_PUPDR_PUPD8_Pos); // Enable pull-up on PG8
 
-    // the datasheet sets these to alternate function 8. I am not sure what this means, but guides online says that it is important
+    // the datasheet sets these to alternate function 8
     GPIOG->AFR[0] &= ~GPIO_AFRL_AFSEL7;
     GPIOG->AFR[1] &= ~GPIO_AFRH_AFSEL8;
 
     GPIOG->AFR[0] |= (8 << GPIO_AFRL_AFSEL7_Pos);
     GPIOG->AFR[1] |= (8 << GPIO_AFRH_AFSEL8_Pos);
 
-    LPUART1->BRR = 244444; // this is BRR calculation for Baudrate of 115200
+    LPUART1->BRR = 244444; // this is BRR calculation for Baudrate of 115200. NOTE BRR calculation for LPUART is different than for USART
     dummy = RCC->AHB2ENR; // not sure if I need these, but too scared to remove them
     dummy = RCC->AHB2ENR;
 

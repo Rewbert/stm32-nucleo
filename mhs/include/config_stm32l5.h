@@ -60,24 +60,4 @@ void toggle_red_led(void) {
   toggle_led(red_led);
 }
 
-// extern void mhs_from_Unit(int, int);
-// extern int mhs_to_Int(int, int);
-
-// void toggle_red_led(int s) {
-//     toggle_led(red_led);
-//     mhs_from_Unit(s,0);
-// }
-
-// void delay_ms(uint32_t milliseconds);
-
-// void mhs_delay(int s) {
-//   int value = mhs_to_Int(s, 0);
-//   delay_ms(value);
-//   mhs_from_Unit(s, 1);
-// }
-
-// #define FFI_EXTRA \
-//   { "toggle_led", toggle_red_led }, \
-//   { "delay", mhs_delay },
-
 #endif /* CONFIG_STM32L5_H */

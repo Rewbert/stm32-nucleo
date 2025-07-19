@@ -1,16 +1,19 @@
+/* These GPIO operations assume now that the GPIO is controlling a LED. Perhaps the setup should be
+more general (not all GPIOs are LED's, of course). TODO */
 
 #include "stm32l5xx.h"
 #include "gpio.h"
 
-MAKE_GPIO(red_led,   A, 9)
-MAKE_GPIO(blue_led,  B, 7)
-MAKE_GPIO(green_led, C, 7)
+MAKE_GPIO(red_led,   A, 9) // PA9
+MAKE_GPIO(blue_led,  B, 7) // PB7
+MAKE_GPIO(green_led, C, 7) // PC7
 
 int is_port_enabled(struct GPIO *gpio) {
     uint32_t current_value = *((uint32_t *) gpio->enable_register);
     return (current_value >> gpio->enable_position) & 1;
 }
 
+// TODO add inverse, to turn it off to save power
 void enable_port(struct GPIO *gpio) {
     volatile int dummy;
 
@@ -19,10 +22,11 @@ void enable_port(struct GPIO *gpio) {
     dummy = gpio->enable_position;
 }
 
+// there are 4 different modes, 00 input mode, 01 general purpose output mode, 10 alternate function mode, and 11 analog mode
 void set_output_mode(struct GPIO *gpio) {
     uint32_t *reg = (uint32_t *) &(gpio->gpio->MODER);
     *reg &= ~(gpio->mode_msk);
-    *reg |= (1 << gpio->mode_pos);
+    *reg |= (1 << gpio->mode_pos); // this 1, if it is replaced with something else we set a different mode
 }
 
 void initialise_led(struct GPIO *led) {

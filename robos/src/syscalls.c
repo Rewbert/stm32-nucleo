@@ -59,7 +59,7 @@ int _open(const char *name, int flags, int mode) {
 }
 
 int _read(int file, char *ptr, int len) {
-  (void) file;
+  (void) file; // always read LPUART, don't actually use the file handles
 
   int i;
   for(i = 0; i < len; i++) {
@@ -71,6 +71,7 @@ int _read(int file, char *ptr, int len) {
 
 register char * stack_ptr asm("sp");
 
+/* Grab a chunk of memory from the heap, called by malloc to populate its free list */
 caddr_t _sbrk(int incr) {
   //extern char __bss_end__;		/* Defined by the linker */
   extern char _end;
@@ -78,7 +79,7 @@ caddr_t _sbrk(int incr) {
   char *prev_heap_end;
  
   if (heap_end == 0) { // first time we call this, heap_end is 0
-    heap_end = &_end; // &__bss_end__;
+    heap_end = &_end;
   }
   prev_heap_end = heap_end;
   if (heap_end + incr > stack_ptr) {
@@ -110,6 +111,7 @@ int wait(int *status) {
   return -1;
 }
 
+/* Always write to LPUART, don't care about other file handles */
 int _write(int file, char *ptr, int len) {
   (void) file;
   int todo;

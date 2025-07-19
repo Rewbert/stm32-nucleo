@@ -1,8 +1,12 @@
 /*
 
-By default, MSI RC oscillator configured at 4 MHz is used after reset. We wish to use a better clock.
+By default, MSI RC oscillator configured at 4 MHz is used after reset. We wish to use a faster clock.
 
-We configure the PLL to generate a 110 MHz clock.
+My understanding after speaking with Henrik is that it is easy to make a stable osc that has a low frequency, than
+a stable osc that has a high frequency. However, we can use PLL to get a faster, stable, clock from a slow osc by
+multiplying it.
+
+We configure the PLL to generate a 110 MHz clock (max specified by the board).
 
 */
 
@@ -25,17 +29,17 @@ void configure_clock(void) {
     // turn on the PLL outputs
     RCC->PLLCFGR |= ( (1U << RCC_PLLCFGR_PLLPEN_Pos)
                     | (1U << RCC_PLLCFGR_PLLQEN_Pos)
-                    | (1U << RCC_PLLCFGR_PLLREN_Pos) // tjis one is fed as sysclk output
+                    | (1U << RCC_PLLCFGR_PLLREN_Pos) // this one is fed as sysclk output, PLL R
                     );
 
-    // // Enable the PLL, this has to happen after everything else
+    // // Enable the PLL, this has to happen after everything else (after it's been configured)
     RCC->CR |= RCC_CR_PLLON;
     while (!(RCC->CR & RCC_CR_PLLRDY));
 
     // Configure Flash wait states for 110 MHz
     FLASH->ACR = (FLASH->ACR & ~FLASH_ACR_LATENCY) | FLASH_ACR_LATENCY_4WS; // chatGPT helped me learn that I had to do this. If I do this as the last thing I do, it doesn't work. It has to be before the system clock is set to PLL.
                                                                             // apparently the flash is slower than what the (now) 110 MHz clock can handle, and this configuration makes the CPU wait enough time before it reads from flash.
-                                                                            // Otherwise it might read the next instruction before it is ready, and then execute garbage
+                                                                            // Otherwise it might read the next instruction before it is ready, and then execute garbage. TODO ask Carl if this understanding is correct
 
     // // Set PLL as system clock source
     RCC->CFGR = (3U << RCC_CFGR_SW_Pos);

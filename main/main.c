@@ -1,6 +1,6 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
+// #include <stdint.h>
+// #include <stdlib.h>
+// #include <stdio.h>
 #include "stm32l5xx.h"
 
 #include "uart.h"
@@ -22,7 +22,7 @@ void main(void) {
     initialise_led(blue_led);
     initialise_led(green_led);
 
-    // setvbuf(stdin, NULL, _IONBF, 0);
+    // setvbuf(stdin, NULL, _IONBF, 0); // this code works
     // while(1) {
     //     printf("please type a character\r\n");
     //     char c = getchar();
