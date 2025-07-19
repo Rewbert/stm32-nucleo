@@ -1,6 +1,6 @@
-# Some experiments with TrustZone enabled STM32L552ZE_Q.
+# Some experiments with TrustZone enabled STM32L552ZE_Q, bare metal.
 
-Currently, no TrustZone is used. I am working on that and will push that at a later date.
+Currently, no TrustZone is used. I am working on that and will push that at a later date. This is a bare metal project, so STMCUBE IDE is not used.
 
 ##### Requirements
 
@@ -20,6 +20,7 @@ Currently, no TrustZone is used. I am working on that and will push that at a la
 ##### How to build
 
 The Makefile has two targets, `mhs` or `main`. Otherwise, you can issue
+
 * `make TARGET=<target>`
 * `make TARGET=<target> flash`
 * `make TARGET=<target> debug`
@@ -30,5 +31,4 @@ To debug the board using GDB, issue `make openocd` in one terminal and `make TAR
 ##### Documents
 
 * Reference manual for the processor: https://www.st.com/resource/en/reference_manual/dm00346336-stm32l552xx-and-stm32l562xx-advanced-arm-based-32-bit-mcus-stmicroelectronics.pdf
-
 * User manual for the board: https://www.st.com/resource/en/user_manual/um2581-stm32l5-nucleo144-board-mb1361-stmicroelectronics.pdf
