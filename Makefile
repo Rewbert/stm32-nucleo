@@ -1,7 +1,7 @@
 ##### define the target to build #####
 
-# We can call make clean or make help without specifying the TARGET
-ifneq ($(filter-out clean help,$(MAKECMDGOALS)),)
+# We can call make clean or make help, or make openocd without specifying the TARGET
+ifneq ($(filter-out clean help openocd,$(MAKECMDGOALS)),)
   ifeq ($(origin TARGET), undefined)
     $(error TARGET is not set. Please run 'make TARGET=main <goal>' or 'make TARGET=mhs <goal>')
   endif
