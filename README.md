@@ -26,3 +26,9 @@ The Makefile has two targets, `mhs` or `main`. Otherwise, you can issue
 * `make openocd`
 
 To debug the board using GDB, issue `make openocd` in one terminal and `make TARGET=<target> debug` in another terminal.
+
+##### Documents
+
+* Reference manual for the processor: https://www.st.com/resource/en/reference_manual/dm00346336-stm32l552xx-and-stm32l562xx-advanced-arm-based-32-bit-mcus-stmicroelectronics.pdf
+
+* User manual for the board: https://www.st.com/resource/en/user_manual/um2581-stm32l5-nucleo144-board-mb1361-stmicroelectronics.pdf
