@@ -1,6 +1,6 @@
 // #include <stdint.h>
 // #include <stdlib.h>
-// #include <stdio.h>
+#include <stdio.h>
 #include "stm32l5xx.h"
 
 #include "uart.h"
