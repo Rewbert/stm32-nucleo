@@ -3,7 +3,7 @@
 # there are two targets, main and mhs
 
 # We can call make clean or make help, or make openocd without specifying the TARGET
-ifneq ($(filter-out clean help openocd secure.elf nonsecure.elf,$(MAKECMDGOALS)),)
+ifneq ($(filter-out clean help openocd secure.elf nonsecure.elf read_option_bytes,$(MAKECMDGOALS)),)
   ifeq ($(origin TARGET), undefined)
     $(error TARGET is not set. Please run 'make TARGET=main <goal>' or 'make TARGET=mhs <goal>')
   endif
@@ -64,6 +64,12 @@ $(source_files): %: %.c
 
 flash: prog.elf
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) -c "program prog.elf verify reset exit"
+
+# for this, you need STM32_Programmer_CLI from ST. Download it here: https://www.st.com/en/development-tools/stm32cubeprog.html
+# then unpack, and make a symlink so that the tool is reachable everywhere
+# I did sudo ln -s <full-path-to-STM32_Programmer_CLI> /usr/bin/STM32_Programmer_CLI
+read_option_bytes:
+	STM32_Programmer_CLI -c port=SWD -ob displ
 
 # debugging targets
 # to debug using GDB over openocd, run make openocd in one terminal, and make debug in another
