@@ -4,7 +4,7 @@
 #include "stm32l5xx.h"
 
 /* Global ticks variable, to be used in timers */
-extern uint32_t ticks;
+extern volatile uint32_t ticks;
 
 /* This should be installed as the SysTick handler, as hinted by the name */
 void systick_handler();

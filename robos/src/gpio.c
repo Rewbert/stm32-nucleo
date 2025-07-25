@@ -42,7 +42,10 @@ int read_led(struct GPIO *led) {
 }
 
 void set_led(struct GPIO *led, int val) {
-    led->gpio->ODR |= (val << led->pin);
+  if (val)
+    led->gpio->ODR |= (1 << led->pin);
+  else
+    led->gpio->ODR &= ~(1 << led->pin);
 }
 
 void toggle_led(struct GPIO *led) {

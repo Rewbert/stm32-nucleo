@@ -85,7 +85,7 @@ debug: prog.elf
 
 .PHONY: clean
 clean:
-	rm -r $(BUILD_DIR) *.elf $(SECURE_LIB)
+	rm -rf $(BUILD_DIR) *.elf $(SECURE_LIB)
 
 
 
