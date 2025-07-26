@@ -7,7 +7,7 @@
 extern volatile uint32_t ticks;
 
 /* This should be installed as the SysTick handler, as hinted by the name */
-void systick_handler();
+void systick_handler(void);
 
 /* this implements a delay by busy looping. Once I've implemented some threading, there
    should be some more clever implementation that uses interrupts. */
