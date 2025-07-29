@@ -1,6 +1,6 @@
 #include "stm32l5xx.h"
 
-uint32_t ticks;
+volatile uint32_t ticks;
 
 void systick_handler() {
     ticks++;
