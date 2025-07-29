@@ -3,7 +3,7 @@
 # there are two targets, main and mhs
 
 # We can call make clean or make help, or make openocd without specifying the TARGET
-ifneq ($(filter-out clean help openocd secure.elf nonsecure.elf read_option_bytes,$(MAKECMDGOALS)),)
+ifneq ($(filter-out clean help openocd secure.elf nonsecure.elf read_option_bytes enable_TZ disable_TZ,$(MAKECMDGOALS)),)
   ifeq ($(origin TARGET), undefined)
     $(error TARGET is not set. Please run 'make TARGET=main <goal>' or 'make TARGET=mhs <goal>')
   endif
@@ -71,6 +71,12 @@ flash: prog.elf
 read_option_bytes:
 	STM32_Programmer_CLI -c port=SWD -ob displ
 
+enable_TZ:
+	STM32_Programmer_CLI -c port=SWD -ob TZEN=1
+
+disable_TZ:
+	STM32_Programmer_CLI -c port=SWD -ob TZEN=0
+
 # debugging targets
 # to debug using GDB over openocd, run make openocd in one terminal, and make debug in another
 
@@ -106,7 +112,7 @@ clean:
 
 # path to the secure project
 SECURE = TZ/S
-SECURE_APP_SRC = $(SECURE)/src/startup.c # add the secure sources here, one by one
+SECURE_APP_SRC = $(SECURE)/src/startup.c $(SECURE)/src/main.c # add the secure sources here, one by one
 SECURE_SRC = $(SECURE_APP_SRC) $(CMSIS_SRC).c
 
 SECURE_LIB = secure_cmse_import.lib
@@ -118,7 +124,7 @@ SECURE_OBJS = $(addprefix $(SECURE_BUILD_DIR)/, $(addsuffix .o, $(notdir $(basen
 
 # -mcmse is the thing that makes the compiler aware of trustzone
 # no stdlib for now
-SECURE_CC_FLAGS = -mcpu=cortex-m33 -mthumb -mcmse --specs=nosys.specs -nostartfiles
+SECURE_CC_FLAGS = -mcpu=cortex-m33 -mthumb -mcmse --specs=nosys.specs -nostartfiles -g
 
 SECURE_LINKER_FILE = $(SECURE)/ls-s.ld
 SECURE_LDFLAGS = -T $(SECURE_LINKER_FILE)
@@ -156,7 +162,7 @@ NONSECURE_OBJS = $(addprefix $(NONSECURE_BUILD_DIR)/, $(addsuffix .o, $(notdir $
 
 # -mcmse is the thing that makes the compiler aware of trustzone
 # no stdlib for now
-NONSECURE_CC_FLAGS = -mcpu=cortex-m33 -mthumb -mcmse --specs=nosys.specs -nostartfiles
+NONSECURE_CC_FLAGS = -mcpu=cortex-m33 -mthumb -mcmse --specs=nosys.specs -nostartfiles -g
 
 NONSECURE_LINKER_FILE = $(NONSECURE)/ls-ns.ld
 NONSECURE_LDFLAGS = -T $(NONSECURE_LINKER_FILE)

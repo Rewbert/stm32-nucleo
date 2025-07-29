@@ -45,7 +45,7 @@ size_t lz77c(uint8_t *src, size_t srclen, uint8_t **bufp);
 #endif
 
 #include "mhsffi.h"
-struct ffi_entry ffi_table[];
+const struct ffi_entry ffi_table[];
 int num_ffi;
 #define FFI_IX(i) ((i) < num_ffi ? ffi_table[i] : xffi_table[i - num_ffi])
 
@@ -4801,7 +4801,7 @@ void mhs_mkdir(int s) { mhs_from_Int(s, 2, mkdir(mhs_to_Ptr(s, 0), mhs_to_Int(s,
 void mhs_getcwd(int s) { mhs_from_Ptr(s, 2, getcwd(mhs_to_Ptr(s, 0), mhs_to_Int(s, 1))); }
 #endif  /* WANT_DIR */
 
-struct ffi_entry ffi_table[] = {
+const struct ffi_entry ffi_table[] = {
 { "GETRAW", mhs_GETRAW},
 { "GETTIMEMILLI", mhs_GETTIMEMILLI},
 #if WANT_MATH

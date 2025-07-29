@@ -6,7 +6,7 @@ MEMORY
     SRAM1 (rwx): ORIGIN = 0x20018000, LENGTH = 96K  /* First half of SRAM1 */
 }
 
-PROVIDE(_estack = ORIGIN(SRAM1) + LENGTH (SRAM1));
+PROVIDE(_estack = ORIGIN(SRAM1) + LENGTH (SRAM1) - 4);
 
 SECTIONS
 {

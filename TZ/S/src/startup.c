@@ -74,7 +74,7 @@ void reset_handler(void) {
     }
 
     // __libc_init_array(); // this is from newlib nano. Appears to be a no op right now, but might change depending on what we add
-    // main();
+    main();
 }
 
 #define NSC __attribute__((cmse_nonsecure_entry))

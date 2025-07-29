@@ -8,6 +8,7 @@ extern uint32_t _estack;
 void default_handler(void);
 void reset_handler(void);
 void HardFault_Handler(void);
+void secure_fault(void);
 
 // override these later as needed
 void nmi_handler(void) __attribute__((weak, alias("default_handler")));
@@ -28,7 +29,7 @@ uint32_t isr_vector[VECTOR_SIZE_WORDS] __attribute__((section(".isr_vector"))) =
     (uint32_t)&mem_handler,
     (uint32_t)&bus_handler,
     (uint32_t)&usage_handler,
-    0,
+    (uint32_t)&secure_fault,
     0,
     0,
     0,
@@ -49,10 +50,18 @@ void HardFault_Handler(void) {
   while(1);
 }
 
+void secure_fault(void) {
+  while(1);
+}
+
 extern uint32_t _etext, _sdata, _sidata, _edata, _sbss, _ebss; // symbols defined by the linker
 
 // void main(void);
 // extern void __libc_init_array();
+
+void main(void) {
+  while(1) {}
+}
 
 void reset_handler(void) {
     // Copy .data from FLASH to SRAM
@@ -75,5 +84,5 @@ void reset_handler(void) {
     }
 
     // __libc_init_array(); // this is from newlib nano. Appears to be a no op right now, but might change depending on what we add
-    // main();
+    main();
 }
