@@ -2,30 +2,71 @@
 
 #include "stm32l5xx.h"
 
-// #define NS_VECTOR_TABLE 0x08040000
-
 const uint32_t NS_VECTOR_TABLE = 0x08040000U;
 
-void configure_mpcbb1(void);
+#define NUM_SAU_REGIONS   8
+#define RNR_MASK          0xFF
+#define RBAR_MASK         0xFFFFFFE0
+#define RLAR_MASK         0xFFFFFFE0
+#define ATTRIBUTE_POS     1
+#define ATTRIBUTE_MASK    (ATTRIBUTE_POS << 1)
+#define SAU_REGION_ENABLE 0x1
 
-void main(void) {
-    configure_mpcbb1();
+/* Start addresses of the 8 SAU regions */
+const uint32_t sau_start[8] = { 0x0C03F000, // last 4K of secure flash, marked as non-secure callable
+                                0x08040000, // Start of non-secure flash
+                                0x20018000, // start of non-secure SRAM1
+                                0x40000000, // Non-secure mapped peripherals
+                                0x60000000, // Non-secure external memories (not used)
+                                0x0BF90000, // Non-secure system memory
+                                0x00000000, // unused, non-secure
+                                0x00000000, // unused, non-secure
+                              };
 
-    SCB_NS->VTOR = NS_VECTOR_TABLE;
+/* End addresses of the 8 SAU regions */
+const uint32_t sau_end[8] = { 0x0C04FFFF,
+                              0x0807FFFF,
+                              0x2002FFFF,
+                              0x4FFFFFFF,
+                              0x9FFFFFFF,
+                              0x0BFA8FFF,
+                              0x00000000,
+                              0x00000000,
+                            };
 
-    GTZC_MPCBB1->CR |= GTZC_MPCBB_CR_SRWILADIS_Msk;
+/* Security attribute of the 8 SAU regions; 1 = secure/non-secure callable, 0 = non-secure */
+const uint32_t attribute[8] = { 1,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                               };
 
-    __asm volatile ("msr msp_ns, %0" :: "r" (*((uint32_t *) NS_VECTOR_TABLE)));
+/* Configure the Security Attribution Unit to designate parts of memory as non-secure.
 
-    uint32_t ns_reset_handler_addr = *((uint32_t *)(NS_VECTOR_TABLE + 4U));
-    typedef void (*ns_reset_ptr_t)(void) __attribute__((cmse_nonsecure_call));
-    ns_reset_ptr_t ns_reset_handler = (ns_reset_ptr_t) (void (*)(void))ns_reset_handler_addr;
+NOTE: You must also configure the two options byes SECWM2_PSTRT and SECWM2_PEND. These designate part of the
+second bank of flash as secure or non-secure. The default values of PSTRT=0x0 and PEND=0x7F, marking the whole
+thing as secure.
+To mark the whole thing as non-secure, we just need to make sure tht PSTRT > PEND. To do this, write
+PSTRT=0x1 and PEND=0x0.
+*/
+void configure_sau(void) {
+    for(int i = 0; i < NUM_SAU_REGIONS; i++) {
+        SAU->RNR = i & RNR_MASK;
+        SAU->RBAR = sau_start[i] & RBAR_MASK;
+        SAU->RLAR = (sau_end[i] & RLAR_MASK)         |
+                    ((attribute[i] << ATTRIBUTE_POS) & ATTRIBUTE_MASK) |
+                    SAU_REGION_ENABLE;
+    }
 
-    ns_reset_handler();
-
-    while(1) {}
+    SAU->CTRL = ((1 << SAU_CTRL_ENABLE_Pos) & SAU_CTRL_ENABLE_Msk);
 }
 
+/* Configure the Memory Protection unit infront of the SRAM1 to mark one half (first half) as secure and
+the second half as non-secure. */
 void configure_mpcbb1(void) {
     volatile int dummy;
 
@@ -73,4 +114,26 @@ void configure_mpcbb1(void) {
 
 }
 
-// 4003 2400 - 4003 33ff
+void initialise(void) {
+    configure_sau();
+    configure_mpcbb1();
+
+    SCB_NS->VTOR = NS_VECTOR_TABLE;
+
+    GTZC_MPCBB1->CR |= GTZC_MPCBB_CR_SRWILADIS_Msk;
+
+    __asm volatile ("msr msp_ns, %0" :: "r" (*((uint32_t *) NS_VECTOR_TABLE)));
+
+    uint32_t ns_reset_handler_addr = *((uint32_t *)(NS_VECTOR_TABLE + 4U));
+    typedef void (*ns_reset_ptr_t)(void) __attribute__((cmse_nonsecure_call));
+    ns_reset_ptr_t ns_reset_handler = (ns_reset_ptr_t) (void (*)(void))ns_reset_handler_addr;
+
+    ns_reset_handler();
+}
+
+/***** SECURE USER APPLICATION *****/
+
+void main(void) {
+    initialise();
+    while(1) {}
+}
