@@ -2,7 +2,8 @@ ENTRY(reset_handler)
 
 MEMORY
 {
-    FLASH (rx):  ORIGIN = 0x08000000, LENGTH = 512K
+    ISR   (rw):  ORIGIN = 0x08000000, LENGTH = 2K
+    FLASH (rx):  ORIGIN = 0x08000800, LENGTH = 510K
     SRAM1 (rwx): ORIGIN = 0x20000000, LENGTH = 192K
 }
 
@@ -11,7 +12,7 @@ SECTIONS
     .isr_vector :
     {
         KEEP(*(.isr_vector))
-    } >FLASH
+    } >ISR
 
     .text :
     {
