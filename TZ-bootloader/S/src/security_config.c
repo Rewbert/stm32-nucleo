@@ -130,8 +130,5 @@ void security_config(void) {
     typedef void (*ns_reset_ptr_t)(void) __attribute__((cmse_nonsecure_call));
     ns_reset_ptr_t ns_reset_handler = (ns_reset_ptr_t) (void (*)(void))ns_reset_handler_addr;
 
-    SysTick->CTRL = 0;
-    TZ_SysTick_Config_NS(110000);
-    GPIOA_S->SECCFGR = 0x00000000; // ~GPIO_SECCFGR_SEC9;
     ns_reset_handler();
 }

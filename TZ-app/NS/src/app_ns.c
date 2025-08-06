@@ -5,9 +5,29 @@
 
 int myadd();
 
+volatile uint32_t ticks;
+void systick_handler() {
+  ticks++;
+}
+
+void delay_ms(uint32_t milliseconds) {
+  uint32_t start = ticks;
+  uint32_t end = start + milliseconds;
+
+  if (end < start) {
+      while (ticks > start);
+  }
+  while(ticks < end);
+}
+
 void main() {
+
+    ENABLE_IRQ();
+
     while(1) {
-        myadd();
+        GPIOA_NS->ODR ^= (1 << 9);
+        delay_ms(500);
+//        myadd();
     }
 }
 

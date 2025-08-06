@@ -13,6 +13,12 @@ void configure_red_led(void) {
   GPIOA_S->MODER |= (1 << GPIO_MODER_MODE9_Pos);
 }
 
+void make_red_led_nonsecure(void) {
+  uint32_t val = GPIOA_S->SECCFGR;
+  val &= ~(1 << 9);
+  GPIOA_S->SECCFGR = val;
+}
+
 volatile uint32_t ticks;
 void systick_handler() {
   ticks++;
@@ -29,27 +35,13 @@ void delay_ms(uint32_t milliseconds) {
 }
 
 void secure_app_initialise() {
-  configure_red_led();
-
-  GPIOA_S->ODR |= (1 << 9);
-
   SysTick_Config(4000);
+  TZ_SysTick_Config_NS(4000);
+
   ENABLE_IRQ();
 
-  while(1) {
-    GPIOA_S->ODR ^= (1 << 9);
-    delay_ms(500);
-  }
-    // configure_clock();
-    // SysTick_Config2(110000);
-
-    // ENABLE_IRQ();
-
-    // initialise_led(red_led);
-    // while(1) {
-    //     toggle_led(red_led);
-    //     delay_ms(500);
-    // }
+  configure_red_led();
+  make_red_led_nonsecure();
 }
 
 #define NSC __attribute__((cmse_nonsecure_entry))
