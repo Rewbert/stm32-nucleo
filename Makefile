@@ -3,7 +3,7 @@
 # there are two targets, main and mhs
 
 # We can call make clean or make help, or make openocd without specifying the TARGET
-ifneq ($(filter-out clean help openocd secure.elf nonsecure.elf read_option_bytes enable_TZ disable_TZ,$(MAKECMDGOALS)),)
+ifneq ($(filter-out clean help openocd secure.elf nonsecure.elf read_option_bytes enable_TZ disable_TZ flash_tz,$(MAKECMDGOALS)),)
   ifeq ($(origin TARGET), undefined)
     $(error TARGET is not set. Please run 'make TARGET=main <goal>' or 'make TARGET=mhs <goal>')
   endif
@@ -25,7 +25,10 @@ endif
 CMSIS_SRC = CMSIS/Device/ST/STM32L5/Source/Templates/system_stm32l5xx
 
 ROBOS = robos
-ROBOS_SRC = $(ROBOS)/src/syscalls $(ROBOS)/src/startup $(ROBOS)/src/clock $(ROBOS)/src/uart $(ROBOS)/src/gpio $(ROBOS)/src/timer
+ROBOS_SRC = $(ROBOS)/src/syscalls $(ROBOS)/src/clock $(ROBOS)/src/uart $(ROBOS)/src/gpio $(ROBOS)/src/timer
+ROBOS_SRC_STARTUP = $(ROBOS)/startup
+ROBOS_SRC_C = $(ROBOS)/src/syscalls.c $(ROBOS)/src/clock.c $(ROBOS)/src/uart.c $(ROBOS)/src/gpio.c $(ROBOS)/src/timer.c
+ROBOS_SRC_STARTUP_C = $(ROBOS)/startup.c
 ROBOS_INC = $(ROBOS)/include
 
 #####
@@ -42,7 +45,7 @@ CPPFLAGS=-DSTM32L552xx \
 BUILD_DIR=.build
 
 # names of source files (and their location relative to root)
-source_files = $(ROBOS_SRC) $(TARGET_SRC)
+source_files = $(ROBOS_SRC) $(ROBOS_SRC_STARTUP) $(TARGET_SRC)
 
 # object files
 object_files = $(addprefix $(BUILD_DIR)/, $(addsuffix .o, $(notdir $(source_files))))
@@ -111,9 +114,13 @@ clean:
 ### BUILDING THE SECURE ELF ###
 
 # path to the secure project
-SECURE = TZ/S
-SECURE_APP_SRC = $(SECURE)/src/startup.c $(SECURE)/src/main.c # add the secure sources here, one by one
-SECURE_SRC = $(SECURE_APP_SRC) $(CMSIS_SRC).c
+SECURE_APP = TZ-app/S
+SECURE_APP_SRC = $(SECURE_APP)/src/app.c
+
+SECURE = TZ-bootloader/S
+SECURE_BL_SRC = $(SECURE)/src/security_config.c $(SECURE)/src/bootloader.c # add the secure sources here, one by one
+SECURE_SRC = $(SECURE_BL_SRC) $(CMSIS_SRC).c $(SECURE_APP_SRC) # $(ROBOS_SRC_C)
+SECURE_INC = $(SECURE_APP)/inc # $(ROBOS_INC)
 
 SECURE_LIB = secure_cmse_import.lib
 
@@ -124,14 +131,15 @@ SECURE_OBJS = $(addprefix $(SECURE_BUILD_DIR)/, $(addsuffix .o, $(notdir $(basen
 
 # -mcmse is the thing that makes the compiler aware of trustzone
 # no stdlib for now
-SECURE_CC_FLAGS = -mcpu=cortex-m33 -mthumb -mcmse --specs=nosys.specs -nostartfiles -g
+SECURE_CC_FLAGS = -mcpu=cortex-m33 -mthumb -mcmse --specs=nosys.specs -nostartfiles -g -DSECURE
 
 SECURE_LINKER_FILE = $(SECURE)/ls-s.ld
 SECURE_LDFLAGS = -T $(SECURE_LINKER_FILE)
 
 SECURE_CPPFLAGS=-DSTM32L552xx \
                 -ICMSIS/Device/ST/STM32L5/Include \
-	              -ICMSIS/CMSIS/Core/Include
+	              -ICMSIS/CMSIS/Core/Include \
+				  -I$(SECURE_INC)
 
 # I am not sure why there are commas here, but writing it likes this passes this whole thing in as a comma separated string (which is correct)s
 SECURE_IMPLIB_FLAGS = -Wl,--cmse-implib,--out-implib=$(SECURE_LIB)
@@ -143,6 +151,12 @@ $(SECURE_BUILD_DIR)/%.o: $(SECURE)/src/%.c | $(SECURE_BUILD_DIR)
 $(SECURE_BUILD_DIR)/%.o: CMSIS/Device/ST/STM32L5/Source/Templates/%.c | $(SECURE_BUILD_DIR)
 	$(CC) $(SECURE_CC_FLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
 
+$(SECURE_BUILD_DIR)/%.o: $(ROBOS)/src/%.c | $(SECURE_BUILD_DIR)
+	$(CC) $(SECURE_CC_FLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
+
+$(SECURE_BUILD_DIR)/%.o: $(SECURE_APP)/src/%.c | $(SECURE_BUILD_DIR)
+	$(CC) $(SECURE_CC_FLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
+
 $(SECURE_BUILD_DIR):
 	mkdir -p $(SECURE_BUILD_DIR)
 
@@ -151,9 +165,13 @@ secure.elf: $(SECURE_OBJS)
 
 ### BUILDING THE NONSECURE ELF ###
 
-NONSECURE = TZ/NS
-NONSECURE_APP_SRC = $(NONSECURE)/src/startup.c $(NONSECURE)/src/test.c
-NONSECURE_SRC = $(NONSECURE_APP_SRC) $(CMSIS_SRC).c
+NONSECURE_APP = TZ-app/NS
+NONSECURE_APP_SRC = $(NONSECURE_APP)/src/test.c $(NONSECURE_APP)/src/app_ns.c
+
+NONSECURE = TZ-bootloader/NS
+NONSECURE_BL_SRC = $(NONSECURE)/src/bootloader_ns.c
+NONSECURE_SRC = $(NONSECURE_BL_SRC) $(CMSIS_SRC).c $(NONSECURE_APP_SRC) # $(ROBOS_SRC_C)
+NONSECURE_INC = $(NONSECURE_APP)/inc # $(ROBOS_INC)
 
 NONSECURE_BUILD_DIR = .build/NS
 
@@ -169,12 +187,19 @@ NONSECURE_LDFLAGS = -T $(NONSECURE_LINKER_FILE)
 
 NONSECURE_CPPFLAGS=-DSTM32L552xx \
                 -ICMSIS/Device/ST/STM32L5/Include \
-	              -ICMSIS/CMSIS/Core/Include
+	              -ICMSIS/CMSIS/Core/Include \
+				  -I$(NONSECURE_INC)
 
 $(NONSECURE_BUILD_DIR)/%.o: $(NONSECURE)/src/%.c | $(NONSECURE_BUILD_DIR)
 	$(CC) $(NONSECURE_CC_FLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
 
 $(NONSECURE_BUILD_DIR)/%.o: CMSIS/Device/ST/STM32L5/Source/Templates/%.c | $(NONSECURE_BUILD_DIR)
+	$(CC) $(NONSECURE_CC_FLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
+
+$(NONSECURE_BUILD_DIR)/%.o: $(ROBOS)/src/%.c | $(NONSECURE_BUILD_DIR)
+	$(CC) $(NONSECURE_CC_FLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
+
+$(NONSECURE_BUILD_DIR)/%.o: $(NONSECURE_APP)/src/%.c | $(NONSECURE_BUILD_DIR)
 	$(CC) $(NONSECURE_CC_FLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
 
 $(NONSECURE_BUILD_DIR):
@@ -183,3 +208,6 @@ $(NONSECURE_BUILD_DIR):
 # because the secure.elf build process also builds the secure lib, we need to build it first
 nonsecure.elf: secure.elf $(NONSECURE_OBJS)
 	$(CC) $(NONSECURE_CC_FLAGS) $(NONSECURE_CPPFLAGS) $(NONSECURE_LDFLAGS) -o $@ $(NONSECURE_OBJS) $(SECURE_LIB)
+
+flash_tz: nonsecure.elf
+	$(PROGRAMMER) $(PROGRAMMER_FLAGS) -c "init" -c "reset halt" -c "program secure.elf verify" -c "program nonsecure.elf verify" -c "reset" -c "exit"

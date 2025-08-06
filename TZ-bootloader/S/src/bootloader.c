@@ -50,7 +50,7 @@ void HardFault_Handler(void) {
 }
 
 extern uint32_t _etext, _sdata, _sidata, _edata, _sbss, _ebss; // symbols defined by the linker
-void main(void);
+void security_config(void);
 extern void __libc_init_array();
 
 void reset_handler(void) {
@@ -74,11 +74,7 @@ void reset_handler(void) {
     }
 
     // __libc_init_array(); // this is from newlib nano. Appears to be a no op right now, but might change depending on what we add
-    main();
-}
+    security_config();
 
-#define NSC __attribute__((cmse_nonsecure_entry))
-
-int NSC add10(int a) {
-  return 10+a;
+    // if non-secure main terminates, we end up here. Maybe blink an LED or something?
 }

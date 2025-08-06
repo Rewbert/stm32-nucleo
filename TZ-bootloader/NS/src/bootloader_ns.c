@@ -56,7 +56,7 @@ void secure_fault(void) {
 
 extern uint32_t _etext, _sdata, _sidata, _edata, _sbss, _ebss; // symbols defined by the linker
 
-// void main(void);
+void main(void);
 // extern void __libc_init_array();
 
 extern int myadd();
@@ -82,7 +82,5 @@ void reset_handler(void) {
     }
 
     // __libc_init_array(); // this is from newlib nano. Appears to be a no op right now, but might change depending on what we add
-    int res = myadd();
-    uint32_t r = *((uint32_t *) 0x0c03f000);
-
+    main();
 }

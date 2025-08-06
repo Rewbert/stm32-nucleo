@@ -1,5 +1,3 @@
-
-
 #include "stm32l5xx.h"
 
 const uint32_t NS_VECTOR_TABLE = 0x08040000U;
@@ -114,7 +112,9 @@ void configure_mpcbb1(void) {
 
 }
 
-void initialise(void) {
+void secure_app_initialise(void);
+
+void security_config(void) {
     configure_sau();
     configure_mpcbb1();
 
@@ -124,16 +124,14 @@ void initialise(void) {
 
     __asm volatile ("msr msp_ns, %0" :: "r" (*((uint32_t *) NS_VECTOR_TABLE)));
 
+    secure_app_initialise();
+
     uint32_t ns_reset_handler_addr = *((uint32_t *)(NS_VECTOR_TABLE + 4U));
     typedef void (*ns_reset_ptr_t)(void) __attribute__((cmse_nonsecure_call));
     ns_reset_ptr_t ns_reset_handler = (ns_reset_ptr_t) (void (*)(void))ns_reset_handler_addr;
 
+    SysTick->CTRL = 0;
+    TZ_SysTick_Config_NS(110000);
+    GPIOA_S->SECCFGR = 0x00000000; // ~GPIO_SECCFGR_SEC9;
     ns_reset_handler();
-}
-
-/***** SECURE USER APPLICATION *****/
-
-void main(void) {
-    initialise();
-    while(1) {}
 }
