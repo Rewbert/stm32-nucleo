@@ -2,7 +2,8 @@ ENTRY(reset_handler)
 
 MEMORY
 {
-    FLASH     (rx):  ORIGIN = 0x0C000000, LENGTH = 252K /* Second of half FLASH, minus 4K for NSC */
+    ISR       (rw):  ORIGIN = 0x0C000000, LENGTH = 2K   /* ISR vector */
+    FLASH     (rx):  ORIGIN = 0x0C000800, LENGTH = 250K /* Second of half FLASH, minus 4K for NSC */
     FLASH_NSC (rx):  ORIGIN = 0x0C03F000, LENGTH = 4K   /* NSC region at end of FLASH */
     SRAM1     (rwx): ORIGIN = 0x30000000, LENGTH = 96K  /* Second of half SRAM1 */
 }
@@ -14,7 +15,7 @@ SECTIONS
     .isr_vector :
     {
         KEEP(*(.isr_vector)) /* The code does not refer to isr_vector, so we must ask to keep it */
-    } > FLASH
+    } > ISR
 
     .gnu.sgstubs :
     {
