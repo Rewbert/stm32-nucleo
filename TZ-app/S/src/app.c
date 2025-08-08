@@ -36,6 +36,8 @@ void configure_button() {
                                               // the alternative is to give the same treatment to RTSR1, which enables triggers on rising edges. We can also
                                               // configure both to generate events on both events.
 
+  // EXTI_S->SECCFGR1 to configure the interrupt as secure
+
   NVIC_SetPriority(EXTI5_IRQn, 2);
   NVIC_EnableIRQ(EXTI5_IRQn);
 }
