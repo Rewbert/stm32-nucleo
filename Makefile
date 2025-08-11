@@ -3,7 +3,7 @@
 # there are two targets, main and mhs
 
 # We can call make clean or make help, or make openocd without specifying the TARGET
-ifneq ($(filter-out clean help openocd secure.elf nonsecure.elf read_option_bytes enable_TZ disable_TZ flash_tz,$(MAKECMDGOALS)),)
+ifneq ($(filter-out clean help openocd secure.elf nonsecure.elf read_option_bytes enable_TZ disable_TZ flash_tz debug_tz,$(MAKECMDGOALS)),)
   ifeq ($(origin TARGET), undefined)
     $(error TARGET is not set. Please run 'make TARGET=main <goal>' or 'make TARGET=mhs <goal>')
   endif
@@ -211,3 +211,6 @@ nonsecure.elf: secure.elf $(NONSECURE_OBJS)
 
 flash_tz: nonsecure.elf
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) -c "init" -c "reset halt" -c "program secure.elf verify" -c "program nonsecure.elf verify" -c "reset" -c "exit"
+
+debug_tz: secure.elf nonsecure.elf
+	$(DEBUGGER) $(DEBUGGERFLAGS) secure.elf -ex "add-symbol-file nonsecure.elf"
