@@ -56,39 +56,26 @@ void delay_ms(uint32_t milliseconds) {
   NVIC_SetPriority(EXTI##pin##_IRQn, 2);                        \
   NVIC_EnableIRQ(EXTI##pin##_IRQn);
 
+#define CONFIGURE_NONSECURE_BUTTON(port, pin) CONFIGURE_BUTTON(port, pin)
+
 void exti5_handler(void) {
   if(EXTI_NS->FPR1 & EXTI_FPR1_FPIF5) {
      EXTI_NS->FPR1 |= EXTI_FPR1_FPIF5;
+     GPIOA_NS->ODR ^= (1 << 9);
      // user code
   }
 }
 
 void main() {
+  CONFIGURE_NONSECURE_BUTTON(A, 5);
 
-    ENABLE_IRQ();
+  ENABLE_IRQ();
 
-    CONFIGURE_BUTTON(A, 5);
-
-    while(1) {
-        GPIOA_NS->ODR ^= (1 << 9);
-        delay_ms(500);
-    }
+  while(1) {
+    delay_ms(500);
+  }
 }
 
 // GPIOA 0x42020000
 // RCC   0x40021000
 // EXTI  0x4002F400
-
-/*
-
-IMR1:    0xff9e0020, reset value is 0xff9e0000, so this seems correct
-FTSR1:   0x00000020, reset value 0x00000000, so this seems correct
-EXTICR1: 0x00000000, reset value 0x00000000, but 0x00 means GPIOA, so this also appears correct
-FPR1:    0x00000000, reset value 0x00000000. Appears correct
-
-GPIO configs
-MODER: 0x00040000
-PUPDR: 0x00000400. 01 is pull up, 10 s pull down. 
-IDR:   0x00000220
-
-*/
