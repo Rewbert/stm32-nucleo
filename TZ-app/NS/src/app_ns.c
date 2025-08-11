@@ -57,9 +57,10 @@ void delay_ms(uint32_t milliseconds) {
   NVIC_EnableIRQ(EXTI##pin##_IRQn);
 
 void exti5_handler(void) {
-  while(1) {}
-  // if(EXTI->FPR1 & EXTI_FPR1_FPIF5)
-  //   EXTI->FPR1 |= EXTI_FPR1_FPIF5;
+  if(EXTI_NS->FPR1 & EXTI_FPR1_FPIF5) {
+     EXTI_NS->FPR1 |= EXTI_FPR1_FPIF5;
+     // user code
+  }
 }
 
 void main() {

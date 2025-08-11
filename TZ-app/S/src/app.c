@@ -34,16 +34,17 @@ void configure_red_led(void) {
 
 #define CONFIGURE_BUTTON(port, pin) CONFIGURE_BUTTON_##pin(port)
 
-#define CONFIGURE_BUTTON_CR(cr, port, pin) \
-  GPIO##port##_S->MODER &= ~(GPIO_MODER_MODE##pin##_Msk); \
-  GPIO##port##_S->PUPDR &= ~(GPIO_PUPDR_PUPD##pin##_Msk); \
-  GPIO##port##_S->PUPDR |= (1 << GPIO_PUPDR_PUPD##pin##_Pos); \
-  EXTI_S->EXTICR[cr - 1] &= ~(EXTI_EXTICR##cr##_EXTI##pin##_Msk); \
+#define CONFIGURE_BUTTON_CR(cr, port, pin)                              \
+  GPIO##port##_S->MODER &= ~(GPIO_MODER_MODE##pin##_Msk);               \
+  GPIO##port##_S->PUPDR &= ~(GPIO_PUPDR_PUPD##pin##_Msk);               \
+  GPIO##port##_S->PUPDR |= (1 << GPIO_PUPDR_PUPD##pin##_Pos);           \
+  EXTI_S->EXTICR[cr - 1] &= ~(EXTI_EXTICR##cr##_EXTI##pin##_Msk);       \
   EXTI_S->EXTICR[cr - 1] |= (0x0 << EXTI_EXTICR##cr##_EXTI##pin##_Pos); \
-  EXTI_S->IMR1 |= (1 << EXTI_IMR1_IM##pin##_Pos); \
-  EXTI_S->FTSR1 |= (1 << EXTI_FTSR1_FT##pin##_Pos); \
-  EXTI_S->SECCFGR1 |= (1 << EXTI_SECCFGR1_SEC##pin##_Pos); \
-  NVIC_SetPriority(EXTI##pin##_IRQn, 2); \
+  EXTI_S->IMR1 |= (1 << EXTI_IMR1_IM##pin##_Pos);                       \
+  EXTI_S->FTSR1 |= (1 << EXTI_FTSR1_FT##pin##_Pos);                     \
+  EXTI_S->SECCFGR1 |= (1 << EXTI_SECCFGR1_SEC##pin##_Pos);              \
+  EXTI_S->PRIVCFGR1 |= (1 << EXTI_PRIVCFGR1_PRIV##pin##_Pos);           \
+  NVIC_SetPriority(EXTI##pin##_IRQn, 2);                                \
   NVIC_EnableIRQ(EXTI##pin##_IRQn);
 
   // #define CONFIGURE_BUTTON(port, pin) \
@@ -139,10 +140,10 @@ void secure_app_initialise() {
 
   configure_red_led();
   MAKE_GPIO_NONSECURE(A, 9);
-  MAKE_GPIO_NONSECURE(A, 5);
 
-  
-  NVIC_SetTargetState(EXTI5_IRQn); // mark this EXTI line as non secure
+ MAKE_GPIO_NONSECURE(A, 5);
+ NVIC_SetTargetState(EXTI5_IRQn); // mark this EXTI line as non secure
+
 //  CONFIGURE_BUTTON(A, 5);
 
 //  configure_button();
