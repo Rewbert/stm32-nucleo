@@ -32,10 +32,6 @@ void secure_app_initialise() {
   CONFIGURE_NONSECURE_BUTTON(A, 5);
   CONFIGURE_NONSECURE_LED(A, 9);
 
-  // ENABLE_GPIO_PORT(A);
-  // CONFIGURE_AS_LED(A, 9);
-  // MAKE_GPIO_NONSECURE(A, 9);
-
   ENABLE_IRQ();
 }
 
