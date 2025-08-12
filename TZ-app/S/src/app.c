@@ -25,6 +25,19 @@ void delay_ms(uint32_t milliseconds) {
   while(ticks < end);
 }
 
+void lpuart1_write(char c) {
+  // Wait until the transmit data register is empty
+  while (!(LPUART1_S->ISR & USART_ISR_TXE)); // Check TXE flag
+  LPUART1_S->TDR = c; // Write character to transmit
+  while (!(LPUART1_S->ISR & USART_ISR_TC)); // Wait for transmission to complete
+}
+
+char lpuart1_read(void) {
+  // Wait until the receive data register is not empty
+  while (!(LPUART1_S->ISR & USART_ISR_RXNE));
+  return (char)(LPUART1_S->RDR & 0xFF); // Read received character
+}
+
 void secure_app_initialise() {
   CONFIGURE_CLOCK_110_MHZ();
   SysTick_Config(110000);
@@ -33,15 +46,24 @@ void secure_app_initialise() {
   CONFIGURE_NONSECURE_BUTTON(A, 5);
   CONFIGURE_NONSECURE_LED(A, 9);
 
+  ENABLE_SECURE_LPUART1();
+
   ENABLE_IRQ();
 
-  // while(1) {
-  //   delay_ms(500);
-  //   TOGGLE_LED(A, 9);
-  // }
+  lpuart1_write('D');
+  lpuart1_write('o');
+  lpuart1_write('n');
+  lpuart1_write('e');
+  lpuart1_write('\r');
+  lpuart1_write('\n');
+
 }
 
 #define NSC __attribute__((cmse_nonsecure_entry))
+
+void NSC secure_lpuart1_write(char c) {
+  lpuart1_write(c);
+}
 
 int NSC add10(int a) {
   return 10+a;
