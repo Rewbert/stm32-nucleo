@@ -77,6 +77,7 @@
   GPIO##port##_NS->ODR ^= (1 << pin);
 
 #define CONFIGURE_CLOCK_110_MHZ()                                             \
+  RCC_S->SECCFGR |= (1 << RCC_SECCFGR_PLLSEC_Pos);                            \
   RCC_S->CR |= RCC_CR_MSIRGSEL;                                               \
   while (!(RCC_S->CR & RCC_CR_MSIRDY));                                       \
   RCC_S->PLLCFGR |= RCC_PLLCFGR_PLLSRC_0;                                     \
