@@ -25,7 +25,7 @@ void delay_ms(uint32_t milliseconds) {
 void exti5_handler(void) {
   if(EXTI_NS->FPR1 & EXTI_FPR1_FPIF5) {
      EXTI_NS->FPR1 |= EXTI_FPR1_FPIF5;
-     TOGGLE_LED(A, 9);
+//     TOGGLE_LED(A, 9);
 //     GPIOA_NS->ODR ^= (1 << 9);
      // user code
   }
@@ -37,6 +37,7 @@ void main() {
   ENABLE_IRQ();
 
   while(1) {
+    TOGGLE_LED(A, 9);
     delay_ms(500);
   }
 }
