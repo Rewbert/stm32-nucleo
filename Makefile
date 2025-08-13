@@ -25,9 +25,9 @@ endif
 CMSIS_SRC = CMSIS/Device/ST/STM32L5/Source/Templates/system_stm32l5xx
 
 ROBOS = robos
-ROBOS_SRC = $(ROBOS)/src/syscalls $(ROBOS)/src/clock $(ROBOS)/src/uart $(ROBOS)/src/gpio $(ROBOS)/src/timer
+ROBOS_SRC = $(ROBOS)/src/syscalls $(ROBOS)/src/clock $(ROBOS)/src/uart $(ROBOS)/src/gpio $(ROBOS)/src/timer $(ROBOS)/src/button
 ROBOS_SRC_STARTUP = $(ROBOS)/startup
-ROBOS_SRC_C = $(ROBOS)/src/syscalls.c $(ROBOS)/src/clock.c $(ROBOS)/src/uart.c $(ROBOS)/src/gpio.c $(ROBOS)/src/timer.c
+ROBOS_SRC_C = $(ROBOS)/src/syscalls.c $(ROBOS)/src/clock.c $(ROBOS)/src/uart.c $(ROBOS)/src/gpio.c $(ROBOS)/src/timer.c $(ROBOS)/src/button.c
 ROBOS_SRC_STARTUP_C = $(ROBOS)/startup.c
 ROBOS_INC = $(ROBOS)/include
 

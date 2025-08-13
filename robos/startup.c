@@ -30,6 +30,29 @@ void debug_handler(void) __attribute__((weak, alias("default_handler")));
 void pend_handler(void) __attribute__((weak, alias("default_handler")));
 void systick_handler(void) __attribute__((weak, alias("default_handler")));
 
+void exti_default_handler(void);
+
+void exti0_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti1_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti2_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti3_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti4_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti5_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti6_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti7_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti8_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti9_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti10_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti11_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti12_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti13_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti14_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti15_handler(void) __attribute__((weak, alias("exti_default_handler")));
+
+void exti_default_handler(void) {
+  while(1) {}
+}
+
 // goes in special section, it has to end up there for everything to work. Look in the reference manual, the part about vector table
 uint32_t isr_vector[VECTOR_SIZE_WORDS] __attribute__((section(".isr_vector"))) = {
     STACK_POINTER_INIT_ADDRESS, // The first entry is the initial stack pointer
@@ -48,6 +71,33 @@ uint32_t isr_vector[VECTOR_SIZE_WORDS] __attribute__((section(".isr_vector"))) =
     0,
     (uint32_t)&pend_handler,
     (uint32_t)&systick_handler,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (uint32_t)&exti0_handler,
+    (uint32_t)&exti1_handler,
+    (uint32_t)&exti2_handler,
+    (uint32_t)&exti3_handler,
+    (uint32_t)&exti4_handler,
+    (uint32_t)&exti5_handler,
+    (uint32_t)&exti6_handler,
+    (uint32_t)&exti7_handler,
+    (uint32_t)&exti8_handler,
+    (uint32_t)&exti9_handler,
+    (uint32_t)&exti10_handler,
+    (uint32_t)&exti11_handler,
+    (uint32_t)&exti12_handler,
+    (uint32_t)&exti13_handler,
+    (uint32_t)&exti14_handler,
+    (uint32_t)&exti15_handler,
     // add more handlers as wanted, I believe we can also add IRQs here, which we can use for fun features
 };
 
