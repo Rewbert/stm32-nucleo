@@ -13,10 +13,10 @@ void exti13_handler(void) {
   if(EXTI_NS->RPR1 & EXTI_RPR1_RPIF13) {
     // clear the rising edge event if so
     EXTI_NS->RPR1 |= EXTI_RPR1_RPIF13;
-    if(b1_callback != NULL) b1_callback();
+    if(b1_callback != 0) b1_callback();
   }
   if(EXTI_NS->FPR1 & EXTI_FPR1_FPIF13) {
     EXTI_NS->FPR1 |= EXTI_FPR1_FPIF13;
-    if(b1_callback) b1_callback();
+    if(b1_callback != 0) b1_callback();
   }
 }

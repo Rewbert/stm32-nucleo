@@ -110,6 +110,15 @@
 
 #define CONFIGURE_BUTTON(port, pin) CONFIGURE_BUTTON_##pin(port)
 
+#define EXTICR_PORT_A 0x00
+#define EXTICR_PORT_B 0x01
+#define EXTICR_PORT_C 0x02
+#define EXTICR_PORT_D 0x03
+#define EXTICR_PORT_E 0x04
+#define EXTICR_PORT_F 0x05
+#define EXTICR_PORT_G 0x06
+#define EXTICR_PORT_H 0x07
+
 #define CONFIGURE_BUTTON_CR(cr, port, pin)                              \
   SET_GPIO_MODE(port, pin, INPUT); \
   SET_GPIO_PUPDR(port, pin, PULL_UP); \
@@ -124,7 +133,7 @@
   SET_GPIO_MODE(C, 13, INPUT); \
   SET_GPIO_PUPDR(C, 13, PULL_DOWN); \
   EXTI_NS->EXTICR[3] &= ~(EXTI_EXTICR4_EXTI13_Msk);       \
-  EXTI_NS->EXTICR[3] |= (0x02 << EXTI_EXTICR4_EXTI13_Pos); \
+  EXTI_NS->EXTICR[3] |= (EXTICR_PORT_C << EXTI_EXTICR4_EXTI13_Pos); \
   EXTI_NS->IMR1           |= (1 << EXTI_IMR1_IM13_Pos);             \
   EXTI_NS->RTSR1          |= (1 << EXTI_RTSR1_RT13_Pos);            \
   NVIC_SetPriority(EXTI13_IRQn, 2);                                \
