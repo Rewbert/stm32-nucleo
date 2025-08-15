@@ -58,20 +58,20 @@ void main() {
   while(1) {
     TOGGLE_LED(A, 9);
     delay_ms(500);
-    lpuart1_write('N');
-    lpuart1_write('S');
-    lpuart1_write('\r');
-    lpuart1_write('\n');
-    secure_lpuart1_write('F');
-    secure_lpuart1_write('r');
-    secure_lpuart1_write('o');
-    secure_lpuart1_write('m');
-    secure_lpuart1_write(' ');
-    secure_lpuart1_write('N');
-    secure_lpuart1_write('S');
-    secure_lpuart1_write('C');
-    secure_lpuart1_write('\r');
-    secure_lpuart1_write('\n');
+    // lpuart1_write('N');
+    // lpuart1_write('S');
+    // lpuart1_write('\r');
+    // lpuart1_write('\n');
+    // secure_lpuart1_write('F');
+    // secure_lpuart1_write('r');
+    // secure_lpuart1_write('o');
+    // secure_lpuart1_write('m');
+    // secure_lpuart1_write(' ');
+    // secure_lpuart1_write('N');
+    // secure_lpuart1_write('S');
+    // secure_lpuart1_write('C');
+    // secure_lpuart1_write('\r');
+    // secure_lpuart1_write('\n');
   }
 }
 

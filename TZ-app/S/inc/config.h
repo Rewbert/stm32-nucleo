@@ -91,37 +91,69 @@
 #define MAKE_GPIO_NONSECURE(port, pin) GPIO##port##_S->SECCFGR &= ~(1 << pin)
 #define MAKE_GPIO_SECURE(port, pin)    GPIO##port##_S->SECCFGR &= ~(0 << pin)
 
-#define CONFIGURE_BUTTON_0(port) CONFIGURE_BUTTON_CR(1, port, 0)
-#define CONFIGURE_BUTTON_1(port) CONFIGURE_BUTTON_CR(1, port, 1)
-#define CONFIGURE_BUTTON_2(port) CONFIGURE_BUTTON_CR(1, port, 2)
-#define CONFIGURE_BUTTON_3(port) CONFIGURE_BUTTON_CR(1, port, 3)
-#define CONFIGURE_BUTTON_4(port) CONFIGURE_BUTTON_CR(2, port, 4)
-#define CONFIGURE_BUTTON_5(port) CONFIGURE_BUTTON_CR(2, port, 5)
-#define CONFIGURE_BUTTON_6(port) CONFIGURE_BUTTON_CR(2, port, 6)
-#define CONFIGURE_BUTTON_7(port) CONFIGURE_BUTTON_CR(2, port, 7)
-#define CONFIGURE_BUTTON_8(port) CONFIGURE_BUTTON_CR(3, port, 8)
-#define CONFIGURE_BUTTON_9(port) CONFIGURE_BUTTON_CR(3, port, 9)
-#define CONFIGURE_BUTTON_10(port) CONFIGURE_BUTTON_CR(3, port, 10)
-#define CONFIGURE_BUTTON_11(port) CONFIGURE_BUTTON_CR(3, port, 11)
-#define CONFIGURE_BUTTON_12(port) CONFIGURE_BUTTON_CR(4, port, 12)
-#define CONFIGURE_BUTTON_13(port) CONFIGURE_BUTTON_CR(4, port, 13)
-#define CONFIGURE_BUTTON_14(port) CONFIGURE_BUTTON_CR(4, port, 14)
-#define CONFIGURE_BUTTON_15(port) CONFIGURE_BUTTON_CR(4, port, 15)
+// Only 'works' for low-numbered EXTI's. For higher numbers, modify this to
+// conditionally write to sec/privcfgr 1 & 2
+#define MAKE_EXTI_SECURE(pin) \
+  EXTI_S->SECCFGR1 |= (1 << EXTI_SECCFGR1_SEC##pin##_Pos); \
+  EXTI_S->PRIVCFGR1 |= (1 << EXTI_PRIVCFGR1_PRIV##pin##_Pos);
 
-#define CONFIGURE_BUTTON(port, pin) CONFIGURE_BUTTON_##pin(port)
+#define FALLING
+#define RISING
+#define BOTH
 
-#define CONFIGURE_BUTTON_CR(cr, port, pin)                              \
-  GPIO##port##_S->MODER  &= ~(GPIO_MODER_MODE##pin##_Msk);              \
-  GPIO##port##_S->PUPDR  &= ~(GPIO_PUPDR_PUPD##pin##_Msk);              \
-  GPIO##port##_S->PUPDR  |= (1 << GPIO_PUPDR_PUPD##pin##_Pos);          \
-  EXTI_S->EXTICR[cr - 1] &= ~(EXTI_EXTICR##cr##_EXTI##pin##_Msk);       \
-  EXTI_S->EXTICR[cr - 1] |= (0x0 << EXTI_EXTICR##cr##_EXTI##pin##_Pos); \
-  EXTI_S->IMR1           |= (1 << EXTI_IMR1_IM##pin##_Pos);             \
-  EXTI_S->FTSR1          |= (1 << EXTI_FTSR1_FT##pin##_Pos);            \
-  EXTI_S->SECCFGR1       |= (1 << EXTI_SECCFGR1_SEC##pin##_Pos);        \
-  EXTI_S->PRIVCFGR1      |= (1 << EXTI_PRIVCFGR1_PRIV##pin##_Pos);      \
-  NVIC_SetPriority(EXTI##pin##_IRQn, 2);                                \
+#define EXTI_TRIGGER_ON_FALLING(pin) EXTI_S->FTSR1 |= (1 << EXTI_FTSR1_FT##pin##_Pos);
+#define EXTI_TRIGGER_ON_RISING(pin)  EXTI_S->RTSR1 |= (1 << EXTI_RTSR1_RT##pin##_Pos);
+#define EXTI_TRIGGER_ON_BOTH(pin) \
+  EXTI_TRIGGER_ON_FALLING(pin); \
+  EXTI_TRIGGER_ON_RISING(pin);
+
+#define EXTI_TRIGGER_ON(pin, edge) EXTI_TRIGGER_ON_##edge(pin)
+
+#define EXTI_UNMASK_INTERRUPTS(pin) EXTI_S->IMR1 |= (1 << EXTI_IMR1_IM##pin##_Pos);
+
+#define EXTI_PORTCODE_A 0x00
+#define EXTI_PORTCODE_B 0x01
+#define EXTI_PORTCODE_C 0x02
+#define EXTI_PORTCODE_D 0x03
+#define EXTI_PORTCODE_E 0x04
+#define EXTI_PORTCODE_F 0x05
+#define EXTI_PORTCODE_G 0x06
+#define EXTI_PORTCODE_H 0x07
+
+#define EXTI_ROUTE_CR_PIN(cr, pin, portcode) \
+  EXTI_S->EXTICR[cr - 1] &= ~(EXTI_EXTICR##cr##_EXTI##pin##_Msk); \
+  EXTI_S->EXTICR[cr - 1] |= (portcode << EXTI_EXTICR##cr##_EXTI##pin##_Pos);
+
+#define EXTI_ROUTE_GPIO_0(port) EXTI_ROUTE_CR_PIN(1, 0, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_1(port) EXTI_ROUTE_CR_PIN(1, 1, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_2(port) EXTI_ROUTE_CR_PIN(1, 2, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_3(port) EXTI_ROUTE_CR_PIN(1, 3, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_4(port) EXTI_ROUTE_CR_PIN(2, 4, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_5(port) EXTI_ROUTE_CR_PIN(2, 5, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_6(port) EXTI_ROUTE_CR_PIN(2, 6, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_7(port) EXTI_ROUTE_CR_PIN(2, 7, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_8(port) EXTI_ROUTE_CR_PIN(3, 8, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_9(port) EXTI_ROUTE_CR_PIN(3, 9, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_10(port) EXTI_ROUTE_CR_PIN(3, 10, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_11(port) EXTI_ROUTE_CR_PIN(3, 11, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_12(port) EXTI_ROUTE_CR_PIN(4, 12, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_13(port) EXTI_ROUTE_CR_PIN(4, 13, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_14(port) EXTI_ROUTE_CR_PIN(4, 14, EXTI_PORTCODE_##port)
+#define EXTI_ROUTE_GPIO_15(port) EXTI_ROUTE_CR_PIN(4, 15, EXTI_PORTCODE_##port)
+
+#define EXTI_ROUTE_GPIO(port, pin) EXTI_ROUTE_GPIO_##pin(port)
+
+#define NVIC_CONFIGURE_EXTI_IRQ(pin, priority)  \
+  NVIC_SetPriority(EXTI##pin##_IRQn, priority); \
   NVIC_EnableIRQ(EXTI##pin##_IRQn);
+
+#define CONFIGURE_BUTTON(port, pin)      \
+  SET_GPIO_MODE(port, pin, INPUT);       \
+  SET_GPIO_PUPDR(port, pin, PULL_UP);    \
+  EXTI_ROUTE_GPIO(port, pin);            \
+  EXTI_UNMASK_INTERRUPTS(pin);           \
+  EXTI_TRIGGER_ON(pin, FALLING);         \
+  NVIC_CONFIGURE_EXTI_IRQ(pin, 2);
 
 #define CONFIGURE_NONSECURE_BUTTON(port, pin) \
   ENABLE_GPIO_PORT(port); \
@@ -130,7 +162,8 @@
 
 #define CONFIGURE_SECURE_BUTTON(port, pin) \
   ENABLE_GPIO_PORT(port); \
-  CONFIGURE_BUTTON(port, pin);
+  CONFIGURE_BUTTON(port, pin); \
+  MAKE_EXTI_SECURE(pin);
 
 #define CONFIGURE_SECURE_LED(port, pin) \
   ENABLE_GPIO_PORT(port); \

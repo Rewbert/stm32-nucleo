@@ -5,9 +5,32 @@
 #define ENABLE_IRQ()  __asm volatile ("cpsie i" : : : "memory")
 #define DISABLE_IRQ() __asm volatile ("cpsid i" : : : "memory")
 
+void lpuart1_write(char c);
+
 void exti5_handler(void) {
-  if(EXTI_S->FPR1 & EXTI_FPR1_FPIF5)
+  if(EXTI_S->FPR1 & EXTI_FPR1_FPIF5) {
     EXTI_S->FPR1 |= EXTI_FPR1_FPIF5;
+    lpuart1_write('f');
+    lpuart1_write('a');
+    lpuart1_write('l');
+    lpuart1_write('l');
+    lpuart1_write('i');
+    lpuart1_write('n');
+    lpuart1_write('g');
+    lpuart1_write('\r');
+    lpuart1_write('\n');
+  }
+  if(EXTI_S->RPR1 & EXTI_RPR1_RPIF5) {
+    EXTI_S->RPR1 |= EXTI_RPR1_RPIF5;
+    lpuart1_write('r');
+    lpuart1_write('i');
+    lpuart1_write('s');
+    lpuart1_write('i');
+    lpuart1_write('n');
+    lpuart1_write('g');
+    lpuart1_write('\r');
+    lpuart1_write('\n');
+  }
 }
 
 volatile uint32_t ticks;
@@ -43,12 +66,12 @@ void secure_app_initialise() {
   SysTick_Config(110000);
   TZ_SysTick_Config_NS(110000);
 
-  CONFIGURE_NONSECURE_BUTTON(A, 5);
-  CONFIGURE_NONSECURE_LED(A, 9);
-
   ENABLE_SECURE_LPUART1();
 
   ENABLE_IRQ();
+
+  CONFIGURE_SECURE_BUTTON(A, 5);
+  CONFIGURE_NONSECURE_LED(A, 9);
 
   lpuart1_write('D');
   lpuart1_write('o');
