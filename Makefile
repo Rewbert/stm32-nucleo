@@ -115,7 +115,7 @@ clean:
 
 # path to the secure project
 SECURE_APP = TZ-app/S
-SECURE_APP_SRC = $(SECURE_APP)/src/app.c
+SECURE_APP_SRC = $(SECURE_APP)/src/app.c $(SECURE_APP)/src/persist.c
 
 SECURE = TZ-bootloader/S
 SECURE_BL_SRC = $(SECURE)/src/security_config.c $(SECURE)/src/bootloader.c # add the secure sources here, one by one

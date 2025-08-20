@@ -3,7 +3,8 @@ ENTRY(reset_handler)
 MEMORY
 {
     ISR       (rw):  ORIGIN = 0x0C000000, LENGTH = 2K   /* ISR vector */
-    FLASH     (rx):  ORIGIN = 0x0C000800, LENGTH = 250K /* Second of half FLASH, minus 4K for NSC */
+    FLASH     (rx):  ORIGIN = 0x0C000800, LENGTH = 248K /* Second of half FLASH, minus 4K for NSC, and minus 2K for PERSIST */
+    PERSIST   (rw):  ORIGIN = 0x0C03E800, LENGTH = 2K   /* Segment for persistent, mutable, data */
     FLASH_NSC (rx):  ORIGIN = 0x0C03F000, LENGTH = 4K   /* NSC region at end of FLASH */
     SRAM1     (rwx): ORIGIN = 0x30000000, LENGTH = 96K  /* Second of half SRAM1 */
 }
@@ -80,5 +81,15 @@ SECTIONS
     . = ALIGN(8);
     _end = .;
     PROVIDE(end = .);
+
+    .persist (NOLOAD) :
+    {
+        . = ALIGN(8);
+        __persist_start__ = .;
+        KEEP(*(.persist))
+        KEEP(*(.persist.*))
+        . = ALIGN(8);
+        __persist_end__ = .;
+    } > PERSIST
 
 }

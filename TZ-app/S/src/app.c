@@ -1,11 +1,67 @@
 #include "stm32l5xx.h"
 
 #include "config.h"
+#include "persist.h"
 
 #define ENABLE_IRQ()  __asm volatile ("cpsie i" : : : "memory")
 #define DISABLE_IRQ() __asm volatile ("cpsid i" : : : "memory")
 
+#define PERSISTENT __attribute__((section(".persist"), used, aligned(8))) volatile const
+
 void lpuart1_write(char c);
+
+PERSISTENT uint32_t pin[4];
+void inc_pin() {
+  uint32_t copy[4];
+  for(int i = 0; i < 4; i++) {
+    copy[i] = pin[i];
+  }
+  copy[3]++;
+
+  DISABLE_IRQ();
+  int ok0 = flash_secure_erase_page(1, 125);
+  int ok1 = flash_secure_program_dw((uint32_t)&pin[0], ((uint64_t)copy[1] << 32 | copy[0]));
+  int ok2 = flash_secure_program_dw((uint32_t)&pin[2], ((uint64_t)copy[3] << 32 | copy[2]));
+
+  if(ok0 == 1) {
+    lpuart1_write('o');
+    lpuart1_write('k');
+    lpuart1_write('\r');
+    lpuart1_write('\n');
+  } else {
+    lpuart1_write('n');
+    lpuart1_write('o');
+    lpuart1_write('\r');
+    lpuart1_write('\n');
+  }
+
+  if(ok1 == 1) {
+    lpuart1_write('o');
+    lpuart1_write('k');
+    lpuart1_write('\r');
+    lpuart1_write('\n');
+  } else {
+    lpuart1_write('n');
+    lpuart1_write('o');
+    lpuart1_write('\r');
+    lpuart1_write('\n');
+  }
+
+  if(ok2 == 1) {
+    lpuart1_write('o');
+    lpuart1_write('k');
+    lpuart1_write('\r');
+    lpuart1_write('\n');
+  } else {
+    lpuart1_write('n');
+    lpuart1_write('o');
+    lpuart1_write('\r');
+    lpuart1_write('\n');
+  }
+
+  ENABLE_IRQ();
+  // write copy to pin
+}
 
 void exti5_handler(void) {
   if(EXTI_S->FPR1 & EXTI_FPR1_FPIF5) {
@@ -81,6 +137,20 @@ void secure_app_initialise() {
   lpuart1_write('\r');
   lpuart1_write('\n');
 
+  inc_pin();
+  lpuart1_write(0x30 + pin[0]);
+  lpuart1_write('\r');
+  lpuart1_write('\n');
+  lpuart1_write(0x30 + pin[1]);
+  lpuart1_write('\r');
+  lpuart1_write('\n');
+  lpuart1_write(0x30 + pin[2]);
+  lpuart1_write('\r');
+  lpuart1_write('\n');
+  lpuart1_write(0x30 + pin[3]);
+  lpuart1_write('\r');
+  lpuart1_write('\n');
+
 }
 
 #define NSC __attribute__((cmse_nonsecure_entry))
@@ -107,3 +177,7 @@ int NSC add10(int a) {
 // secure PWR 0x50007000
 // secure SYSCFG 0x5001000
 // secure EXTI 0x5002F400, FPR1 is offset by 0x10
+
+// secure FLASH 0x50022000, and SECSR offset is 0x24. Reset value 0x00000000
+// SECCR offset is 0x2C, reset value 0x80000000
+// 00000001000000000000001111101010
