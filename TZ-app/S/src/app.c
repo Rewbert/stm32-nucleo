@@ -66,11 +66,12 @@ void secure_app_initialise() {
   SysTick_Config(110000);
   TZ_SysTick_Config_NS(110000);
 
-  ENABLE_SECURE_LPUART1();
+  ENABLE_LPUART1();
 
   ENABLE_IRQ();
 
-  CONFIGURE_SECURE_BUTTON(A, 5);
+  CONFIGURE_NONSECURE_BUTTON(A, 5);
+  CONFIGURE_NONSECURE_BUTTON(A, 6);
   CONFIGURE_NONSECURE_LED(A, 9);
 
   lpuart1_write('D');

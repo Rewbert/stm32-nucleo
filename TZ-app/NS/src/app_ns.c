@@ -22,13 +22,32 @@ void delay_ms(uint32_t milliseconds) {
   while(ticks < end);
 }
 
+int key = 0;
+int keyready = 0;
+
 void exti5_handler(void) {
   if(EXTI_NS->FPR1 & EXTI_FPR1_FPIF5) {
      EXTI_NS->FPR1 |= EXTI_FPR1_FPIF5;
-//     TOGGLE_LED(A, 9);
-//     GPIOA_NS->ODR ^= (1 << 9);
-     // user code
+     key = 0x30;
+     keyready = 1;
   }
+}
+
+void exti6_handler(void) {
+  if(EXTI_NS->FPR1 & EXTI_FPR1_FPIF6) {
+     EXTI_NS->FPR1 |= EXTI_FPR1_FPIF6;
+     key = 0x31;
+     keyready = 1;
+  }
+}
+
+int read_key(uint32_t timeout) {
+  uint32_t end = ticks + timeout;
+  while(!keyready) {
+    if(ticks > end) return -1;
+  }
+  keyready = 0;
+  return key;
 }
 
 void lpuart1_write(char c) {
@@ -52,8 +71,19 @@ char lpuart1_read(void) {
 
 void main() {
   CONFIGURE_NONSECURE_BUTTON(A, 5);
+  CONFIGURE_NONSECURE_BUTTON(A, 6);
 
   ENABLE_IRQ();
+
+  int k1 = read_key(5000);
+  int k2 = read_key(5000);
+
+  lpuart1_write((char) k1);
+  lpuart1_write('\r');
+  lpuart1_write('\n');
+  lpuart1_write((char) k2);
+  lpuart1_write('\r');
+  lpuart1_write('\n');
 
   while(1) {
     TOGGLE_LED(A, 9);
