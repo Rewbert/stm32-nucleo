@@ -6,86 +6,94 @@
 #define ENABLE_IRQ()  __asm volatile ("cpsie i" : : : "memory")
 #define DISABLE_IRQ() __asm volatile ("cpsid i" : : : "memory")
 
+#define NSC        __attribute__((cmse_nonsecure_entry))
 #define PERSISTENT __attribute__((section(".persist"), used, aligned(8))) volatile const
 
 void lpuart1_write(char c);
+void write_string(char *str);
 
+PERSISTENT uint32_t def;
 PERSISTENT uint32_t pin[4];
-void inc_pin() {
-  uint32_t copy[4];
+
+int isDefaultConfigured() {
+  return def == 0xFFFFFFFF;
+}
+
+/* Verify whether a code is the correct one or not */
+int verifyPin(uint32_t *candidate) {
   for(int i = 0; i < 4; i++) {
-    copy[i] = pin[i];
+    if (!(pin[i] == candidate[i])) {
+      return 0;
+    }
   }
-  copy[3]++;
+  return 1;
+}
 
-  DISABLE_IRQ();
-  int ok0 = flash_secure_erase_page(1, 125);
-  int ok1 = flash_secure_program_dw((uint32_t)&pin[0], ((uint64_t)copy[1] << 32 | copy[0]));
-  int ok2 = flash_secure_program_dw((uint32_t)&pin[2], ((uint64_t)copy[3] << 32 | copy[2]));
+NSC int changePin(uint32_t *old, uint32_t *new) {
+  if(verifyPin(old)) {
+    DISABLE_IRQ();
+    if(!flash_secure_erase_page(1, 125)) {
+      return 0;
+    }
+    if(!flash_secure_program_dw((uint32_t)&pin[0], ((uint64_t)new[1] << 32 | new[0]))) {
+      return 0;
+    }
+    if(!flash_secure_program_dw((uint32_t)&pin[2], ((uint64_t)new[3] << 32 | new[2]))) {
+      return 0;
+    }
+    if(def) {
+      if(!flash_secure_program_dw((uint32_t)&def, 0x00000000)) {
+        return 0;
+      }
+    }
+    ENABLE_IRQ();
+    return 1;
+  }
+  return 0;
+}
 
-  if(ok0 == 1) {
-    lpuart1_write('o');
-    lpuart1_write('k');
-    lpuart1_write('\r');
-    lpuart1_write('\n');
+void lock() {
+  TURN_ON_LED(A, 9);
+  TURN_OFF_LED(C, 7);
+}
+
+void unlock() {
+  TURN_ON_LED(C, 7);
+  TURN_OFF_LED(A, 9);
+}
+
+NSC int lockDoor(uint32_t *code) {
+  if(verifyPin(code)) {
+    lock();
+    return 1;
+  }
+  return 0;
+}
+
+NSC int unlockDoor(uint32_t *code) {
+  if(verifyPin(code)) {
+    unlock();
+    return 1;
+  }
+  return 0;
+}
+
+void print_result(int code) {
+  if(code == 0) {
+    write_string("no\r\n");
   } else {
-    lpuart1_write('n');
-    lpuart1_write('o');
-    lpuart1_write('\r');
-    lpuart1_write('\n');
+    write_string("ok\r\n");
   }
-
-  if(ok1 == 1) {
-    lpuart1_write('o');
-    lpuart1_write('k');
-    lpuart1_write('\r');
-    lpuart1_write('\n');
-  } else {
-    lpuart1_write('n');
-    lpuart1_write('o');
-    lpuart1_write('\r');
-    lpuart1_write('\n');
-  }
-
-  if(ok2 == 1) {
-    lpuart1_write('o');
-    lpuart1_write('k');
-    lpuart1_write('\r');
-    lpuart1_write('\n');
-  } else {
-    lpuart1_write('n');
-    lpuart1_write('o');
-    lpuart1_write('\r');
-    lpuart1_write('\n');
-  }
-
-  ENABLE_IRQ();
-  // write copy to pin
 }
 
 void exti5_handler(void) {
   if(EXTI_S->FPR1 & EXTI_FPR1_FPIF5) {
     EXTI_S->FPR1 |= EXTI_FPR1_FPIF5;
-    lpuart1_write('f');
-    lpuart1_write('a');
-    lpuart1_write('l');
-    lpuart1_write('l');
-    lpuart1_write('i');
-    lpuart1_write('n');
-    lpuart1_write('g');
-    lpuart1_write('\r');
-    lpuart1_write('\n');
+    write_string("falling\r\n");
   }
   if(EXTI_S->RPR1 & EXTI_RPR1_RPIF5) {
     EXTI_S->RPR1 |= EXTI_RPR1_RPIF5;
-    lpuart1_write('r');
-    lpuart1_write('i');
-    lpuart1_write('s');
-    lpuart1_write('i');
-    lpuart1_write('n');
-    lpuart1_write('g');
-    lpuart1_write('\r');
-    lpuart1_write('\n');
+    write_string("rising\r\n");
   }
 }
 
@@ -102,6 +110,12 @@ void delay_ms(uint32_t milliseconds) {
       while (ticks > start);
   }
   while(ticks < end);
+}
+
+void write_string(char *str) {
+  while(*str != '\0') {
+    lpuart1_write(*str++);
+  }
 }
 
 void lpuart1_write(char c) {
@@ -126,34 +140,41 @@ void secure_app_initialise() {
 
   ENABLE_IRQ();
 
+  CONFIGURE_NONSECURE_BUTTON(A, 2);
+  CONFIGURE_NONSECURE_BUTTON(A, 3);
   CONFIGURE_NONSECURE_BUTTON(A, 5);
   CONFIGURE_NONSECURE_BUTTON(A, 6);
-  CONFIGURE_NONSECURE_LED(A, 9);
+  CONFIGURE_NONSECURE_BUTTON(A, 7);
+  CONFIGURE_NONSECURE_BUTTON(A, 8);
+  CONFIGURE_NONSECURE_BUTTON(A, 10);
+  CONFIGURE_SECURE_LED(A, 9);
+  CONFIGURE_SECURE_LED(C, 7);
 
-  lpuart1_write('D');
-  lpuart1_write('o');
-  lpuart1_write('n');
-  lpuart1_write('e');
-  lpuart1_write('\r');
-  lpuart1_write('\n');
+  write_string("Done\r\n");
 
-  inc_pin();
-  lpuart1_write(0x30 + pin[0]);
-  lpuart1_write('\r');
-  lpuart1_write('\n');
-  lpuart1_write(0x30 + pin[1]);
-  lpuart1_write('\r');
-  lpuart1_write('\n');
-  lpuart1_write(0x30 + pin[2]);
-  lpuart1_write('\r');
-  lpuart1_write('\n');
-  lpuart1_write(0x30 + pin[3]);
-  lpuart1_write('\r');
-  lpuart1_write('\n');
+//  flash_secure_erase_page(1, 125);
+  if(def) {
+    write_string("Default pin-code is used\r\n");
+  }
+  
+  TURN_ON_LED(A, 9);
+  TURN_OFF_LED(C, 7);
+
+  // uint32_t first[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+  // print_result(verifyPin(first));
+
+  // uint32_t new[4] = {1, 2, 3, 4};
+  // print_result(changePin(first, new));
+  // print_result(verifyPin(new));
+
+  // write_string("please enter a character> ");
+  // char c = lpuart1_read();
+  // lpuart1_write(c);
+  // write_string("\r\nreceived character was> ");
+  // lpuart1_write(c);
+  // write_string("\r\n");
 
 }
-
-#define NSC __attribute__((cmse_nonsecure_entry))
 
 void NSC secure_lpuart1_write(char c) {
   lpuart1_write(c);

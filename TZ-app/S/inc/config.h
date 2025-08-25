@@ -174,7 +174,13 @@
   MAKE_GPIO_NONSECURE(port, pin);
 
 #define TOGGLE_LED(port, pin) \
-  GPIO##port##_NS->ODR ^= (1 << pin);
+  GPIO##port##_S->ODR ^= (1 << pin);
+
+#define TURN_ON_LED(port, pin) \
+  GPIO##port##_S->ODR |= (1 << pin);
+
+#define TURN_OFF_LED(port, pin) \
+  GPIO##port##_S->ODR &= ~(1 << pin);
 
 #define CONFIGURE_CLOCK_110_MHZ()                                             \
   RCC_S->SECCFGR |= (1 << RCC_SECCFGR_PLLSEC_Pos);                            \
