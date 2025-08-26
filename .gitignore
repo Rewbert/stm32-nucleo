@@ -1,5 +1,8 @@
 .build/
 newlib-cygwin/
 tmp_libc/
+*/dist-newstyle
+*/dist-mcabal
 
-prog.elf
+*.elf
+*.lib

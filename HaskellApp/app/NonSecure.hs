@@ -1,9 +1,10 @@
+{-# LANGUAGE InstanceSigs #-}
 module NonSecure where
 
 import Foreign.Storable
 import Foreign.Ptr
 import Control.Monad.State
-import Data.IORef
+import Control.Monad.IO.Class
 
 import Setup
 
@@ -21,6 +22,9 @@ instance Applicative Secure where
 
 instance Monad Secure where
     SecureDummy >>= _ = SecureDummy
+
+unsafeLiftIO :: IO a -> Secure a
+unsafeLiftIO _ = SecureDummy
 
 instance Storable a => Storable (Secure a) where
     sizeOf :: Storable a => Secure a -> Int
@@ -43,7 +47,9 @@ instance (Show a, Read a) => NonSecureCallable (Secure a) where
     mkNSC v = \_ -> fmap show v
 
 instance (Show a, Read a, NonSecureCallable b) => NonSecureCallable (a -> b) where
-    mkNSC f = \(x:xs) -> mkNSC (f $ read x) xs
+    mkNSC f = \list -> case list of
+                         [] -> error "cannot have empty list here"
+                         (x:xs) -> mkNSC (f $ read x) xs
 
 -- * API for the user to designate functions as NSC, and applying them
 
@@ -56,7 +62,7 @@ callable _ = do
     return $ Callable (counter setupst) []
 
 (<.>) :: (Show a, Read a) => Callable (a -> b) -> a -> Callable b
-Callable id xs <.> x = Callable id (show x : xs)
+Callable fun xs <.> x = Callable fun (show x : xs)
 
 -- * Secure references, to enable mutable state in the secure world
 
@@ -90,4 +96,4 @@ nonSecure ns = do
     return $ v `seq` ()
 
 runSetup :: Setup () -> IO ()
-runSetup _ = undefined
+runSetup (Setup s) = evalStateT s initialSetupState

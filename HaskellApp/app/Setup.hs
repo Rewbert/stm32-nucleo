@@ -1,6 +1,10 @@
-module Setup (Setup, SetupState(..)) where
+{-# LANGUAGE MultiParamTypeClasses #-}
+module Setup (Setup(..), SetupState(..), initialSetupState) where
 
 import Control.Monad.State
+
+-- import Control.Monad.State.Class as STC
+import Control.Monad.IO.Class as IOC
 
 -- * Setup monad, for configurations that affect both applications
 

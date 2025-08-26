@@ -1,10 +1,12 @@
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Secure where
 
 import Foreign.Storable
 import Foreign.Ptr
 import Control.Monad.State
 import Data.IORef
-import Data.Proxy
 import Unsafe.Coerce
 
 import Setup
@@ -26,6 +28,9 @@ instance Monad Secure where
         a <- ioma
         let Secure b = k a
         b
+
+unsafeLiftIO :: IO a -> Secure a
+unsafeLiftIO = Secure
 
 -- | We will pretend that we store actual secure values, but we actually only need to be
 -- able to read storable values from the heap and reconstruct them as Secure (return -val-).
@@ -59,7 +64,9 @@ instance (Show a, Read a) => NonSecureCallable (Secure a) where
     mkNSC v = \_ -> fmap show v
 
 instance (Show a, Read a, NonSecureCallable b) => NonSecureCallable (a -> b) where
-    mkNSC f = \(x:xs) -> mkNSC (f $ read x) xs
+    mkNSC f = \inp -> case inp of
+                        []     -> error "cannot have empty list here"
+                        (x:xs) -> mkNSC (f $ read x) xs
 
 -- * API for the user to designate functions as NSC, and applying them
 
@@ -111,4 +118,15 @@ nonSecure :: IO a -> Setup ()
 nonSecure _ = return ()
 
 runSetup :: Setup () -> IO ()
-runSetup _ = undefined
+runSetup (Setup s) = do
+    (a, (SetupState { nonSecureCallable = vTable })) <- runStateT s initialSetupState
+    -- now, here is where we wish to return and let the normal world execute. In normal Haskell,
+    -- we would go to sleep here until some event wakes us up. On the board we cannot do this, so we
+    -- instead need to make sure that the vTable we've just created isn't GC'd, and then return to
+    -- nonsecure world.
+    --
+    -- When a NSC function is called we need to make sure that we can query the vTable for the function.
+
+    -- bindvTable vTable
+
+    return ()
