@@ -2,7 +2,10 @@ CC      := arm-none-eabi-gcc
 GDB     := arm-none-eabi-gdb
 OBJCOPY := arm-none-eabi-objcopy
 
+TRUSTZONE_AWARENESS := -mcmse
 NEWLIB_NANO := --specs=nano.specs
+NO_STDLIB := --specs=nosys.specs
+NOSTARTFILES := -nostartfiles
 CPUFLAGS := -mcpu=cortex-m33 -mthumb
 
 COMMON_DEFS := -DSTM32L552xx
