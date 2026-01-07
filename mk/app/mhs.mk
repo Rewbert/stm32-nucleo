@@ -9,14 +9,15 @@ APP_O := $(patsubst $(APP)/src/%.c,build/app/$(APP)/%.o,$(APP_SRC))
 
 APP_INC := $(APP)/include
 
-CPPFLAGS += -I$(APP_INC)
+MHS_CPPFLAGS = $(CPPFLAGS) -I$(APP_INC) -I$(ROBOS_INC)
+MHS_CFLAGS = $(CFLAGS) $(DEBUG)
 
 build/app/$(APP)/%.o: $(APP)/src/%.c
 	mkdir -p $(dir $@)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(MHS_CPPFLAGS) $(MHS_CFLAGS) -c $< -o $@
 
-LINKER_FILE=linker_script.ld
-LDFLAGS=-T $(LINKER_FILE) $(NEWLIB_NANO)
+MHS_LINKER_FILE=linker_script.ld
+MHS_LDFLAGS=-T $(MHS_LINKER_FILE) $(NEWLIB_NANO)
 
 mhs.elf: $(APP_O) $(PLATFORM_O) $(ROBOS_LIB)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(APP_O) $(PLATFORM_O) $(ROBOS_LIB) -o mhs.elf
+	$(CC) $(MHS_CPPFLAGS) $(MHS_CFLAGS) $(MHS_LDFLAGS) $(APP_O) $(PLATFORM_O) $(ROBOS_LIB) -o mhs.elf

@@ -7,7 +7,8 @@ TZ_APP := TZ-app
 # building the secure elf will produce this lib, telling the nonsecure what NSC functions there are
 SECURE_LIB = build/secure_cmse_import.lib
 
-CFLAGS += \
+TZ_CFLAGS = \
+  $(CFLAGS) \
   $(TRUSTZONE_AWARENESS) \
   $(NO_STDLIB) \
   $(NOSTARTFILES) \

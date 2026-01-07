@@ -27,10 +27,10 @@ SECURE_LDFLAGS = -T $(SECURE_LINKER_FILE)
 
 build/secure/%.o: %.c
 	mkdir -p $(dir $@)
-	$(CC) $(SECURE_CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(SECURE_CPPFLAGS) $(TZ_CFLAGS) -c $< -o $@
 
 # final target
 
 # TODO this builds two things, the elf and the lib. Ask someone if I can indicate that these two are built by this one rule
 $(SECURE_ELF): $(SECURE_O)
-	$(CC) $(CFLAGS) $(SECURE_CPPFLAGS) $(SECURE_LDFLAGS) -o $@ $^ $(IMPLIB_FLAGS)
+	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) $(SECURE_LDFLAGS) -o $@ $^ $(IMPLIB_FLAGS)
