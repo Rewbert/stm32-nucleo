@@ -23,7 +23,7 @@ flash_tz: nonsecure.elf
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) -c "init" -c "reset halt" -c "program secure.elf verify" -c "program nonsecure.elf verify" -c "reset" -c "exit"
 
 ##### debugging #####
-# run `make openocd` in one terminal, and in another `make debug FILE=<the elf>`
+# run `make openocd` in one terminal, and in another `make debug FILE=<the elf>`, or `make debug_tz`
 
 DEBUGGER = arm-none-eabi-gdb
 DEBUG_HOST = localhost
@@ -36,3 +36,6 @@ $(PROGRAMMER):
 debug: $(FILE)
 	test -n "$(FILE)" || (echo "Usage: make debug FILE=main.elf" && exit 1)
 	$(DEBUGGER) $(DEBUGGERFLAGS) $(FILE)
+
+debug_tz: secure.elf nonsecure.elf
+	$(DEBUGGER) $(DEBUGGERFLAGS) secure.elf -ex "add-symbol-file nonsecure.elf"
