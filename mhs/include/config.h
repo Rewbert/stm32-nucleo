@@ -4,6 +4,7 @@
 #define WANT_STDIO 1
 
 #define WANT_FLOAT 1
+#define WANT_FLOAT32 1
 
 #define WANT_MD5 0
 

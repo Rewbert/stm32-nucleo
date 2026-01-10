@@ -1,4 +1,4 @@
 
-#include "config_stm32l5.h"
+#include "config.h"
 
 #include "eval.c"
