@@ -19,7 +19,8 @@ flash: $(FILE)
 	test -n "$(FILE)" || (echo "Usage: make flash FILE=main.elf" && exit 1)
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) -c "program $(FILE) verify reset exit"
 
-##### debugging
+##### debugging #####
+# run `make openocd` in one terminal, and in another `make debug FILE=<the elf>`
 
 DEBUGGER = arm-none-eabi-gdb
 DEBUG_HOST = localhost
