@@ -4,6 +4,9 @@
 #include "hal/core/gpio.h"
 #include "hal/config/gpio.h"
 
+/**
+ * @brief Make a GPIO pin only accessible from the secure world
+ */
 void gpio_make_secure(gpio_t gpio) {
 #if HAL_SECURE
     GPIO_TypeDef *port = gpio_port_base(gpio.port);
@@ -11,6 +14,9 @@ void gpio_make_secure(gpio_t gpio) {
 #endif
 }
 
+/**
+ * @brief Make a GPIO pin accessible from the nonsecure world
+ */
 void gpio_make_nonsecure(gpio_t gpio) {
 #if HAL_SECURE
     GPIO_TypeDef *port = gpio_port_base(gpio.port);
