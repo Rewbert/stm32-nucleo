@@ -29,20 +29,17 @@ static inline uint32_t gpio_pin_mask(gpio_t gpio) {
 }
 
 /**
- * @brief Convert HAL gpio pin into corresponding CMSIS PUPDR shift
+ * @brief Convert HAL gpio pin into corresponding CMSIS 2bit shift
  */
- static inline uint32_t gpio_pupdr_shift(uint8_t pin) {
-    // The PUPDR register reserves 2 bits per pin
-    return (pin * 2U);
+static inline uint32_t gpio_2bit_shift(uint8_t pin) {
+    return pin * 2U;
 }
 
 /**
- * @brief Convert HAL gpio pin into corresponding CMSIS PUPDR mask
+ * @brief Convert HAL gpio pin into corresponding CMSIS 2bit mask
  */
-static inline uint32_t gpio_pupdr_mask(uint8_t pin) {
-    // The PUPDR register reserves 2 bits per pin, which 0x3U represents
-    uint32_t shift = gpio_pupdr_shift(pin);
-    return 0x3U << shift;
+static inline uint32_t gpio_2bit_mask(uint8_t pin) {
+    return 0x3U << gpio_2bit_shift(pin);
 }
 
 #endif // PLATFORM_GPIO_MAP_H

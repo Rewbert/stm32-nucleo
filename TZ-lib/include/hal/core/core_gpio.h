@@ -31,4 +31,11 @@ typedef enum {
     GPIO_PULLDOWN,
 } gpio_pupdr_t;
 
+typedef enum {
+    GPIO_MODE_INPUT = 0,
+    GPIO_MODE_OUTPUT,
+    GPIO_MODE_AF,
+    GPIO_MODE_ANALOG,
+} gpio_mode_t;
+
 #endif // CORE_GPIO_H

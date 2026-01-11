@@ -51,9 +51,24 @@ gpio_level_t get_gpio(gpio_t gpio) {
  */
 void gpio_set_pupdr(gpio_t gpio, gpio_pupdr_t pupdr) {
     GPIO_TypeDef *port = gpio_port_base(gpio.port);
-    uint32_t shift = gpio_pupdr_shift(gpio.pin);
-    uint32_t mask = gpio_pupdr_mask(gpio.pin);
+    uint32_t shift = gpio_2bit_shift(gpio.pin);
+    uint32_t mask = gpio_2bit_mask(gpio.pin);
 
     port->PUPDR &= ~mask;
-    port->PUPDR |= (pupdr << shift);
+    port->PUPDR |= ((uint32_t)pupdr << shift);
+}
+
+/**
+ * @brief Set GPIO pin mode
+ *
+ * @param gpio HAL level GPIO object
+ * @param mode Desired GPIO mode
+ */
+ void gpio_set_mode(gpio_t gpio, gpio_mode_t mode) {
+    GPIO_TypeDef *port = gpio_port_base(gpio.port);
+    uint32_t shift = gpio_moder_shift(gpio.pin);
+    uint32_t mask  = gpio_moder_mask(gpio.pin);
+
+    port->MODER &= ~mask;
+    port->MODER |= ((uint32_t)mode << shift);
 }
