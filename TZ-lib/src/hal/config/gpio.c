@@ -1,7 +1,7 @@
 
 #include "hal/platform/cmsis_select.h"
 #include "hal/platform/gpio_map.h"
-#include "hal/core/core_gpio.h"
+#include "hal/core/gpio.h"
 #include "hal/config/gpio.h"
 
 void gpio_make_secure(gpio_t gpio) {

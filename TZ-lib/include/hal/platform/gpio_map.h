@@ -1,7 +1,7 @@
 #ifndef PLATFORM_GPIO_MAP_H
 #define PLATFORM_GPIO_MAP_H
 
-#include "hal/core/core_gpio.h"
+#include "hal/core/gpio.h"
 #include "hal/platform/cmsis_select.h"
 #include "stm32l5xx.h"
 

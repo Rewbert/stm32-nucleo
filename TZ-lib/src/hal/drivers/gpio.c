@@ -1,7 +1,7 @@
 
 #include "hal/platform/cmsis_select.h"
 #include "hal/platform/gpio_map.h"
-#include "hal/core/core_gpio.h"
+#include "hal/core/gpio.h"
 #include "hal/drivers/gpio.h"
 
 /**
