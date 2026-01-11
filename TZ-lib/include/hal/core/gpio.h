@@ -16,6 +16,7 @@ typedef enum {
     GPIO_PORT_E,
     GPIO_PORT_F,
     GPIO_PORT_G,
+    GPIO_PORT_H,
 } gpio_port_t;
 
 typedef struct {
