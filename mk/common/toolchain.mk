@@ -1,6 +1,7 @@
 CC      := arm-none-eabi-gcc
 GDB     := arm-none-eabi-gdb
 OBJCOPY := arm-none-eabi-objcopy
+AR      := arm-none-eabi-ar
 
 TRUSTZONE_AWARENESS := -mcmse
 NEWLIB_NANO := --specs=nano.specs

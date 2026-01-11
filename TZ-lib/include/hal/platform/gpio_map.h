@@ -10,13 +10,13 @@
  */
 static inline GPIO_TypeDef *gpio_port_base(gpio_port_t port) {
     switch (port) {
-        case GPIO_PORT_A: return GPIO(A);
-        case GPIO_PORT_B: return GPIO(B);
-        case GPIO_PORT_C: return GPIO(C);
-        case GPIO_PORT_D: return GPIO(D);
-        case GPIO_PORT_E: return GPIO(E);
-        case GPIO_PORT_F: return GPIO(F);
-        case GPIO_PORT_G: return GPIO(G);
+        case GPIO_PORT_A: return GPIO_CMSIS(A);
+        case GPIO_PORT_B: return GPIO_CMSIS(B);
+        case GPIO_PORT_C: return GPIO_CMSIS(C);
+        case GPIO_PORT_D: return GPIO_CMSIS(D);
+        case GPIO_PORT_E: return GPIO_CMSIS(E);
+        case GPIO_PORT_F: return GPIO_CMSIS(F);
+        case GPIO_PORT_G: return GPIO_CMSIS(G);
         default:          return 0;
     }
 }
