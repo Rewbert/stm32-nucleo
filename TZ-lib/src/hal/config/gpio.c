@@ -1,6 +1,6 @@
 
 #include "hal/platform/cmsis_select.h"
-#include "hal/platform/gpio_map.h"
+#include "hal/platform/gpio.h"
 #include "hal/core/gpio.h"
 #include "hal/config/gpio.h"
 
@@ -55,5 +55,17 @@ void gpio_set_mode(gpio_t gpio, gpio_mode_t mode) {
 
     port->MODER &= ~mask;
     port->MODER |= ((uint32_t)mode << shift);
+#endif
+}
+
+/**
+ * @brief Set GPIO function
+ * 
+ * @param gpio HAL level GPIO object
+ * @param af Desired GPIO function
+ */
+void gpio_set_af(gpio_t gpio, gpio_af_t af) {
+#if HAL_SECURE
+    platform_gpio_set_af(gpio, af);
 #endif
 }

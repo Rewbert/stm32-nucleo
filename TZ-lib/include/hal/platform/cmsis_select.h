@@ -8,6 +8,7 @@
 // this must be renamed
 #define GPIO_CMSIS(port)   GPIO##port##_S
 #define RCCx               RCC_S
+#define PWRx               PWR_S
 #define EXTIx              EXTI_S
 #define LPUART1x           LPUART1_S
 
@@ -15,6 +16,7 @@
 
 #define GPIO_CMSIS(port)   GPIO##port##_NS
 #define RCCx               RCC_NS
+#define PWRx               PWR_NS
 #define EXTIx              EXTI_NS
 #define LPUART1x           LPUART1_NS
 

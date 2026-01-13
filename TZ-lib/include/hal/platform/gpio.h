@@ -42,4 +42,21 @@ static inline uint32_t gpio_2bit_mask(uint8_t pin) {
     return 0x3U << gpio_2bit_shift(pin);
 }
 
+/**
+ * @brief Set GPIO alternate function (platform-specific)
+ */
+static inline void platform_gpio_set_af(gpio_t gpio, gpio_af_t af) {
+#if HAL_SECURE
+    GPIO_TypeDef *port = gpio_port_base(gpio.port);
+    
+    uint32_t index = gpio.pin >> 3;        // 0 for pins 0–7, 1 for 8–15
+    uint32_t shift = (gpio.pin & 0x7U) * 4U;
+    uint32_t mask  = 0xFU << shift;
+    
+    port->AFR[index] &= ~mask;
+    port->AFR[index] |= ((uint32_t)af << shift);
+#endif
+}
+    
+
 #endif // PLATFORM_GPIO_MAP_H
