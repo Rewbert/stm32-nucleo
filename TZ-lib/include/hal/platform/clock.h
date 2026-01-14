@@ -1,6 +1,7 @@
 #ifndef PLATFORM_CLOCK_H
 #define PLATFORM_CLOCK_H
 
+#include "hal/core/gpio.h"
 #include "stm32l5xx.h"
 
 /**
@@ -22,5 +23,11 @@ static inline void platform_clock_enable_gpio(gpio_port_t port) {
     dummy = RCCx->AHB2ENR;
 #endif
 }
+
+/**
+ * @brief Configure the MCU on the STM32L552ZEQ to run at 110 MHz.
+ *
+ */
+void platform_clock_configure_110mhz(void);
 
 #endif // PLATFORM_CLOCK_H

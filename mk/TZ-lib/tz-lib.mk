@@ -7,7 +7,8 @@ LIB_SRC := \
   $(TZ_LIB)/src/hal/config/gpio.c \
   $(TZ_LIB)/src/hal/config/clock.c \
   $(TZ_LIB)/src/hal/config/exti.c \
-  $(TZ_LIB)/src/hal/drivers/gpio.c
+  $(TZ_LIB)/src/hal/drivers/gpio.c \
+  $(TZ_LIB)/src/hal/platform/clock.c
 
 LIB_INC := -I$(TZ_LIB)/include
 
