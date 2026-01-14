@@ -5,6 +5,8 @@ include mk/common/toolchain.mk
 TZ_LIB := TZ-lib
 LIB_SRC := \
   $(TZ_LIB)/src/hal/config/gpio.c \
+  $(TZ_LIB)/src/hal/config/clock.c \
+  $(TZ_LIB)/src/hal/config/exti.c \
   $(TZ_LIB)/src/hal/drivers/gpio.c
 
 LIB_INC := -I$(TZ_LIB)/include
@@ -35,3 +37,7 @@ $(SECURE_LIB): $(LIB_SECURE_O)
 
 $(NONSECURE_LIB): $(LIB_NONSECURE_O)
 	$(AR) rcs $@ $(LIB_NONSECURE_O)
+
+.PHONY: all
+
+all: $(SECURE_LIB) $(NONSECURE_LIB)
