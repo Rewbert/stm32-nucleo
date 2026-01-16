@@ -17,5 +17,11 @@ typedef enum {
     PERIPH_DMA,
 } peripheral_type_t;
 
+typedef enum {
+    PCLK1=0,
+    SYSCLK,
+    HSI16,
+    LSE,
+} clock_t;
 
 #endif // CORE_CLOCK_H

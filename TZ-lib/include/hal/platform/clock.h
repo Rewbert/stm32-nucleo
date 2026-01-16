@@ -30,4 +30,17 @@ static inline void platform_clock_enable_gpio(gpio_port_t port) {
  */
 void platform_clock_configure_110mhz(void);
 
+/**
+ * @brief Enable the clock for the LPUART1.
+ * 
+ */
+static inline void platform_clock_enable_lpuart1() {
+#if HAL_SECURE
+    volatile uint32_t dummy;
+    RCCx->APB1ENR2 |= (0x1U << RCC_APB1ENR2_LPUART1EN_Pos);
+    dummy = RCCx->APB1ENR2;
+    dummy = RCCx->APB1ENR2;
+#endif
+}
+
 #endif // PLATFORM_CLOCK_H
