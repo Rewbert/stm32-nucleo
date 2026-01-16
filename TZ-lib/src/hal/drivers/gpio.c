@@ -39,6 +39,6 @@ void set_gpio(gpio_t gpio, gpio_level_t level) {
  */
 gpio_level_t get_gpio(gpio_t gpio) {
     GPIO_TypeDef *port = gpio_port_base(gpio.port);
-    int v = (port->ODR >> gpio.pin) & 1;
+    int v = (port->IDR >> gpio.pin) & 1;
     return v ? HIGH : LOW;
 }
