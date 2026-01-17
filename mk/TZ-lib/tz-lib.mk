@@ -10,7 +10,8 @@ LIB_SRC := \
   $(TZ_LIB)/src/hal/config/uart.c \
   $(TZ_LIB)/src/hal/drivers/gpio.c \
   $(TZ_LIB)/src/hal/platform/clock.c \
-  $(TZ_LIB)/src/hal/platform/uart.c
+  $(TZ_LIB)/src/hal/platform/uart.c \
+  $(TZ_LIB)/src/hal/platform/flash.c
 
 LIB_INC := -I$(TZ_LIB)/include
 

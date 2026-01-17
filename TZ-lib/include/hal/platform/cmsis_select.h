@@ -11,6 +11,7 @@
 #define PWRx               PWR_S
 #define EXTIx              EXTI_S
 #define LPUART1x           LPUART1_S
+#define FLASHx             FLASH_S
 
 #else
 
@@ -19,6 +20,7 @@
 #define PWRx               PWR_NS
 #define EXTIx              EXTI_NS
 #define LPUART1x           LPUART1_NS
+#define FLASHx             FLASH_NS
 
 #endif // HAL_SECURE
 
