@@ -36,6 +36,18 @@ void exti_route_pin(exti_line_t exti) {
     platform_exti_route_pin(exti);
 }
 
+/**
+ * @brief Configure the NVIC (TODO: document this more later)
+ * 
+ */
 void exti_configure_NVIC(exti_line_t exti, int priority) {
     platform_exti_configure_NVIC(exti, priority);
+}
+
+/**
+ * @brief Set the target state of NVIC
+ * 
+ */
+void exti_NVIC_set_target_state(exti_line_t exti) {
+    platform_exti_NVIC_set_target_state(exti);
 }

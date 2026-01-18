@@ -119,4 +119,9 @@ static inline void platform_exti_configure_NVIC(exti_line_t exti, int priority) 
     NVIC_EnableIRQ(irqnum);
 }
 
+static inline void platform_exti_NVIC_set_target_state(exti_line_t exti) {
+    int irqnum = exti.pin + 11;
+    NVIC_SetTargetState(irqnum);
+}
+
 #endif // PLATFORM_EXTI_H
