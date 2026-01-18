@@ -1,10 +1,8 @@
 
 #include "hal/platform/domain.h"
-#include "hal/core/gpio.h"
-#include "hal/core/exti.h"
-#include "hal/config/gpio.h"
-#include "hal/config/clock.h"
-#include "hal/config/exti.h"
+#include "hal/gpio.h"
+#include "hal/exti.h"
+#include "hal/clock.h"
 #include "services/button.h"
 
 void init_button(gpio_t gpio, exti_edge_t edge, security_domain_t domain) {
