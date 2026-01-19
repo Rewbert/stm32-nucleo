@@ -28,3 +28,14 @@ void platform_clock_configure_110mhz(void) {
   while ((RCCx->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS);
 #endif
 }
+
+/**
+ * @brief Configure how many clock cycles elapse between subsequent systick timer interrupts.
+ * 
+ */
+void configure_systick(int tick) {
+#if HAL_SECURE
+    SysTick_Config(tick);
+    TZ_SysTick_Config_NS(tick);
+#endif
+}

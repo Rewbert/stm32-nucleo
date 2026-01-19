@@ -7,6 +7,9 @@
 #define HAL_SECURE 0
 #endif
 
+// Mark your functions as NSC in order to make them callable from the non-secure world
+#define NONSECURE_CALLABLE __attribute__((cmse_nonsecure_entry))
+
 typedef enum {
     DOMAIN_SECURE=0,
     DOMAIN_NONSECURE,

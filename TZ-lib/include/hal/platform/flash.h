@@ -8,6 +8,9 @@
 #include "hal/platform/cmsis_select.h"
 #include "stm32l5xx.h"
 
+// Add this attribute to your global variables to store them in the persistent FLASH page
+#define PERSISTENT __attribute__((section(".persist"), used, aligned(8))) volatile const
+
 /**
  * @brief Unlock the FLASH so that it can be written to.
  * 

@@ -31,6 +31,12 @@ static inline void platform_clock_enable_gpio(gpio_port_t port) {
 void platform_clock_configure_110mhz(void);
 
 /**
+ * @brief Configure how often the systick interrupt is invoked
+ * 
+ */
+void configure_systick(int tick);
+
+/**
  * @brief Enable the clock for the LPUART1.
  * 
  */
