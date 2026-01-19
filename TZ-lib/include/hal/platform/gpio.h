@@ -42,21 +42,40 @@ static inline uint32_t gpio_2bit_mask(uint8_t pin) {
     return 0x3U << gpio_2bit_shift(pin);
 }
 
+// /**
+//  * @brief Set GPIO alternate function (platform-specific)
+//  */
+// static inline void platform_gpio_set_af(gpio_t gpio, gpio_af_t af) {
+// #if HAL_SECURE
+//     GPIO_TypeDef *port = gpio_port_base(gpio.port);
+    
+//     uint32_t index = gpio.pin >> 3;        // 0 for pins 0–7, 1 for 8–15
+//     uint32_t shift = (gpio.pin & 0x7U) * 4U;
+//     uint32_t mask  = 0xFU << shift;
+    
+//     port->AFR[index] &= ~mask;
+//     port->AFR[index] |= ((uint32_t)af << shift);
+// #endif
+// }
+
+#define GPIO_AF_MASK 0xFU
+
 /**
- * @brief Set GPIO alternate function (platform-specific)
+ * @brief Set the alternating function of a GPIO pin.
+ * 
  */
 static inline void platform_gpio_set_af(gpio_t gpio, gpio_af_t af) {
 #if HAL_SECURE
     GPIO_TypeDef *port = gpio_port_base(gpio.port);
-    
-    uint32_t index = gpio.pin >> 3;        // 0 for pins 0–7, 1 for 8–15
-    uint32_t shift = (gpio.pin & 0x7U) * 4U;
-    uint32_t mask  = 0xFU << shift;
-    
-    port->AFR[index] &= ~mask;
-    port->AFR[index] |= ((uint32_t)af << shift);
+
+    if(gpio.pin >= 0 && gpio.pin < 8) {
+        port->AFR[0] &= ~(GPIO_AF_MASK << (gpio.pin * 4));
+        port->AFR[0] |= (af << (gpio.pin * 4));
+    } else if (gpio.pin >= 8 && gpio.pin < 15) {
+        port->AFR[1] &= ~(GPIO_AF_MASK << ((gpio.pin - 8) * 4));
+        port->AFR[1] |= (af << ((gpio.pin - 8) * 4));
+    }
 #endif
 }
-    
 
 #endif // PLATFORM_GPIO_MAP_H

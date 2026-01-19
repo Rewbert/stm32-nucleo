@@ -12,6 +12,7 @@
 #define EXTIx              EXTI_S
 #define LPUART1x           LPUART1_S
 #define FLASHx             FLASH_S
+#define GTZC_TZSCx         GTZC_TZSC_S
 
 #else
 
@@ -21,6 +22,7 @@
 #define EXTIx              EXTI_NS
 #define LPUART1x           LPUART1_NS
 #define FLASHx             FLASH_NS
+#define GTZC_TZSCx         GTZC_TZSC_NS
 
 #endif // HAL_SECURE
 

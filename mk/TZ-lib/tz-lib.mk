@@ -12,7 +12,8 @@ LIB_SRC := \
   $(TZ_LIB)/src/hal/platform/clock.c \
   $(TZ_LIB)/src/hal/platform/uart.c \
   $(TZ_LIB)/src/hal/platform/flash.c \
-  $(TZ_LIB)/src/services/button.c
+  $(TZ_LIB)/src/services/button.c \
+  $(TZ_LIB)/src/services/uart.c
 
 LIB_INC := -I$(TZ_LIB)/include
 

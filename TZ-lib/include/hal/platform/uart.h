@@ -44,6 +44,15 @@ static inline void platform_lpuart1_activate() {
 }
 
 /**
+ * @brief Mark the LPUART1 peripheral as secure, only accessible by the secure world.
+ * 
+ */
+static inline void platform_lpuart1_make_secure() {
+    GTZC_TZSCx->SECCFGR1 |= (1 << GTZC_TZSC_SECCFGR1_LPUART1SEC_Pos); \
+    GTZC_TZSCx->PRIVCFGR1 |= (1 << GTZC_TZSC_PRIVCFGR1_LPUART1PRIV_Pos);    
+}
+
+/**
  * @brief Write a character to the LPUART1 peripheral.
  * 
  */

@@ -8,5 +8,6 @@ void gpio_make_nonsecure(gpio_t gpio);
 
 void gpio_set_pupdr(gpio_t gpio, gpio_pupdr_t pupdr);
 void gpio_set_mode(gpio_t gpio, gpio_mode_t mode);
+void gpio_set_af(gpio_t gpio, gpio_af_t af);
 
 #endif // CONFIG_GPIO_H
