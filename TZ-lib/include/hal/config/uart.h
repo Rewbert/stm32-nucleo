@@ -27,6 +27,6 @@ void uart_activate(uart_t uart);
  * @brief Set the BRR register value of a specific UART.
  * 
  */
-void uart_set_brr(uart_t uart, uint16_t brr);
+void uart_set_brr(uart_t uart, uint32_t brr);
 
 #endif // CONFIG_UART_H

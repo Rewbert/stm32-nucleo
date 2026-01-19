@@ -58,7 +58,7 @@ void uart_activate(uart_t uart) {
  * @brief Set the BRR register value of the UART peripheral.
  * 
  */
-void uart_set_brr(uart_t uart, uint16_t brr) {
+void uart_set_brr(uart_t uart, uint32_t brr) {
     switch(uart) {
         case HAL_USART1: break; // only LPUART1 implemented
         case HAL_USART2: break;

@@ -12,7 +12,7 @@
  * @brief Set the BRR register value of the LPUART1 peripheral.
  * 
  */
-static inline void platform_set_lpuart1_brr(uint16_t brr) {
+static inline void platform_set_lpuart1_brr(uint32_t brr) {
 #if HAL_SECURE
     volatile uint32_t dummy;
     LPUART1x->BRR = brr;
