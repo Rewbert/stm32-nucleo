@@ -25,4 +25,6 @@ typedef struct {
     uint8_t     pin;   // 0–15
 } exti_line_t;
 
+typedef void (*exti_callback_t)(exti_edge_t edge);
+
 #endif // CORE_EXTI_H

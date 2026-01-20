@@ -119,9 +119,19 @@ static inline void platform_exti_configure_NVIC(exti_line_t exti, int priority) 
     NVIC_EnableIRQ(irqnum);
 }
 
+/**
+ * @brief Set the target state of NVIC.
+ * 
+ */
 static inline void platform_exti_NVIC_set_target_state(exti_line_t exti) {
     int irqnum = exti.pin + 11;
     NVIC_SetTargetState(irqnum);
 }
+
+/**
+ * @brief Register a callback to be invoked if a specific EXTI line triggers.
+ * 
+ */
+void platform_exti_register_callback(exti_line_t exti, exti_callback_t cb);
 
 #endif // PLATFORM_EXTI_H
