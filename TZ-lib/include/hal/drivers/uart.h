@@ -13,4 +13,10 @@ void uart_write(uart_t uart, char c);
  */
 char uart_read(uart_t uart);
 
+/**
+ * @brief Write a NULL-terminated string to the specified UART.
+ * 
+ */
+void uart_write_string(uart_t uart, char *str);
+
 #endif // DRIVER_UART_H

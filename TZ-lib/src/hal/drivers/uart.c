@@ -34,49 +34,12 @@ char uart_read(uart_t uart) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-// *** from secure world *** //
-
-
-void lpuart1_write(char c) {
-    // Wait until the transmit data register is empty
-    while (!(LPUART1_S->ISR & USART_ISR_TXE)); // Check TXE flag
-    LPUART1_S->TDR = c; // Write character to transmit
-    while (!(LPUART1_S->ISR & USART_ISR_TC)); // Wait for transmission to complete
-  }
-  
-  char lpuart1_read(void) {
-    // Wait until the receive data register is not empty
-    while (!(LPUART1_S->ISR & USART_ISR_RXNE));
-    return (char)(LPUART1_S->RDR & 0xFF); // Read received character
-  }
-
-// *** from nonsecure world *** //
-
-void lpuart1_write(char c) {
-    // we don't proceed if the LPUART1 is marked as secure. We are allowed from the non secure application to
-    // observe whether it is secured or not, but not to alter the actual configuration
-    if(!(RCC_NS->APB1SECSR2 & RCC_APB1SECSR2_LPUART1SECF_Msk)) {
-      // Wait until the transmit data register is empty
-      while (!(LPUART1_NS->ISR & USART_ISR_TXE)); // Check TXE flag
-      LPUART1_NS->TDR = c; // Write character to transmit
-      while (!(LPUART1_NS->ISR & USART_ISR_TC)); // Wait for transmission to complete
+/**
+ * @brief Write a NULL-terminated string to the specified UART.
+ * 
+ */
+void uart_write_string(uart_t uart, char *str) {
+    while(*str != '\0') {
+        uart_write(uart, *str++);
     }
-  }
-
-  char lpuart1_read(void) {
-    // Wait until the receive data register is not empty
-    while (!(LPUART1_NS->ISR & USART_ISR_RXNE));
-    return (char)(LPUART1_NS->RDR & 0xFF); // Read received character
-  }
+}
