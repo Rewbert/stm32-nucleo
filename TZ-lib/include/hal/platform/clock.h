@@ -49,4 +49,16 @@ static inline void platform_clock_enable_lpuart1() {
 #endif
 }
 
+/**
+ * @brief Sysclock will increment this. Can be observed to measure passage of time.
+ * 
+ */
+extern volatile uint32_t ticks;
+
+/**
+ * @brief Systick timer. Invoked by the CPU at an interval decided by `configure_systick`.
+ * 
+ */
+void systick_handler();
+
 #endif // PLATFORM_CLOCK_H

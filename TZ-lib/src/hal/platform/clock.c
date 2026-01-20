@@ -39,3 +39,19 @@ void configure_systick(int tick) {
     TZ_SysTick_Config_NS(tick);
 #endif
 }
+
+/**
+ * @brief If a user wants to append their own behavior to the systick handler they should implement
+ * this function.
+ * 
+ * NOTE: This will be called in an interrupt, and should be kept short and fast.
+ * 
+ */
+__attribute__ ((weak)) void systick_callback(uint32_t ticks) { }
+
+volatile uint32_t ticks;
+
+void systick_handler() {
+  ticks++;
+  systick_callback(ticks);
+}
