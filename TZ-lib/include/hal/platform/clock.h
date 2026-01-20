@@ -61,4 +61,14 @@ extern volatile uint32_t ticks;
  */
 void systick_handler();
 
+/**
+ * @brief Add a delay to your program. Given a time in milliseconds, halts the program
+ * until that many milliseconds have elapsed.
+ *
+ * NOTE: This is implemented using polling, because it is simple lol. With some threading and
+ * other crap we might have a smarter implementation.
+ * 
+ */
+void delay_ms(uint32_t milliseconds);
+
 #endif // PLATFORM_CLOCK_H
