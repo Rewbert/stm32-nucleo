@@ -28,3 +28,7 @@ void init_button(gpio_t gpio, exti_edge_t edge, security_domain_t domain) {
 
     exti_configure_NVIC(exti, 2);
 }
+
+void register_button_callback(gpio_t gpio, exti_callback_t cb) {
+    platform_exti_register_callback( (exti_line_t) { gpio.port, (uint8_t) gpio.pin }, cb);
+}

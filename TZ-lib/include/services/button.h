@@ -16,4 +16,6 @@ extern gpio_t blue_button;
  */
 void init_button(gpio_t gpio, exti_edge_t edge, security_domain_t domain);
 
+void register_button_callback(gpio_t gpio, exti_callback_t);
+
 #endif // SERVICES_BUTTON_H

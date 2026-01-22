@@ -12,6 +12,6 @@ extern gpio_t lpuart1_rx;
  * works. Can be configured to belong to the secure or non-secure world.
  * 
  */
-void enable_lpuart1(uint16_t brr, security_domain_t domain);
+void enable_lpuart1(uint32_t brr, security_domain_t domain);
 
 #endif // SERVICES_UART_H
