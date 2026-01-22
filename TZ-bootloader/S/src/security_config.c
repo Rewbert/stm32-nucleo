@@ -112,7 +112,7 @@ void configure_mpcbb1(void) {
 
 }
 
-void secure_app_initialise(void);
+void main(void);
 
 void security_config(void) {
     configure_sau();
@@ -124,7 +124,7 @@ void security_config(void) {
 
     __asm volatile ("msr msp_ns, %0" :: "r" (*((uint32_t *) NS_VECTOR_TABLE)));
 
-    secure_app_initialise();
+    main();
 
     uint32_t ns_reset_handler_addr = *((uint32_t *)(NS_VECTOR_TABLE + 4U));
     typedef void (*ns_reset_ptr_t)(void) __attribute__((cmse_nonsecure_call));

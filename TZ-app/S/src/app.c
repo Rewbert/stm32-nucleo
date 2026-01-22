@@ -131,7 +131,7 @@ char lpuart1_read(void) {
   return (char)(LPUART1_S->RDR & 0xFF); // Read received character
 }
 
-void secure_app_initialise() {
+void main() {
   CONFIGURE_CLOCK_110_MHZ();
   SysTick_Config(110000);
   TZ_SysTick_Config_NS(110000);
@@ -161,8 +161,6 @@ void secure_app_initialise() {
   TURN_OFF_LED(C, 7);
 
   // uint32_t first[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-  // print_result(verifyPin(first));
-
   // uint32_t new[4] = {1, 2, 3, 4};
   // print_result(changePin(first, new));
   // print_result(verifyPin(new));
