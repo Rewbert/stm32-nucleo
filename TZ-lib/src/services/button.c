@@ -5,6 +5,8 @@
 #include "hal/clock.h"
 #include "services/button.h"
 
+gpio_t blue_button = { GPIO_PORT_C, 13 };
+
 void init_button(gpio_t gpio, exti_edge_t edge, security_domain_t domain) {
     clock_enable_gpio(gpio.port);
 

@@ -5,6 +5,9 @@
 #include "hal/clock.h"
 #include "services/uart.h"
 
+gpio_t lpuart1_tx = { GPIO_PORT_G, 7 };
+gpio_t lpuart1_rx = { GPIO_PORT_G, 8 };
+
 /**
  * @brief Configure and enable the LPUART1 peripheral, such that reading and writing
  * works. Can be configured to belong to the secure or non-secure world.
@@ -15,8 +18,6 @@ void enable_lpuart1(uint16_t brr, security_domain_t domain) {
     uart_enable_power(HAL_LPUART1);
     clock_enable_gpio(GPIO_PORT_G);
 
-    gpio_t lpuart1_tx = { GPIO_PORT_G, 7 };
-    gpio_t lpuart1_rx = { GPIO_PORT_G, 8 };
     gpio_set_mode(lpuart1_tx, GPIO_MODE_AF);
     gpio_set_mode(lpuart1_rx, GPIO_MODE_AF);
     gpio_set_pupdr(lpuart1_tx, GPIO_PULLUP);

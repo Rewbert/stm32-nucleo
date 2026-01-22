@@ -3,6 +3,10 @@
 
 #include "hal/platform/domain.h"
 
+/* The transmit and receive pin of the LPUART1 peripheral. */
+extern gpio_t lpuart1_tx;
+extern gpio_t lpuart1_rx;
+
 /**
  * @brief Configure and enable the LPUART1 peripheral, such that reading and writing
  * works. Can be configured to belong to the secure or non-secure world.
