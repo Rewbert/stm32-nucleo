@@ -14,7 +14,7 @@ static inline void enable_irq() {
  * 
  */
 static inline void disable_irq() {
-    __asm volatile ("cpsid i" : : : "memory")
+    __asm volatile ("cpsid i" : : : "memory");
 }
 
 #endif // HAL_IRQ_H

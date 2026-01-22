@@ -9,6 +9,7 @@ LIB_SRC := \
   $(TZ_LIB)/src/hal/config/exti.c \
   $(TZ_LIB)/src/hal/config/uart.c \
   $(TZ_LIB)/src/hal/drivers/gpio.c \
+  $(TZ_LIB)/src/hal/drivers/uart.c \
   $(TZ_LIB)/src/hal/platform/clock.c \
   $(TZ_LIB)/src/hal/platform/uart.c \
   $(TZ_LIB)/src/hal/platform/flash.c \
@@ -25,8 +26,8 @@ LIB_NONSECURE_O := $(patsubst %.c,build/ns/%.o, $(LIB_SRC))
 LIB_CFLAGS := $(CFLAGS) $(TRUSTZONE_AWARENESS) $(NO_STDLIB) $(NOSTARTFILES)
 LIB_CPPFLAGS := $(CPPFLAGS) $(LIB_INC)
 
-SECURE_LIB := build/tz-lib-secure.a
-NONSECURE_LIB := build/tz-lib-nonsecure.a
+SECURE_A := build/tz-lib-secure.a
+NONSECURE_A := build/tz-lib-nonsecure.a
 
 # rules
 
@@ -40,12 +41,12 @@ build/ns/%.o: %.c
 
 # final build targets
 
-$(SECURE_LIB): $(LIB_SECURE_O)
+$(SECURE_A): $(LIB_SECURE_O)
 	$(AR) rcs $@ $(LIB_SECURE_O)
 
-$(NONSECURE_LIB): $(LIB_NONSECURE_O)
+$(NONSECURE_A): $(LIB_NONSECURE_O)
 	$(AR) rcs $@ $(LIB_NONSECURE_O)
 
 .PHONY: all
 
-all: $(SECURE_LIB) $(NONSECURE_LIB)
+all: $(SECURE_A) $(NONSECURE_A)

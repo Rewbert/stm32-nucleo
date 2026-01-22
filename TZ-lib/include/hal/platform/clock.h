@@ -1,6 +1,8 @@
 #ifndef PLATFORM_CLOCK_H
 #define PLATFORM_CLOCK_H
 
+#include "hal/platform/domain.h"
+#include "hal/platform/cmsis_select.h"
 #include "hal/core/gpio.h"
 #include "stm32l5xx.h"
 

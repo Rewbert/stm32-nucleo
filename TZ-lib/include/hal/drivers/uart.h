@@ -1,6 +1,8 @@
 #ifndef DRIVER_UART_H
 #define DRIVER_UART_H
 
+#include "hal/core/uart.h"
+
 /**
  * @brief Write a character to the specified UART.
  * 

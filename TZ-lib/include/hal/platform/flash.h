@@ -1,8 +1,6 @@
 #ifndef PLATFORM_FLASH_H
 #define PLATFORM_FLASH_H
 
-#include "stm32l5xx.h"
-
 // #include <stdint.h>
 #include "hal/platform/domain.h"
 #include "hal/platform/cmsis_select.h"

@@ -1,4 +1,6 @@
 
+#include "hal/platform/domain.h"
+#include "hal/platform/cmsis_select.h"
 #include "hal/platform/flash.h"
 
 /**

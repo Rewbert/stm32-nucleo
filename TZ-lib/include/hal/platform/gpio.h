@@ -2,6 +2,7 @@
 #define PLATFORM_GPIO_MAP_H
 
 #include "hal/core/gpio.h"
+#include "hal/platform/domain.h"
 #include "hal/platform/cmsis_select.h"
 #include "stm32l5xx.h"
 
