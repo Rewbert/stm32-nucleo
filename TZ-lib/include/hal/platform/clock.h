@@ -73,4 +73,12 @@ void systick_handler();
  */
 void delay_ms(uint32_t milliseconds);
 
+/**
+ * @brief Get the current tick counter
+ * 
+ */
+static inline uint32_t get_ticks() {
+    return ticks;
+}
+
 #endif // PLATFORM_CLOCK_H
