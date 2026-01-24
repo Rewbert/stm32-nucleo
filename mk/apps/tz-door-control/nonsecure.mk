@@ -1,43 +1,39 @@
-include mk/TZ/tz-common.mk
-include mk/TZ-lib/tz-lib.mk # here resides the TZ aware little lib I wrote
+include mk/apps/tz-door-control/secure.mk
 
 ##### variables #####
-
-# where to find the lib, for use in include
-TZ_LIB := TZ-lib
 
 # where the application sources are found
 TZ_APP := apps/tz-door-control
 
 # name of the final .elf's
-NONSECURE_ELF := nonsecure-dc.elf
+TDZA_NS_NONSECURE_ELF := nonsecure-dc.elf
 
 # these are the source files
-NONSECURE_SRC := \
+TDZA_NS_NONSECURE_SRC := \
   $(TZ_BOOTLOADER)/NS/src/bootloader_ns.c \
   $(TZ_APP)/NS/main.c \
   $(TZ_APP)/shared/shared.c
 
 # and here are the corresponding object files
-NONSECURE_O := $(patsubst %.c, build/nonsecure/%.o, $(NONSECURE_SRC))
+TDZA_NS_NONSECURE_O := $(patsubst %.c, build/%.o, $(TDZA_NS_NONSECURE_SRC))
 
 # the includes required for compilation
-NONSECURE_INC := -I$(TZ_LIB)/include -I$(TZ_APP)/shared
+TDZA_NS_NONSECURE_INC := -I$(TZ_LIB)/include -I$(TZ_APP)/shared
 
-NONSECURE_CPPFLAGS = \
+TDZA_NS_NONSECURE_CPPFLAGS = \
   $(CPPFLAGS) \
-  $(NONSECURE_INC)
+  $(TDZA_NS_NONSECURE_INC)
 
-NONSECURE_LINKER_FILE = $(TZ_BOOTLOADER)/NS/ls-ns.ld
-NONSECURE_LDFLAGS = -T $(NONSECURE_LINKER_FILE)
+TDZA_NS_NONSECURE_LINKER_FILE = $(TZ_BOOTLOADER)/NS/ls-ns.ld
+TDZA_NS_NONSECURE_LDFLAGS = -T $(TDZA_NS_NONSECURE_LINKER_FILE)
 
 # rules
 
-build/nonsecure/%.o: %.c
+build/%.o: %.c
 	mkdir -p $(dir $@)
-	$(CC) $(NONSECURE_CPPFLAGS) $(TZ_CFLAGS) -c $< -o $@
+	$(CC) $(TDZA_NS_NONSECURE_CPPFLAGS) $(TZ_CFLAGS) -c $< -o $@
 
 # final target
 
-$(NONSECURE_ELF): $(NONSECURE_O) $(NONSECURE_A)
-	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) $(NONSECURE_LDFLAGS) -o $@ $^ $(SECURE_LIB)
+$(TDZA_NS_NONSECURE_ELF): $(TZDA_SECURE_ELF) $(TDZA_NS_NONSECURE_O) $(NONSECURE_A)
+	$(CC) $(TZ_CFLAGS) $(TDZA_NS_NONSECURE_CPPFLAGS) $(TDZA_NS_NONSECURE_LDFLAGS) -o $@ $(TDZA_NS_NONSECURE_O) $(NONSECURE_A) $(TZDA_SECURE_LIB)
