@@ -1,4 +1,5 @@
 include mk/TZ/tz-common.mk
+include mk/TZ/S/tz-secure.mk
 
 # variables
 
@@ -17,6 +18,8 @@ NONSECURE_CPPFLAGS += \
 
 NONSECURE_LINKER_FILE = $(TZ_BOOTLOADER)/NS/ls-ns.ld
 NONSECURE_LDFLAGS = -T $(NONSECURE_LINKER_FILE)
+
+NONSECURE_ELF := nonsecure.elf
 
 # rules
 

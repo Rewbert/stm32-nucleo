@@ -23,6 +23,11 @@ SECURE_CPPFLAGS = \
 SECURE_LINKER_FILE = $(TZ_BOOTLOADER)/S/ls-s.ld
 SECURE_LDFLAGS = -T $(SECURE_LINKER_FILE)
 
+SECURE_ELF := secure.elf
+
+# building the secure elf will produce this lib, telling the nonsecure what NSC functions there are
+SECURE_LIB = build/secure_cmse_import.lib
+
 # rules
 
 build/secure/%.o: %.c
