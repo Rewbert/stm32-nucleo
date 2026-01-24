@@ -1,5 +1,5 @@
 .PHONY: all
 
-all: $(TDZA_SECURE_ELF) $(TDZA_NS_NONSECURE_ELF)
+all: nonsecure-dc.elf
 
 include mk/apps/tz-door-control/nonsecure.mk
