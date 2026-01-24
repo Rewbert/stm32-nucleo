@@ -42,6 +42,8 @@
           cp mhs.elf $out/
           cp secure.elf $out/
           cp nonsecure.elf $out/
+          cp secure-dc.elf $out/
+          cp nonsecure-dc.elf $out/
         '';
       };
     };
