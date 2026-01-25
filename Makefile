@@ -1,10 +1,11 @@
 .PHONY: all
 
-all: secure.elf nonsecure.elf main.elf mhs.elf nonsecure-dc.elf
+all: secure.elf nonsecure.elf main.elf mhs.elf newmhs.elf nonsecure-dc.elf
 
 include mk/TZ/tz.mk
 include mk/app/main.mk
 include mk/app/mhs.mk
+include mk/app/new-mhs.mk
 include mk/apps/tz-door-control/tz.mk
 
 clean:
