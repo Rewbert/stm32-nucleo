@@ -1,5 +1,5 @@
 include mk/TZ/tz-common.mk
-include mk/TZ/S/tz-secure.mk
+include mk/apps/tz-door-control-macro/secure.mk
 
 # variables
 
@@ -7,7 +7,7 @@ NONSECURE_SRC := \
   $(TZ_APP)/NS/src/app_ns.c \
   $(TZ_APP)/NS/src/test.c
 
-NONSECURE_O := $(patsubst %.c, build/nonsecure/%.o, $(NONSECURE_SRC))
+NONSECURE_O := $(patsubst %.c, build/tz-door-control-robos/NS/%.o, $(NONSECURE_SRC))
 
 NONSECURE_INC := -I$(TZ_APP)/NS/inc
 
@@ -19,7 +19,7 @@ NONSECURE_ELF := nonsecure.elf
 
 # rules
 
-build/nonsecure/%.o: %.c
+build/tz-door-control-robos/NS/%.o: %.c
 	mkdir -p $(dir $@)
 	$(CC) $(NONSECURE_CPPFLAGS) $(TZ_CFLAGS) -c $< -o $@
 

@@ -1,3 +1,6 @@
+ifndef TZ_LIB_MK
+TZ_LIB_MK := 1
+
 include mk/common/toolchain.mk
 
 # variables
@@ -50,3 +53,5 @@ $(NONSECURE_A): $(LIB_NONSECURE_O)
 .PHONY: all
 
 all: $(SECURE_A) $(NONSECURE_A)
+
+endif

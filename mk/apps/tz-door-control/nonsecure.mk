@@ -14,7 +14,7 @@ TDZA_NS_NONSECURE_SRC := \
   $(TZ_APP)/shared/shared.c
 
 # and here are the corresponding object files
-TDZA_NS_NONSECURE_O := $(patsubst %.c, build/%.o, $(TDZA_NS_NONSECURE_SRC))
+TDZA_NS_NONSECURE_O := $(patsubst %.c, build/tz-door-control/NS/%.o, $(TDZA_NS_NONSECURE_SRC))
 
 # the includes required for compilation
 TDZA_NS_NONSECURE_INC := -I$(TZ_LIB)/include -I$(TZ_APP)/shared
@@ -25,7 +25,7 @@ TDZA_NS_NONSECURE_CPPFLAGS = \
 
 # rules
 
-build/%.o: %.c
+build/tz-door-control/NS/%.o: %.c
 	mkdir -p $(dir $@)
 	$(CC) $(TDZA_NS_NONSECURE_CPPFLAGS) $(TZ_CFLAGS) -c $< -o $@
 
