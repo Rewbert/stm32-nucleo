@@ -21,8 +21,9 @@ flash: $(FILE)
 	test -n "$(FILE)" || (echo "Usage: make flash FILE=main.elf" && exit 1)
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) -c "program $(FILE) verify reset exit"
 
-flash_tz: nonsecure.elf
-	$(PROGRAMMER) $(PROGRAMMER_FLAGS) -c "init" -c "reset halt" -c "program secure.elf verify" -c "program nonsecure.elf verify" -c "reset" -c "exit"
+flash_tz: $(SECURE) $(NONSECURE)
+	test -n "$(SECURE)" || (echo "Usage: make flash_tz SECURE=secure.elf NONSECURE=nonsecure.elf" && exit 1)
+	$(PROGRAMMER) $(PROGRAMMER_FLAGS) -c "init" -c "reset halt" -c "program $(SECURE) verify" -c "program $(NONSECURE) verify" -c "reset" -c "exit"
 
 ##### debugging #####
 # run `make openocd` in one terminal, and in another `make debug FILE=<the elf>`, or `make debug_tz`
