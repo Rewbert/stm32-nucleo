@@ -25,11 +25,11 @@
 #define HEAP_CELLS 8000
 #define STACK_SIZE 500
 
-#define INITIALIZATION
-void main_setup(void);
+// #define INITIALIZATION
+// void main_setup(void);
 
-void myexit(int n);
-#define EXIT myexit
+void stm32_exit(int n);
+#define EXIT stm32_exit
 
 int ffs(int x);
 #define FFS ffs

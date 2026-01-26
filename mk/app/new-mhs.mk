@@ -5,6 +5,7 @@ include mk/common/platform.mk
 MHS := MicroHs
 MHS_DIR := MicroHs/src/runtime
 MHS_SRC := \
+  $(MHS_DIR)/eval.c \
   new-mhs/main.c \
   new-mhs/config.c \
   $(MHS)/gen.c

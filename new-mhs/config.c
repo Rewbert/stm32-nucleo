@@ -3,20 +3,20 @@
 #include "uart.h"
 #include "gpio.h"
 
-#define INITIALIZATION
-void main_setup(void) {
-    configure_clock();
-    SysTick_Config(110000);
-    __enable_irq();
-    enable_lpuart1();
-    initialise_led(red_led);
-}
+// #define INITIALIZATION
+// void main_setup(void) {
+//     configure_clock();
+//     SysTick_Config(110000);
+//     __enable_irq();
+//     enable_lpuart1();
+//     initialise_led(red_led);
+// }
 
-void myexit(int n) {
-    initialise_led(red_led);
-    set_led(red_led, 0);
-    while(1) {}
-}
+// void myexit(int n) {
+//     initialise_led(red_led);
+//     set_led(red_led, 0);
+//     while(1) {}
+// }
 
 int ffs(int x) {
   if (!x)
