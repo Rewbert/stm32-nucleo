@@ -4,7 +4,7 @@ include mk/TZ/S/tz-secure.mk
 # variables
 
 NONSECURE_SRC := \
-  $(TZ_BOOTLOADER)/NS/src/bootloader_ns.c \
+  $(TZ_BOOTLOADER)/NS/src/bootloader.c \
   $(TZ_APP)/NS/src/app_ns.c \
   $(TZ_APP)/NS/src/test.c
 

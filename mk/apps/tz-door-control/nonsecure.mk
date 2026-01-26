@@ -10,7 +10,7 @@ TDZA_NS_NONSECURE_ELF := nonsecure-dc.elf
 
 # these are the source files
 TDZA_NS_NONSECURE_SRC := \
-  $(TZ_BOOTLOADER)/NS/src/bootloader_ns.c \
+  $(TZ_BOOTLOADER)/NS/src/bootloader.c \
   $(TZ_APP)/NS/main.c \
   $(TZ_APP)/shared/shared.c
 
