@@ -1,4 +1,4 @@
-include mk/TZ/tz-common.mk
+include mk/TZ/tz-bootloader.mk
 include mk/TZ-lib/tz-lib.mk # here resides the TZ aware little lib I wrote
 
 ##### variables #####
@@ -14,8 +14,6 @@ TZDA_SECURE_ELF := secure-dc.elf
 
 # these are the source files
 TZDA_SECURE_SRC := \
-  $(TZ_BOOTLOADER)/S/src/bootloader.c \
-  $(TZ_BOOTLOADER)/S/src/security_config.c \
   $(TZ_APP)/S/main.c \
   $(TZ_APP)/shared/shared.c
 
@@ -36,9 +34,6 @@ TZDA_SECURE_CPPFLAGS = \
   $(TZDA_SECURE_INC) \
   -DSECURE # need the SECURE flag, to make sure the library only includes code intended to execute in secure world
 
-TZDA_SECURE_LINKER_FILE = $(TZ_BOOTLOADER)/S/ls-s.ld
-TZDA_SECURE_LDFLAGS = -T $(TZDA_SECURE_LINKER_FILE)
-
 # rules
 
 $(dir $(TZDA_SECURE_LIB)):
@@ -51,5 +46,5 @@ build/%.o: %.c
 # final target
 
 # TODO this builds two things, the elf and the lib. Ask someone if I can indicate that these two are built by this one rule
-$(TZDA_SECURE_ELF): $(TZDA_SECURE_O) $(SECURE_A) | $(dir $(TZDA_SECURE_LIB))
-	$(CC) $(TZ_CFLAGS) $(TZDA_SECURE_CPPFLAGS) $(TZDA_SECURE_LDFLAGS) -o $@ $^ $(TZDA_IMPLIB_FLAGS)
+$(TZDA_SECURE_ELF): $(SECURE_BOOTLOADER_O) $(TZDA_SECURE_O) $(SECURE_A) | $(dir $(TZDA_SECURE_LIB))
+	$(CC) $(TZ_CFLAGS) $(TZDA_SECURE_CPPFLAGS) $(SECURE_LDFLAGS) -o $@ $^ $(TZDA_IMPLIB_FLAGS)

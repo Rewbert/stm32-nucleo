@@ -10,7 +10,6 @@ TDZA_NS_NONSECURE_ELF := nonsecure-dc.elf
 
 # these are the source files
 TDZA_NS_NONSECURE_SRC := \
-  $(TZ_BOOTLOADER)/NS/src/bootloader.c \
   $(TZ_APP)/NS/main.c \
   $(TZ_APP)/shared/shared.c
 
@@ -24,9 +23,6 @@ TDZA_NS_NONSECURE_CPPFLAGS = \
   $(CPPFLAGS) \
   $(TDZA_NS_NONSECURE_INC)
 
-TDZA_NS_NONSECURE_LINKER_FILE = $(TZ_BOOTLOADER)/NS/ls-ns.ld
-TDZA_NS_NONSECURE_LDFLAGS = -T $(TDZA_NS_NONSECURE_LINKER_FILE)
-
 # rules
 
 build/%.o: %.c
@@ -35,5 +31,13 @@ build/%.o: %.c
 
 # final target
 
-$(TDZA_NS_NONSECURE_ELF): $(TZDA_SECURE_ELF) $(TDZA_NS_NONSECURE_O) $(NONSECURE_A)
-	$(CC) $(TZ_CFLAGS) $(TDZA_NS_NONSECURE_CPPFLAGS) $(TDZA_NS_NONSECURE_LDFLAGS) -o $@ $(TDZA_NS_NONSECURE_O) $(NONSECURE_A) $(TZDA_SECURE_LIB)
+$(TDZA_NS_NONSECURE_ELF): $(TZDA_SECURE_ELF) $(NONSECURE_BOOTLOADER_O) $(TDZA_NS_NONSECURE_O) $(NONSECURE_A)
+	$(CC)                           \
+    $(TZ_CFLAGS)                  \
+    $(TDZA_NS_NONSECURE_CPPFLAGS) \
+    $(NONSECURE_LDFLAGS)          \
+    -o $@                         \
+      $(NONSECURE_BOOTLOADER_O)   \
+      $(TDZA_NS_NONSECURE_O)      \
+      $(NONSECURE_A)              \
+      $(TZDA_SECURE_LIB)
