@@ -1,10 +1,8 @@
-include mk/TZ/tz-common.mk
+include mk/TZ/tz-bootloader.mk
 
 # variables
 
 SECURE_SRC := \
-  $(TZ_BOOTLOADER)/S/src/bootloader.c \
-  $(TZ_BOOTLOADER)/S/src/security_config.c \
   $(TZ_APP)/S/src/app.c \
   $(TZ_APP)/S/src/persist.c
 
@@ -20,9 +18,6 @@ SECURE_CPPFLAGS = \
   $(SECURE_INC) \
   -DSECURE
 
-SECURE_LINKER_FILE = $(TZ_BOOTLOADER)/S/ls-s.ld
-SECURE_LDFLAGS = -T $(SECURE_LINKER_FILE)
-
 SECURE_ELF := secure.elf
 
 # building the secure elf will produce this lib, telling the nonsecure what NSC functions there are
@@ -37,5 +32,5 @@ build/secure/%.o: %.c
 # final target
 
 # TODO this builds two things, the elf and the lib. Ask someone if I can indicate that these two are built by this one rule
-$(SECURE_ELF): $(SECURE_O)
+$(SECURE_ELF): $(SECURE_BOOTLOADER_O) $(SECURE_O)
 	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) $(SECURE_LDFLAGS) -o $@ $^ $(IMPLIB_FLAGS)

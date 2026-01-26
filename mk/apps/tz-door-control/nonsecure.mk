@@ -32,12 +32,4 @@ build/%.o: %.c
 # final target
 
 $(TDZA_NS_NONSECURE_ELF): $(TZDA_SECURE_ELF) $(NONSECURE_BOOTLOADER_O) $(TDZA_NS_NONSECURE_O) $(NONSECURE_A)
-	$(CC)                           \
-    $(TZ_CFLAGS)                  \
-    $(TDZA_NS_NONSECURE_CPPFLAGS) \
-    $(NONSECURE_LDFLAGS)          \
-    -o $@                         \
-      $(NONSECURE_BOOTLOADER_O)   \
-      $(TDZA_NS_NONSECURE_O)      \
-      $(NONSECURE_A)              \
-      $(TZDA_SECURE_LIB)
+	$(CC) $(TZ_CFLAGS) $(TDZA_NS_NONSECURE_CPPFLAGS) $(NONSECURE_LDFLAGS) -o $@ $(NONSECURE_BOOTLOADER_O) $(TDZA_NS_NONSECURE_O) $(NONSECURE_A) $(TZDA_SECURE_LIB)
