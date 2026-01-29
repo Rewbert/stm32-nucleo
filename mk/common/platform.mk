@@ -7,8 +7,8 @@ PLATFORM_CPPFLAGS = $(CPPFLAGS) -I$(ROBOS_INC)
 
 build/platform/%.o: $(ROBOS)/src/%.c
 	mkdir -p $(dir $@)
-	$(CC) $(PLATFORM_CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(PLATFORM_CPPFLAGS) $(CFLAGS) $(DEBUG) -c $< -o $@
 
 build/platform/%.o: $(ROBOS)/%.c
 	mkdir -p $(dir $@)
-	$(CC) $(PLATFORM_CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(PLATFORM_CPPFLAGS) $(CFLAGS) $(DEBUG) -c $< -o $@

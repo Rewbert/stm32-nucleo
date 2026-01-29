@@ -26,7 +26,7 @@ LIB_INC := -I$(TZ_LIB)/include
 LIB_SECURE_O    := $(patsubst %.c,build/s/%.o,  $(LIB_SRC))
 LIB_NONSECURE_O := $(patsubst %.c,build/ns/%.o, $(LIB_SRC))
 
-LIB_CFLAGS := $(CFLAGS) $(TRUSTZONE_AWARENESS) $(NO_STDLIB) $(NOSTARTFILES)
+LIB_CFLAGS := $(CFLAGS) $(TRUSTZONE_AWARENESS) $(NO_STDLIB) $(NOSTARTFILES) $(DEBUG)
 LIB_CPPFLAGS := $(CPPFLAGS) $(LIB_INC)
 
 SECURE_A := build/tz-lib-secure.a
