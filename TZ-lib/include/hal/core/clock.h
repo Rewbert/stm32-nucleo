@@ -22,6 +22,6 @@ typedef enum {
     SYSCLK,
     HSI16,
     LSE,
-} clock_t;
+} clock_source_t;
 
 #endif // CORE_CLOCK_H

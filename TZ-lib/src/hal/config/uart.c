@@ -10,7 +10,7 @@
  * its frequency, will be used to determine e.g. BRR register values, etc.
  * 
  */
-void uart_select_clock_source(uart_t uart, clock_t clock) {
+void uart_select_clock_source(uart_t uart, clock_source_t clock) {
     switch(uart) {
         case HAL_USART1: break; // only LPUART1 implemented
         case HAL_USART2: break;

@@ -9,7 +9,7 @@
  * @brief Select the clock source for the specified UART.
  * 
  */
-void uart_select_clock_source(uart_t uart, clock_t clock);
+void uart_select_clock_source(uart_t uart, clock_source_t clock);
 
 /**
  * @brief Enable the power to a specific UART.

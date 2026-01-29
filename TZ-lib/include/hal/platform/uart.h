@@ -25,7 +25,7 @@ static inline void platform_set_lpuart1_brr(uint32_t brr) {
  * @brief Set the clock source of the LPUART1 peripheral.
  * 
  */
-static inline void platform_lpuart1_select_clock_source(clock_t clock) {
+static inline void platform_lpuart1_select_clock_source(clock_source_t clock) {
 #if HAL_SECURE
     RCCx->CCIPR1 &= ~(3U << RCC_CCIPR1_LPUART1SEL_Pos);
     RCCx->CCIPR1 |= (clock << RCC_CCIPR1_LPUART1SEL_Pos);
