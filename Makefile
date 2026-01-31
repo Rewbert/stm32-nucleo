@@ -1,6 +1,6 @@
 .PHONY: all
 
-all: secure.elf nonsecure.elf main.elf mhs.elf newmhs.elf nonsecure-dc.elf secure-main.elf secure-mhs.elf
+all: secure.elf nonsecure.elf main.elf mhs.elf newmhs.elf nonsecure-dc.elf secure-main.elf secure-mhs.elf nonsecure-mhs.elf
 
 include mk/app/main.mk
 include mk/app/mhs.mk
@@ -8,7 +8,7 @@ include mk/app/new-mhs.mk
 include mk/apps/tz-door-control/tz.mk
 include mk/apps/tz-door-control-macro/tz.mk
 include mk/apps/main.mk
-include mk/apps/tz-mhs-both/secure.mk
+include mk/apps/tz-mhs-both/nonsecure.mk
 
 clean:
 	rm -r build
