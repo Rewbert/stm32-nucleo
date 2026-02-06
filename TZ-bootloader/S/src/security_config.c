@@ -24,7 +24,7 @@ const uint32_t sau_start[8] = { 0x0C03F000, // last 4K of secure flash, marked a
 /* End addresses of the 8 SAU regions */
 const uint32_t sau_end[8] = { 0x0C04FFFF,
                               0x0807FFFF,
-                              0x2003FFFF,
+                              0x2003FFFF, // this end address is the last byte of SRAM2
                               0x4FFFFFFF,
                               0x9FFFFFFF,
                               0x0BFA8FFF,
@@ -63,7 +63,7 @@ void configure_sau(void) {
     SAU->CTRL = ((1 << SAU_CTRL_ENABLE_Pos) & SAU_CTRL_ENABLE_Msk);
 }
 
-/* Configure the Memory Protection unit infront of the SRAM1 to mark one half (first half) as secure and
+/* Configure the Memory Protection unit infront of the SRAM1 & SRAM2 to mark one half (first half) as secure and
 the second half as non-secure. */
 void configure_mpcbb1(void) {
     volatile int dummy;
@@ -79,8 +79,10 @@ void configure_mpcbb1(void) {
     the block is secure and a 0 that it is nonsecure, so 0xFFFFFFFF means that the whole super-block is
     secure.
 
-    Since we assign the lower half of SRAM1 to the secure world, we set the first 12 such registers all to
-    0xFFFFFFFF, and the next 12 registers to 0x00000000.
+    Since we assign 128KB of the 196KB in SRAM1 to the secure world, we set the first 16 such registers all
+    to 0xFFFFFFFF, and the remaining 8 to 0x00000000. Furthermore, since half of the non-secure SRAM is in
+    SRAM2, we must set the first (and only) 8 such registers of MCBPP2 to 0x00000000. This gives us the split of
+    secure and nonsecure SRAM that we want.
 
     */
 
