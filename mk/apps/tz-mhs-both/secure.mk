@@ -19,7 +19,7 @@ SECURE_MHS_SRC := \
   $(TZ_MHS_APP)/S/config.c \
   $(TZ_MHS_APP)/S/extra.c \
   $(TZ_MHS_APP)/S/main.c \
-  $(TZ_MHS_APP)/S/gen.c \
+  $(TZ_MHS_APP)/S/gen2.c \
   $(TZ_MHS_APP)/S/stubs.c \
   $(MHS_DIR)/eval.c
 

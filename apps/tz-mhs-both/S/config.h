@@ -22,8 +22,8 @@
 #define SANITY   1
 #define STACKOVL 1
 
-#define HEAP_CELLS 7500
-#define STACK_SIZE 450
+#define HEAP_CELLS 8000
+#define STACK_SIZE 500
 
 // #define INITIALIZATION
 // void main_setup(void);
