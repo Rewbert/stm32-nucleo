@@ -13,7 +13,7 @@ const uint32_t NS_VECTOR_TABLE = 0x08040000U;
 /* Start addresses of the 8 SAU regions */
 const uint32_t sau_start[8] = { 0x0C03F000, // last 4K of secure flash, marked as non-secure callable
                                 0x08040000, // Start of non-secure flash
-                                0x20018000, // start of non-secure SRAM1
+                                0x20020000, // start of non-secure SRAM1
                                 0x40000000, // Non-secure mapped peripherals
                                 0x60000000, // Non-secure external memories (not used)
                                 0x0BF90000, // Non-secure system memory
@@ -24,7 +24,7 @@ const uint32_t sau_start[8] = { 0x0C03F000, // last 4K of secure flash, marked a
 /* End addresses of the 8 SAU regions */
 const uint32_t sau_end[8] = { 0x0C04FFFF,
                               0x0807FFFF,
-                              0x2002FFFF,
+                              0x2003FFFF,
                               0x4FFFFFFF,
                               0x9FFFFFFF,
                               0x0BFA8FFF,
@@ -83,6 +83,8 @@ void configure_mpcbb1(void) {
     0xFFFFFFFF, and the next 12 registers to 0x00000000.
 
     */
+
+    /* SECURE MEMORY */
     GTZC_MPCBB1->CR &= ~GTZC_MPCBB_CR_INVSECSTATE_Msk;
     GTZC_MPCBB1->VCTR[0]  = 0xFFFFFFFF;
     GTZC_MPCBB1->VCTR[1]  = 0xFFFFFFFF;
@@ -96,11 +98,13 @@ void configure_mpcbb1(void) {
     GTZC_MPCBB1->VCTR[9]  = 0xFFFFFFFF;
     GTZC_MPCBB1->VCTR[10] = 0xFFFFFFFF;
     GTZC_MPCBB1->VCTR[11] = 0xFFFFFFFF;
+    GTZC_MPCBB1->VCTR[12] = 0xFFFFFFFF;
+    GTZC_MPCBB1->VCTR[13] = 0xFFFFFFFF;
+    GTZC_MPCBB1->VCTR[14] = 0xFFFFFFFF;
+    GTZC_MPCBB1->VCTR[15] = 0xFFFFFFFF;
 
-    GTZC_MPCBB1->VCTR[12] = 0x00000000;
-    GTZC_MPCBB1->VCTR[13] = 0x00000000;
-    GTZC_MPCBB1->VCTR[14] = 0x00000000;
-    GTZC_MPCBB1->VCTR[15] = 0x00000000;
+    /* NONSECURE MEMORY */
+    GTZC_MPCBB2->CR &= ~GTZC_MPCBB_CR_INVSECSTATE_Msk;
     GTZC_MPCBB1->VCTR[16] = 0x00000000;
     GTZC_MPCBB1->VCTR[17] = 0x00000000;
     GTZC_MPCBB1->VCTR[18] = 0x00000000;
@@ -109,6 +113,14 @@ void configure_mpcbb1(void) {
     GTZC_MPCBB1->VCTR[21] = 0x00000000;
     GTZC_MPCBB1->VCTR[22] = 0x00000000;
     GTZC_MPCBB1->VCTR[23] = 0x00000000;
+    GTZC_MPCBB2->VCTR[0] = 0x00000000;
+    GTZC_MPCBB2->VCTR[1] = 0x00000000;
+    GTZC_MPCBB2->VCTR[2] = 0x00000000;
+    GTZC_MPCBB2->VCTR[3] = 0x00000000;
+    GTZC_MPCBB2->VCTR[4] = 0x00000000;
+    GTZC_MPCBB2->VCTR[5] = 0x00000000;
+    GTZC_MPCBB2->VCTR[6] = 0x00000000;
+    GTZC_MPCBB2->VCTR[7] = 0x00000000;
 
 }
 

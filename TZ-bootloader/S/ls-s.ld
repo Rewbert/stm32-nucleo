@@ -6,7 +6,7 @@ MEMORY
     FLASH     (rx):  ORIGIN = 0x0C000800, LENGTH = 248K /* Second of half FLASH, minus 4K for NSC, and minus 2K for PERSIST */
     PERSIST   (rw):  ORIGIN = 0x0C03E800, LENGTH = 2K   /* Segment for persistent, mutable, data */
     FLASH_NSC (rx):  ORIGIN = 0x0C03F000, LENGTH = 4K   /* NSC region at end of FLASH */
-    SRAM1     (rwx): ORIGIN = 0x30000000, LENGTH = 96K  /* Second of half SRAM1 */
+    SRAM1     (rwx): ORIGIN = 0x30000000, LENGTH = 128K  /* first of half SRAM1 */
 }
 
 PROVIDE(_estack = ORIGIN(SRAM1) + LENGTH (SRAM1) - 4);

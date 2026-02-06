@@ -4,7 +4,7 @@ MEMORY
 {
     ISR   (rw):  ORIGIN = 0x08040000, LENGTH = 2K /* ISR vector */
     FLASH (rx):  ORIGIN = 0x08040800, LENGTH = 254K /* First half of FLASH */
-    SRAM1 (rwx): ORIGIN = 0x20018000, LENGTH = 96K  /* First half of SRAM1 */
+    SRAM1 (rwx): ORIGIN = 0x20020000, LENGTH = 128K  /* second half of SRAM1 */
 }
 
 PROVIDE(_estack = ORIGIN(SRAM1) + LENGTH (SRAM1) - 4);
