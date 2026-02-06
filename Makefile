@@ -41,5 +41,6 @@ debug: $(FILE)
 	test -n "$(FILE)" || (echo "Usage: make debug FILE=main.elf" && exit 1)
 	$(DEBUGGER) $(DEBUGGERFLAGS) $(FILE)
 
-debug_tz: secure.elf nonsecure.elf
-	$(DEBUGGER) $(DEBUGGERFLAGS) secure.elf -ex "add-symbol-file nonsecure.elf"
+debug_tz: $(SECURE) $(NONSECURE)
+	test -n "$(SECURE)" || (echo "Usage: make debug_tz SECURE=secure.elf NONSECURE=nonsecure.elf" && exit 1)
+	$(DEBUGGER) $(DEBUGGERFLAGS) $(SECURE) -ex "add-symbol-file $(NONSECURE)"
