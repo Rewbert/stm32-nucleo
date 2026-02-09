@@ -27,17 +27,17 @@ $(SECURE_COMPILED_HASKELL_SOURCE): $(SECURE_HASKELL_SRC)
 # bla bla
 
 SECURE_MHS_SRC := \
-  $(TZ_MHS_APP)/S/config.c \
-  $(TZ_MHS_APP)/S/extra.c \
+  $(TZ_MHS_APP)/shared/config.c \
+  $(TZ_MHS_APP)/shared/extra.c \
+  $(TZ_MHS_APP)/shared/stubs.c \
   $(TZ_MHS_APP)/S/main.c \
   $(TZ_MHS_APP)/S/gen2.c \
-  $(TZ_MHS_APP)/S/stubs.c \
   $(MHS_DIR)/eval.c
 
 SECURE_MHS_O := $(patsubst %.c, build/tz-mhs-both/S/%.o, $(SECURE_MHS_SRC))
 
 # the includes required for compilation
-SECURE_MHS_INC := -I$(TZ_LIB)/include -I$(MHS_DIR) -I$(TZ_MHS_APP)/S
+SECURE_MHS_INC := -I$(TZ_LIB)/include -I$(MHS_DIR) -I$(TZ_MHS_APP)/shared
 
 SECURE_MHS_LIB = build/apps/tz-mhs-both/secure_cmse_import.lib
 

@@ -26,17 +26,17 @@ $(NONSECURE_COMPILED_HASKELL_SOURCE): $(NONSECURE_HASKELL_SRC)
 # bla bla
 
 NONSECURE_MHS_SRC := \
-  $(TZ_MHS_APP)/NS/config.c \
-  $(TZ_MHS_APP)/NS/extra.c \
+  $(TZ_MHS_APP)/shared/config.c \
+  $(TZ_MHS_APP)/shared/extra.c \
+  $(TZ_MHS_APP)/shared/stubs.c \
   $(TZ_MHS_APP)/NS/main.c \
   $(TZ_MHS_APP)/NS/gen2.c \
-  $(TZ_MHS_APP)/NS/stubs.c \
   $(MHS_DIR)/eval.c
 
 NONSECURE_MHS_O := $(patsubst %.c, build/tz-mhs-both/NS/%.o, $(NONSECURE_MHS_SRC))
 
 # the includes required for compilation
-NONSECURE_MHS_INC := -I$(TZ_LIB)/include -I$(MHS_DIR) -I$(TZ_MHS_APP)/NS
+NONSECURE_MHS_INC := -I$(TZ_LIB)/include -I$(MHS_DIR) -I$(TZ_MHS_APP)/shared
 
 NONSECURE_MHS_CPPFLAGS = \
   $(CPPFLAGS) \

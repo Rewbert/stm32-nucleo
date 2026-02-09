@@ -26,6 +26,10 @@ int ffs(int x) {
   return 32 - i;                /* 31 leading zeros should return 1 */
 }
 
+void toggle_red_led(void) {
+  toggle_gpio(red_led);
+}
+
 void toggle_green_led(void) {
   toggle_gpio(green_led);
 }
