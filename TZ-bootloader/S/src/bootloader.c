@@ -10,13 +10,13 @@ void reset_handler(void);
 void HardFault_Handler(void);
 
 // override these later as needed
-void nmi_handler(void) __attribute__((weak, alias("default_handler")));
-void mem_handler(void) __attribute__((weak, alias("default_handler")));
-void bus_handler(void) __attribute__((weak, alias("default_handler")));
-void usage_handler(void) __attribute__((weak, alias("default_handler")));
-void sv_handler(void) __attribute__((weak, alias("default_handler")));
-void debug_handler(void) __attribute__((weak, alias("default_handler")));
-void pend_handler(void) __attribute__((weak, alias("default_handler")));
+void nmi_handler(void);
+void mem_handler(void);
+void bus_handler(void);
+void usage_handler(void);
+void sv_handler(void);
+void debug_handler(void);
+void pend_handler(void);
 void systick_handler(void) __attribute__((weak, alias("default_handler")));
 
 
@@ -94,6 +94,38 @@ void default_handler(void) {
 
 void HardFault_Handler(void) {
   while(1);
+}
+
+void nmi_handler(void) {
+while(1);
+}
+
+void mem_handler(void) {
+while(1);
+}
+
+void bus_handler(void) {
+while(1);
+}
+
+void usage_handler(void) {
+while(1);
+}
+
+void secure_fault(void) {
+while(1);
+}
+
+void sv_handler(void) {
+while(1);
+}
+
+void debug_handler(void) {
+while(1);
+}
+
+void pend_handler(void) {
+while(1);
 }
 
 extern uint32_t _etext, _sdata, _sidata, _edata, _sbss, _ebss; // symbols defined by the linker

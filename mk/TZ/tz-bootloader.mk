@@ -11,7 +11,7 @@ SECURE_BOOTLOADER_C = \
   $(TZ_BOOTLOADER)/S/src/bootloader.c \
   $(TZ_BOOTLOADER)/S/src/security_config.c
 
-NONSECURE_BOOTLOADER_C = $(TZ_BOOTLOADER)/NS/src/bootloader.c
+NONSECURE_BOOTLOADER_C = $(TZ_BOOTLOADER)/NS/src/bootloader.c $(TZ_BOOTLOADER)/NS/src/bootloader_systick_isr.c
 
 SECURE_BOOTLOADER_O = $(patsubst %.c, build/bootloader/%.o, $(SECURE_BOOTLOADER_C))
 NONSECURE_BOOTLOADER_O = $(patsubst %.c, build/bootloader/%.o, $(NONSECURE_BOOTLOADER_C))

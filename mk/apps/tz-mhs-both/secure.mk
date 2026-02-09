@@ -58,4 +58,4 @@ build/tz-mhs-both/S/%.o: %.c
 
 # TODO this builds two things, the elf and the lib. Ask someone if I can indicate that these two are built by this one rule
 $(SECURE_MHS_ELF): $(SECURE_BOOTLOADER_O) $(SECURE_MHS_O) $(SECURE_A) | $(dir $(SECURE_MHS_LIB))
-	$(CC) $(TZ_CFLAGS) $(SECURE_MHS_CPPFLAGS) $(SECURE_LDFLAGS) -o $@ $^ $(IMPLIB_MHS_FLAGS)
+	$(CC) $(TZ_CFLAGS) $(SECURE_MHS_CPPFLAGS) $(SECURE_LDFLAGS) -o $@ $^ $(MHS_IMPLIB_FLAGS)

@@ -5,41 +5,33 @@ extern uint32_t _estack;
 
 #include "stm32l5xx.h"
 
-void default_handler(void);
-void reset_handler(void);
-void HardFault_Handler(void);
-void secure_fault(void);
+extern void default_handler(void);
+extern void reset_handler(void);
+extern void HardFault_Handler(void);
+extern void secure_fault(void);
+extern void nmi_handler(void);
+extern void mem_handler(void);
+extern void bus_handler(void);
+extern void usage_handler(void);
+extern void sv_handler(void);
+extern void debug_handler(void);
+extern void pend_handler(void);
+extern void systick_handler(void);
 
-// override these later as needed
-void nmi_handler(void) __attribute__((weak, alias("default_handler")));
-void mem_handler(void) __attribute__((weak, alias("default_handler")));
-void bus_handler(void) __attribute__((weak, alias("default_handler")));
-void usage_handler(void) __attribute__((weak, alias("default_handler")));
-void sv_handler(void) __attribute__((weak, alias("default_handler")));
-void debug_handler(void) __attribute__((weak, alias("default_handler")));
-void pend_handler(void) __attribute__((weak, alias("default_handler")));
-void systick_handler(void) __attribute__((weak, alias("default_handler")));
-
-void exti_default_handler(void);
-
-void exti0_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti1_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti2_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti3_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti4_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti5_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti6_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti7_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti8_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti9_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti10_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti11_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti12_handler(void) __attribute__((weak, alias("exti_default_handler")));
-void exti13_handler(void) __attribute__((weak, alias("exti_default_handler")));
-
-void exti_default_handler(void) {
-  while(1) {}
-}
+extern void exti0_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti1_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti2_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti3_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti4_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti5_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti6_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti7_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti8_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti9_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti10_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti11_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti12_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+extern void exti13_handler(void); // __attribute__((weak, alias("exti_default_handler")));
 
 // goes in special section, it has to end up there for everything to work. Look in the reference manual, the part about vector table
 uint32_t isr_vector[VECTOR_SIZE_WORDS] __attribute__((section(".isr_vector"))) = {
@@ -86,19 +78,6 @@ uint32_t isr_vector[VECTOR_SIZE_WORDS] __attribute__((section(".isr_vector"))) =
     (uint32_t)&exti13_handler,
     // add more handlers as wanted, I believe we can also add IRQs here, which we can use for fun features
 };
-
-// these two are identical, but we can distinguish which one we are in with GDB
-void default_handler(void) {
-    while(1);
-}
-
-void HardFault_Handler(void) {
-  while(1);
-}
-
-void secure_fault(void) {
-  while(1);
-}
 
 extern uint32_t _etext, _sdata, _sidata, _edata, _sbss, _ebss; // symbols defined by the linker
 

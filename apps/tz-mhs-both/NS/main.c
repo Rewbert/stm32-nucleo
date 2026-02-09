@@ -2,7 +2,6 @@
 
 // #include "../MicroHs/src/runtime/eval.c"
 
-#include "hal/platform/domain.h"
 #include "hal/gpio.h"
 #include "hal/clock.h"
 #include "hal/uart.h"
@@ -10,29 +9,23 @@
 #include "services/led.h"
 #include "services/uart.h"
 
+#include "hal/platform/clock.h"
+
 int mhs_main(int argc, char **argv);
 
 void stm32_init() {
-    platform_clock_configure_110mhz();
-    configure_systick(110000);
     enable_irq();
-    enable_lpuart1(244444, DOMAIN_NONSECURE);
-    init_led(red_led, DOMAIN_SECURE);
-    init_led(green_led, DOMAIN_NONSECURE);
 }
 
 void stm32_exit() {
-    toggle_gpio(red_led);
+    toggle_gpio(green_led);
 }
 
 void main(void) {
+    volatile int x = ticks;
 
     stm32_init();
 
     mhs_main(0, 0);
 
-}
-
-NONSECURE_CALLABLE int add(int x) {
-    return x + 5;
 }
