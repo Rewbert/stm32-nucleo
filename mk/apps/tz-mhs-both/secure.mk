@@ -15,6 +15,17 @@ SECURE_MHS_ELF := secure-mhs.elf
 MHS := MicroHs
 MHS_DIR := $(MHS)/src/runtime
 
+# Haskell crap
+
+SECURE_HASKELL_SRC = $(TZ_MHS_APP)/S/Secure.hs
+
+SECURE_COMPILED_HASKELL_SOURCE = $(TZ_MHS_APP)/S/gen2.c
+
+$(SECURE_COMPILED_HASKELL_SOURCE): $(SECURE_HASKELL_SRC)
+	./$(MHS)/bin/mhs -CW -CR -i$(MHS)/lib -o$(SECURE_COMPILED_HASKELL_SOURCE) $(SECURE_HASKELL_SRC)
+
+# bla bla
+
 SECURE_MHS_SRC := \
   $(TZ_MHS_APP)/S/config.c \
   $(TZ_MHS_APP)/S/extra.c \

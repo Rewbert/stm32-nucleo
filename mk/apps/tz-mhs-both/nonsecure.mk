@@ -14,6 +14,17 @@ NONSECURE_MHS_ELF := nonsecure-mhs.elf
 MHS := MicroHs
 MHS_DIR := $(MHS)/src/runtime
 
+# haskell crap
+
+NONSECURE_HASKELL_SRC = $(TZ_MHS_APP)/NS/Nonsecure.hs
+
+NONSECURE_COMPILED_HASKELL_SOURCE = $(TZ_MHS_APP)/NS/gen2.c
+
+$(NONSECURE_COMPILED_HASKELL_SOURCE): $(NONSECURE_HASKELL_SRC)
+	./$(MHS)/bin/mhs -CW -CR -i$(MHS)/lib -o$(NONSECURE_COMPILED_HASKELL_SOURCE) $(NONSECURE_HASKELL_SRC)
+
+# bla bla
+
 NONSECURE_MHS_SRC := \
   $(TZ_MHS_APP)/NS/config.c \
   $(TZ_MHS_APP)/NS/extra.c \
