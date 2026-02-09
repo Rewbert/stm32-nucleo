@@ -5,33 +5,41 @@ extern uint32_t _estack;
 
 #include "stm32l5xx.h"
 
-extern void default_handler(void);
-extern void reset_handler(void);
-extern void HardFault_Handler(void);
-extern void secure_fault(void);
-extern void nmi_handler(void);
-extern void mem_handler(void);
-extern void bus_handler(void);
-extern void usage_handler(void);
-extern void sv_handler(void);
-extern void debug_handler(void);
-extern void pend_handler(void);
-extern void systick_handler(void);
+void default_handler(void) {
+  while(1);
+}
 
-extern void exti0_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti1_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti2_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti3_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti4_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti5_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti6_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti7_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti8_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti9_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti10_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti11_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti12_handler(void); // __attribute__((weak, alias("exti_default_handler")));
-extern void exti13_handler(void); // __attribute__((weak, alias("exti_default_handler")));
+void exti_default_handler(void) {
+  while(1) {}
+}
+
+// void default_handler(void);
+void reset_handler(void);
+void HardFault_Handler(void) __attribute__((weak, alias("default_handler")));
+void secure_fault(void) __attribute__((weak, alias("default_handler")));
+void nmi_handler(void) __attribute__((weak, alias("default_handler")));
+void mem_handler(void) __attribute__((weak, alias("default_handler")));
+void bus_handler(void) __attribute__((weak, alias("default_handler")));
+void usage_handler(void) __attribute__((weak, alias("default_handler")));
+void sv_handler(void) __attribute__((weak, alias("default_handler")));
+void debug_handler(void) __attribute__((weak, alias("default_handler")));
+void pend_handler(void) __attribute__((weak, alias("default_handler")));
+void systick_handler(void) __attribute__((weak, alias("default_handler")));
+
+void exti0_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti1_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti2_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti3_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti4_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti5_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti6_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti7_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti8_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti9_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti10_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti11_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti12_handler(void) __attribute__((weak, alias("exti_default_handler")));
+void exti13_handler(void) __attribute__((weak, alias("exti_default_handler")));
 
 // goes in special section, it has to end up there for everything to work. Look in the reference manual, the part about vector table
 uint32_t isr_vector[VECTOR_SIZE_WORDS] __attribute__((section(".isr_vector"))) = {
