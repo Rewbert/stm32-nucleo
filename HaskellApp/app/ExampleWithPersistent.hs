@@ -2,7 +2,7 @@ module ExampleWithPersistent where
 
 import Setup
 --import Secure -- import Secure -- import only one of these, and compile the program twice
-import NonSecure
+import Secure
 
 -- low level secure functions, that can only be invoked by the secure application
 -- this is enforced by the type checker
@@ -139,3 +139,6 @@ app = do
     utd <- callable $ unlockDoor
     
     nonSecure $ keypad $ NSCApi ctp utd ltd
+
+main :: IO ()
+main = runSetup app
