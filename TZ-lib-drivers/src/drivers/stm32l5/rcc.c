@@ -36,6 +36,7 @@ static const rcc_desc_t rcc_table[RCC_PERIPH_COUNT] = {
 
     [RCC_LPUART1] = { &RCCx->APB1ENR2, RCC_APB1ENR2_LPUART1EN },
     [RCC_PWR]     = { &RCCx->APB1ENR1, RCC_APB1ENR1_PWREN },
+    [RCC_GTZC]    = { &RCCx->AHB1ENR,  RCC_AHB1ENR_GTZCEN },
 };
 
 /**

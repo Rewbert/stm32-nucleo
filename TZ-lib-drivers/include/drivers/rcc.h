@@ -28,6 +28,7 @@ typedef enum {
 
     RCC_LPUART1,
     RCC_PWR,
+    RCC_GTZC,
     RCC_PERIPH_COUNT,
 } rcc_periph_t;
 
