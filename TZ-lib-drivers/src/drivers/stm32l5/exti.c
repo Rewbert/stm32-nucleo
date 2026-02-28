@@ -1,13 +1,9 @@
 #include "domain/domain.h"
 #include "domain/cmsis_select.h"
 
-#include "drivers/exti.h"
+#include "backends/stm32l5/exti.h"
 
 #include "stm32l5xx.h"
-
-typedef struct {
-    uint8_t pin;
-} stm32l5_exti_backend_t;
 
 static exti_callback_t exti_callbacks[16] = {0};
 

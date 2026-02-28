@@ -2,13 +2,9 @@
 #include "domain/domain.h"
 #include "domain/cmsis_select.h"
 
-#include "drivers/uart.h"
+#include "backends/stm32l5/lpuart1.h"
 
 #include "stm32l5xx.h"
-
-typedef struct {
-    USART_TypeDef *uart;
-} stm32l5_lpuart1_backend_t;
 
 static inline void stm32l5_set_baudrate(struct uart_dev *dev, uint32_t baudrate) {
     stm32l5_lpuart1_backend_t *backend = (stm32l5_lpuart1_backend_t*) dev->backend;

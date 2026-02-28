@@ -2,17 +2,9 @@
 #include "domain/domain.h"
 #include "domain/cmsis_select.h"
 
-#include "drivers/gpio.h"
+#include "backends/stm32l5/gpio.h"
 
 #include "stm32l5xx.h"
-
-/**
- * @brief This is information that the device driver needs to operate a unique GPIO
- */
-typedef struct {
-    GPIO_TypeDef *gpio;
-    uint8_t       pin;
-} stm32l5_gpio_backend_t;
 
 static inline uint32_t pin_shift(uint8_t pin) {
     return pin * 2U;

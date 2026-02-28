@@ -6,7 +6,7 @@ include mk/common/toolchain.mk
 BOARD ?= stm32l5
 
 TZ_LIB_DRV     := TZ-lib-drivers
-TZ_LIB_DRV_SRC := $(wildcard $(TZ_LIB_DRV)/src/drivers/$(BOARD)/*.c)
+TZ_LIB_DRV_SRC := $(wildcard $(TZ_LIB_DRV)/src/drivers/$(BOARD)/*.c) $(wildcard $(TZ_LIB_DRV)/src/drivers/*.c)
 
 TZ_LIB_DRV_INC      := -I$(TZ_LIB_DRV)/include
 TZ_LIB_DRV_CFLAGS   := $(CFLAGS) $(TRUSTZONE_AWARENESS) $(NO_STDLIB) $(NOSTARTFILES) $(DEBUG)

@@ -2,13 +2,9 @@
 #include "domain/domain.h"
 #include "domain/cmsis_select.h"
 
-#include "drivers/flash.h"
+#include "backends/stm32l5/flash.h"
 
 #include "stm32l5xx.h"
-
-typedef struct {
-    FLASH_TypeDef *flash;
-} stm32l5_flash_backend_t;
 
 void stm32l5_set_latency(struct flash_dev *dev, uint32_t wait_states) {
 #if HAL_SECURE
