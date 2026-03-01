@@ -1,13 +1,10 @@
 #include "domain/domain.h"
 #include "domain/cmsis_select.h"
 
+#include "backends/stm32l5/mpcbb.h"
 #include "drivers/mpcbb.h"
 
 #include "stm32l5xx.h"
-
-typedef struct {
-    GTZC_MPCBB_TypeDef *mpcbb;
-} stm32l5_mpcbb_backend_t;
 
 void stm32l5_set_superblocks(struct mpcbb_dev *dev, uint32_t first, uint32_t count, mpcbb_security_t sec) {
 #if HAL_SECURE
