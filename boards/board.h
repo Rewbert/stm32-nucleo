@@ -5,8 +5,6 @@
  * This is my attempt at some kind of board abstraction. The drivers abstract away the peripherals, and this file
  * abstracts away the board.
  * 
- * TODO: There is currently no board agnostic way to get your own gpio_dev_t from naming ports and pins. This
- * must be added, otherwise working with a breadboard is difficult.
  */
 
 #include "drivers/gpio.h"
@@ -26,6 +24,36 @@ typedef enum {
 typedef enum {
     BOARD_BUTTON_USER = 0,
 } board_button_t;
+
+/**
+ * @brief GPIO ports that can be accessed.
+ *
+ * NOTE: I am not sure how to handle implementing boards that have more or fewer than these..
+ * these are the ports available on my boards.
+ * 
+ */
+typedef enum {
+    BOARD_GPIO_PORT_A = 0,
+    BOARD_GPIO_PORT_B,
+    BOARD_GPIO_PORT_C,
+    BOARD_GPIO_PORT_D,
+    BOARD_GPIO_PORT_E,
+    BOARD_GPIO_PORT_F,
+    BOARD_GPIO_PORT_G,
+    BOARD_GPIO_PORT_H,
+} board_gpio_port_t;
+
+#define BOARD_GPIO_BACKEND_SIZE 8
+typedef struct {
+    /* Do not access this member yourself */
+    uint8_t _opaque[BOARD_GPIO_BACKEND_SIZE];
+} board_gpio_backend_t;
+
+/**
+ * @brief Initialise a GPIO device
+ * 
+ */
+void board_gpio_create(gpio_dev_t *dev, board_gpio_port_t port, uint8_t pin, board_gpio_backend_t *backend);
 
 /*
  * This init is quite simple. It wires upp the relevant backends for the drivers, but does otherwise not do
