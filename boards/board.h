@@ -84,6 +84,8 @@ rcc_dev_t   *board_rcc(void);
 flash_dev_t *board_flash(void);
 pwr_dev_t   *board_pwr(void);
 
+void board_button_init(gpio_dev_t *button, exti_edge_t edge, void (*button_callback)(exti_edge_t edge));
+
 #define BOARD_MPCBB_COUNT 2
 #define BOARD_MPCBB1_SUPERBLOCKS 24
 #define BOARD_MPCBB2_SUPERBLOCKS 8

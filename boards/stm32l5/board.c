@@ -110,6 +110,26 @@ static inline void console_init() {
     gpio_init(&pg8, &uart_pin_cfg);
 }
 
+void board_button_init(gpio_dev_t *button, exti_edge_t edge, void (*button_callback)(exti_edge_t edge)) {
+    gpio_config_t btn_cfg = {
+        .mode      = GPIO_MODE_INPUT,
+        .pull      = GPIO_NOPULL,
+        .alternate = GPIO_AF0,
+    };
+    gpio_init(button, &btn_cfg);
+
+    exti_config_t exti_cfg = {
+        .port             = EXTI_PORT_C, // this stuff is duplicated. I already wrote this stuff in board_init. Need to
+        .pin              = 13,          // think about how to remove the deplication
+        .edge             = EXTI_EDGE_FALLING,
+        .priority         = 0,
+        .secure           = true,
+        .target_nonsecure = false,
+    };
+    exti_init(board_button_exti(BOARD_BUTTON_USER), &exti_cfg);
+    exti_register_callback(board_button_exti(BOARD_BUTTON_USER), button_callback);
+}
+
 gpio_dev_t *board_led(board_led_t led) {
     return &leds[led];
 }

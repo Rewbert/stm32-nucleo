@@ -50,23 +50,8 @@ void main(void) {
     gpio_init(board_led(BOARD_LED_BLUE),  &led_cfg);
     gpio_init(board_led(BOARD_LED_GREEN), &led_cfg);
 
-    gpio_config_t btn_cfg = {
-        .mode      = GPIO_MODE_INPUT,
-        .pull      = GPIO_NOPULL,
-        .alternate = GPIO_AF0,
-    };
-    gpio_init(board_button(BOARD_BUTTON_USER), &btn_cfg);
 
-    exti_config_t exti_cfg = {
-        .port             = EXTI_PORT_C,
-        .pin              = 13,
-        .edge             = EXTI_EDGE_FALLING,
-        .priority         = 0,
-        .secure           = true,
-        .target_nonsecure = false,
-    };
-    exti_init(board_button_exti(BOARD_BUTTON_USER), &exti_cfg);
-    exti_register_callback(board_button_exti(BOARD_BUTTON_USER), button_callback);
+    board_button_init(board_button(BOARD_BUTTON_USER), EXTI_EDGE_FALLING, button_callback);
 
     while (1) {
         gpio_toggle(board_led(BOARD_LED_RED));
