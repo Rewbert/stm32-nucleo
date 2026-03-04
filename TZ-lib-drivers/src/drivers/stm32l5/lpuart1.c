@@ -9,7 +9,7 @@
 static inline void stm32l5_set_baudrate(struct uart_dev *dev, uint32_t baudrate) {
     stm32l5_lpuart1_backend_t *backend = (stm32l5_lpuart1_backend_t*) dev->backend;
 
-    uint32_t brr = (256U * 110000000U) / baudrate;
+    uint32_t brr = (uint32_t) ((256ULL * 110000000ULL) / baudrate);
     backend->uart->BRR = brr;
 }
 
