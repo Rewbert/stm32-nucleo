@@ -68,6 +68,8 @@ static pwr_dev_t   pwr;
 static stm32l5_flash_backend_t flash_backend;
 static flash_dev_t             flash;
 
+static inline void console_init();
+
 void board_init(void) {
     stm32l5_gpio_create(&leds[BOARD_LED_GREEN], GPIO_CMSIS(C), 7,  &led_backends[BOARD_LED_GREEN]);
     stm32l5_gpio_create(&leds[BOARD_LED_BLUE],  GPIO_CMSIS(B), 7,  &led_backends[BOARD_LED_BLUE]);
@@ -81,6 +83,31 @@ void board_init(void) {
     stm32l5_rcc_create(&rcc);
     stm32l5_pwr_create(&pwr);
     stm32l5_flash_create(&flash, FLASHx, &flash_backend);
+
+    console_init();
+}
+
+static inline void console_init() {
+    // GPIOG (and as a result LPUART1 on PG7/PG8) requires VDDIO2
+    rcc_enable(board_rcc(), RCC_PWR);
+    pwr_enable_vddio2(board_pwr());
+
+    rcc_enable(board_rcc(), RCC_GPIOG);
+
+    rcc_enable(board_rcc(), RCC_LPUART1);
+    rcc_set_peripheral_clock(board_rcc(), RCC_LPUART1, RCC_SYSCLK);
+
+    board_gpio_backend_t pg7_backend, pg8_backend;
+    gpio_dev_t pg7, pg8;
+    board_gpio_create(&pg7, BOARD_GPIO_PORT_G, 7, &pg7_backend);
+    board_gpio_create(&pg8, BOARD_GPIO_PORT_G, 8, &pg8_backend);
+    gpio_config_t uart_pin_cfg = {
+        .mode      = GPIO_MODE_AF,
+        .pull      = GPIO_PULLUP,
+        .alternate = GPIO_AF8,
+    };
+    gpio_init(&pg7, &uart_pin_cfg);
+    gpio_init(&pg8, &uart_pin_cfg);
 }
 
 gpio_dev_t *board_led(board_led_t led) {

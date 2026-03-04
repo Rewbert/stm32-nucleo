@@ -71,8 +71,8 @@ void board_exti_create(exti_dev_t *dev, board_exti_backend_t *backend);
  * This init is quite simple. It wires upp the relevant backends for the drivers, but does otherwise not do
  * much configuration. That must be done by the application (for now).
  *
- * As an example, the uart backend is wired up and the driver constructed, but actually initialising the uart
- * must be done by the application via the said driver.
+ * UART is wired up correctly, but the application needs to invoke uart_init with a configuration object
+ * before the uart can be used.
  */
 void board_init(void);
 

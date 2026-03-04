@@ -11,37 +11,6 @@
 #include "drivers/pwr.h"
 #include "drivers/systick.h"
 
-static inline void console_init() {
-    // GPIOG (and as a result LPUART1 on PG7/PG8) requires VDDIO2
-    rcc_enable(board_rcc(), RCC_PWR);
-    pwr_enable_vddio2(board_pwr());
-
-    rcc_enable(board_rcc(), RCC_GPIOG);
-
-    rcc_enable(board_rcc(), RCC_LPUART1);
-    rcc_set_peripheral_clock(board_rcc(), RCC_LPUART1, RCC_SYSCLK);
-
-    board_gpio_backend_t pg7_backend, pg8_backend;
-    gpio_dev_t pg7, pg8;
-    board_gpio_create(&pg7, BOARD_GPIO_PORT_G, 7, &pg7_backend);
-    board_gpio_create(&pg8, BOARD_GPIO_PORT_G, 8, &pg8_backend);
-    gpio_config_t uart_pin_cfg = {
-        .mode      = GPIO_MODE_AF,
-        .pull      = GPIO_PULLUP,
-        .alternate = GPIO_AF8,
-    };
-    gpio_init(&pg7, &uart_pin_cfg);
-    gpio_init(&pg8, &uart_pin_cfg);
-
-    uart_config_t uart_cfg = {
-        .baudrate    = 115200,
-        .word_length = 8,
-        .stop_bits   = 1,
-        .parity      = UART_PARITY_NONE,
-    };
-    uart_init(board_console(), &uart_cfg);
-}
-
 static void sys_init(void) {
     board_init();
 
@@ -51,7 +20,13 @@ static void sys_init(void) {
     rcc_enable(board_rcc(), RCC_GPIOB);
     rcc_enable(board_rcc(), RCC_GPIOC);
 
-    console_init();
+    uart_config_t uart_cfg = {
+        .baudrate    = 115200,
+        .word_length = 8,
+        .stop_bits   = 1,
+        .parity      = UART_PARITY_NONE,
+    };
+    uart_init(board_console(), &uart_cfg);
     
     SysTick_Config(110000);
     __enable_irq();
