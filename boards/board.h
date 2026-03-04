@@ -49,11 +49,23 @@ typedef struct {
     uint8_t _opaque[BOARD_GPIO_BACKEND_SIZE];
 } board_gpio_backend_t;
 
+#define BOARD_EXTI_BACKEND_SIZE 1
+typedef struct {
+    /* Do not access this member yourself */
+    uint8_t _opaque[BOARD_EXTI_BACKEND_SIZE];
+} board_exti_backend_t;
+
 /**
- * @brief Initialise a GPIO device
+ * @brief Create a GPIO device
  * 
  */
 void board_gpio_create(gpio_dev_t *dev, board_gpio_port_t port, uint8_t pin, board_gpio_backend_t *backend);
+
+/**
+ * @brief Create an EXTI device
+ * 
+ */
+void board_exti_create(exti_dev_t *dev, board_exti_backend_t *backend);
 
 /*
  * This init is quite simple. It wires upp the relevant backends for the drivers, but does otherwise not do

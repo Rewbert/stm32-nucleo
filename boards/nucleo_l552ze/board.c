@@ -44,6 +44,12 @@ void board_gpio_create(gpio_dev_t *dev, board_gpio_port_t port, uint8_t pin, boa
     stm32l5_gpio_create(dev, port_map[port], pin, (stm32l5_gpio_backend_t *)backend->_opaque);
 }
 
+_Static_assert(sizeof(board_exti_backend_t) >= sizeof(stm32l5_exti_backend_t), "BOARD_EXTI_BACKEND_SIZE is too small for stm32l5_exti_backend_t");
+
+void board_exti_create(exti_dev_t *dev, board_exti_backend_t *backend) {
+    stm32l5_exti_create(dev, (stm32l5_exti_backend_t *)backend->_opaque);
+}
+
 static stm32l5_gpio_backend_t led_backends[3];
 static gpio_dev_t             leds[3];
 
