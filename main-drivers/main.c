@@ -51,7 +51,7 @@ void main(void) {
     gpio_init(board_led(BOARD_LED_GREEN), &led_cfg);
 
 
-    board_button_init(board_button(BOARD_BUTTON_USER), EXTI_EDGE_FALLING, button_callback);
+    board_button_init(board_button(BOARD_BUTTON_USER), GPIO_SECURE, EXTI_EDGE_FALLING, button_callback);
 
     while (1) {
         gpio_toggle(board_led(BOARD_LED_RED));

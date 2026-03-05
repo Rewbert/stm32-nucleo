@@ -53,14 +53,20 @@ typedef enum {
     GPIO_AF15 = 15,
 } gpio_af_t;
 
+typedef enum {
+    GPIO_SECURE = 0,
+    GPIO_NONSECURE,
+} gpio_security_t;
+
 /* Rather than the API exposing individual functions to set mode, pull, etc, we just offer
    a init function that takes all of these options, and does them all (seemingly) at once. This
    should hopefully make us not enter an interrupt while we are in the middle of configuring
    an GPIO pin. */
 typedef struct {
-    gpio_mode_t mode;
-    gpio_pull_t pull;
-    gpio_af_t   alternate;
+    gpio_mode_t     mode;
+    gpio_pull_t     pull;
+    gpio_af_t       alternate;
+    gpio_security_t security_domain;
 } gpio_config_t;
 
 /* The API of the GPIO device driver */

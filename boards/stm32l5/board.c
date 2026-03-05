@@ -102,19 +102,21 @@ static inline void console_init() {
     board_gpio_create(&pg7, BOARD_GPIO_PORT_G, 7, &pg7_backend);
     board_gpio_create(&pg8, BOARD_GPIO_PORT_G, 8, &pg8_backend);
     gpio_config_t uart_pin_cfg = {
-        .mode      = GPIO_MODE_AF,
-        .pull      = GPIO_PULLUP,
-        .alternate = GPIO_AF8,
+        .mode            = GPIO_MODE_AF,
+        .pull            = GPIO_PULLUP,
+        .alternate       = GPIO_AF8,
+        .security_domain = GPIO_SECURE,
     };
     gpio_init(&pg7, &uart_pin_cfg);
     gpio_init(&pg8, &uart_pin_cfg);
 }
 
-void board_button_init(gpio_dev_t *button, exti_edge_t edge, void (*button_callback)(exti_edge_t edge)) {
+void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t edge, void (*button_callback)(exti_edge_t edge)) {
     gpio_config_t btn_cfg = {
-        .mode      = GPIO_MODE_INPUT,
-        .pull      = GPIO_NOPULL,
-        .alternate = GPIO_AF0,
+        .mode            = GPIO_MODE_INPUT,
+        .pull            = GPIO_NOPULL,
+        .alternate       = GPIO_AF0,
+        .security_domain = security,
     };
     gpio_init(button, &btn_cfg);
 

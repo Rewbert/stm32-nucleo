@@ -34,6 +34,16 @@ static inline void stm32l5_gpio_set_af(stm32l5_gpio_backend_t *backend, gpio_mod
     }
 }
 
+static inline void stm32l5_gpio_set_seccfgr(stm32l5_gpio_backend_t *backend, gpio_security_t security_domain) {
+#if HAL_SECURE
+    switch(security_domain) {
+        case GPIO_SECURE: backend->gpio->SECCFGR |= (1U << backend->pin); return;
+        case GPIO_NONSECURE: backend->gpio->SECCFGR &= ~(1U << backend->pin); return;
+        default: return;
+    }
+#endif
+}
+
 /* Driver API functions */
 
 static void stm32l5_gpio_init(struct gpio_dev *dev, gpio_config_t *config) {
@@ -44,6 +54,7 @@ static void stm32l5_gpio_init(struct gpio_dev *dev, gpio_config_t *config) {
     stm32l5_gpio_set_mode(backend, config->mode);
     stm32l5_gpio_set_pupdr(backend, config->pull);
     stm32l5_gpio_set_af(backend, config->mode, config->alternate);
+    stm32l5_gpio_set_seccfgr(backend, config->security_domain);
 
     // enable interrupts here
 }
