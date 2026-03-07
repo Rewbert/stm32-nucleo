@@ -1,4 +1,4 @@
-#include "stm32l5xx.h" // only need this for the m33-specific SysTick-Config (for now), and __enable_irq, which I will add my own driver/lib function for
+#include "stm32l5xx.h" // only need this for the m33-specific SysTick_Config (for now)
 #include "domain/domain.h"
 #include "domain/cmsis_select.h"
 
@@ -10,6 +10,7 @@
 #include "drivers/rcc.h"
 #include "drivers/pwr.h"
 #include "drivers/systick.h"
+#include "drivers/irq.h"
 
 static void sys_init(void) {
     board_init();
@@ -29,7 +30,7 @@ static void sys_init(void) {
     uart_init(board_console(), &uart_cfg);
     
     SysTick_Config(110000);
-    __enable_irq();
+    irq_enable();
 }
 
 static void button_callback(exti_edge_t edge) {
