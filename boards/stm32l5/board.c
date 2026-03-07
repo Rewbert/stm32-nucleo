@@ -24,6 +24,7 @@
 #include "backends/stm32l5/rcc.h"
 #include "backends/stm32l5/pwr.h"
 #include "backends/stm32l5/mpcbb.h"
+#include "backends/stm32l5/tzsc.h"
 
 /**
  * @brief I saw this online, a C11 macro to do compiletime checks. If the backend stm32l5 gpio type get's too large
@@ -68,6 +69,9 @@ static pwr_dev_t   pwr;
 static stm32l5_flash_backend_t flash_backend;
 static flash_dev_t             flash;
 
+static stm32l5_tzsc_backend_t tzsc_backend;
+static tzsc_dev_t             tzsc;
+
 static inline void console_init();
 
 void board_init(void) {
@@ -83,6 +87,7 @@ void board_init(void) {
     stm32l5_rcc_create(&rcc);
     stm32l5_pwr_create(&pwr);
     stm32l5_flash_create(&flash, FLASHx, &flash_backend);
+    stm32l5_tzsc_create(&tzsc, &tzsc_backend);
 
     console_init();
 }
@@ -160,6 +165,10 @@ flash_dev_t *board_flash(void) {
 
 pwr_dev_t *board_pwr(void) {
     return &pwr;
+}
+
+tzsc_dev_t *board_tzsc(void) {
+    return &tzsc;
 }
 
 static stm32l5_mpcbb_backend_t mpcbb1_backend;
