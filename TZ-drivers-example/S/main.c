@@ -21,6 +21,10 @@ void sys_init() {
     rcc_configure_pll(board_rcc(), board_flash(), 55, 1, 7, 110000000); // 110 MHz on my stm32l5
     systick_configure(110000);
 
+    // make the lpuart1 secure only
+    tzsc_set_periph(board_tzsc(), TZSC_PERIPH_LPUART1, TZSC_SECURE);
+    tzsc_lock(board_tzsc());
+
     uart_config_t uart_cfg = {
         .baudrate    = 115200,
         .word_length = 8,
