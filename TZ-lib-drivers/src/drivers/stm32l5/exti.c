@@ -124,7 +124,8 @@ static const exti_driver_api_t stm32l5_exti_api = {
     .disable           = stm32l5_exti_disable,
 };
 
-void stm32l5_exti_create(exti_dev_t *dev, stm32l5_exti_backend_t *backend_storage) {
-    dev->api     = &stm32l5_exti_api;
-    dev->backend = backend_storage;
+void stm32l5_exti_create(exti_dev_t *dev, stm32l5_exti_backend_t *backend_storage, uint8_t pin) {
+    dev->api             = &stm32l5_exti_api;
+    dev->backend         = backend_storage;
+    backend_storage->pin = pin;
 }

@@ -47,8 +47,8 @@ void board_gpio_create(gpio_dev_t *dev, board_gpio_port_t port, uint8_t pin, boa
 
 _Static_assert(sizeof(board_exti_backend_t) >= sizeof(stm32l5_exti_backend_t), "BOARD_EXTI_BACKEND_SIZE is too small for stm32l5_exti_backend_t");
 
-void board_exti_create(exti_dev_t *dev, board_exti_backend_t *backend) {
-    stm32l5_exti_create(dev, (stm32l5_exti_backend_t *)backend->_opaque);
+void board_exti_create(exti_dev_t *dev, board_exti_backend_t *backend, uint8_t pin) {
+    stm32l5_exti_create(dev, (stm32l5_exti_backend_t *)backend->_opaque, pin);
 }
 
 static stm32l5_gpio_backend_t led_backends[3];
@@ -80,7 +80,7 @@ void board_init(void) {
     stm32l5_gpio_create(&leds[BOARD_LED_RED],   GPIO_CMSIS(A), 9,  &led_backends[BOARD_LED_RED]);
 
     stm32l5_gpio_create(&button_gpio, GPIO_CMSIS(C), 13, &button_gpio_backend);
-    stm32l5_exti_create(&button_exti, &button_exti_backend);
+    stm32l5_exti_create(&button_exti, &button_exti_backend, 13); /* PC13 blue button */
 
     stm32l5_lpuart1_create(&console, LPUART1x, &console_backend);
 

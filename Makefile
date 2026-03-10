@@ -22,7 +22,7 @@ flash:
 	test -n "$(FILE)" || (echo "Usage: make flash FILE=main.elf" && exit 1)
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) -c "program $(FILE) verify reset exit"
 
-flash_tz: $(SECURE) $(NONSECURE)
+flash_tz:
 	test -n "$(SECURE)" || (echo "Usage: make flash_tz SECURE=secure.elf NONSECURE=nonsecure.elf" && exit 1)
 	$(PROGRAMMER) $(PROGRAMMER_FLAGS) -c "init" -c "reset halt" -c "program $(SECURE) verify" -c "program $(NONSECURE) verify" -c "reset" -c "exit"
 

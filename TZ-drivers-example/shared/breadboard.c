@@ -3,6 +3,7 @@
 
 #include "drivers/gpio.h"
 #include "drivers/exti.h"
+#include "drivers/rcc.h"
 
 #include "board.h"
 
@@ -129,7 +130,7 @@ void breadboard_create() {
     for(int i = 0; i < BREADBOARD_NUM_BUTTONS; i++) {
         breadboard_button_t *bb = &buttons[i];
         board_gpio_create(&bb->gpio, bb->port, bb->pin, &bb->gpio_backend);
-        board_exti_create(&bb->exti, &bb->exti_backend);
+        board_exti_create(&bb->exti, &bb->exti_backend, bb->exti_cfg.pin);
     }
 }
 
@@ -138,6 +139,9 @@ void breadboard_init() {
 
     // Only the secure world should actually configure the peripherals
 #if HAL_SECURE
+    /* Enable GPIOA before we configure the GPIOA buttons */
+    rcc_enable(board_rcc(), RCC_GPIOA);
+
     for(int i = 0; i < BREADBOARD_NUM_BUTTONS; i++) {
         breadboard_button_t *bb = &buttons[i];
         gpio_init(&bb->gpio, &bb->gpio_cfg);

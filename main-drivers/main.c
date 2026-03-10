@@ -62,7 +62,7 @@ static void inline breadboard_button_init() {
     /*** Configure the EXTI line ***/
     board_exti_backend_t bb_exti_backend;
     exti_dev_t bb_exti;
-    board_exti_create(&bb_exti, &bb_exti_backend);
+    board_exti_create(&bb_exti, &bb_exti_backend, 2);
 
     exti_config_t bb_exti_cfg = {
         .port             = EXTI_PORT_A,

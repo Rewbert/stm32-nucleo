@@ -8,6 +8,6 @@ typedef struct {
     uint8_t pin;
 } stm32l5_exti_backend_t;
 
-void stm32l5_exti_create(exti_dev_t *dev, stm32l5_exti_backend_t *backend);
+void stm32l5_exti_create(exti_dev_t *dev, stm32l5_exti_backend_t *backend, uint8_t pin);
 
 #endif // BACKENDS_STM32L5_EXTI_H

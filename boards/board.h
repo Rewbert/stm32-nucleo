@@ -66,7 +66,7 @@ void board_gpio_create(gpio_dev_t *dev, board_gpio_port_t port, uint8_t pin, boa
  * @brief Create an EXTI device
  * 
  */
-void board_exti_create(exti_dev_t *dev, board_exti_backend_t *backend);
+void board_exti_create(exti_dev_t *dev, board_exti_backend_t *backend, uint8_t pin);
 
 /*
  * This init is quite simple. It wires upp the relevant backends for the drivers, but does otherwise not do
