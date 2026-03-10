@@ -23,7 +23,7 @@ void sys_init() {
     systick_configure(110000);
 
     // make the lpuart1 secure only
-    tzsc_set_periph(board_tzsc(), TZSC_PERIPH_LPUART1, TZSC_SECURE);
+    tzsc_set_periph(board_tzsc(), board_console_periph(), TZSC_SECURE);
     tzsc_lock(board_tzsc());
 
     uart_config_t uart_cfg = {

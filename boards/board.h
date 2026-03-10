@@ -81,6 +81,7 @@ gpio_dev_t  *board_led(board_led_t led);
 gpio_dev_t  *board_button(board_button_t btn);
 exti_dev_t  *board_button_exti(board_button_t btn);
 uart_dev_t  *board_console(void);
+tzsc_periph_t board_console_periph(void);
 rcc_dev_t   *board_rcc(void);
 flash_dev_t *board_flash(void);
 pwr_dev_t   *board_pwr(void);

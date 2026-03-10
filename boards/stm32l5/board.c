@@ -155,6 +155,10 @@ uart_dev_t *board_console(void) {
     return &console;
 }
 
+tzsc_periph_t board_console_periph(void) {
+    return TZSC_PERIPH_LPUART1;
+}
+
 rcc_dev_t *board_rcc(void) {
     return &rcc;
 }
