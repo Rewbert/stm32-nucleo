@@ -28,11 +28,11 @@ SECURE_CPPFLAGS := \
   $(SECURE_INC) \
   -DSECURE
 
-SECURE_LDFLAGS := -T $(TZ_DRV_BOOT)/S/ls-s.ld
+SECURE_LDFLAGS := -T $(TZ_DRV_BOOT)/$(BOARD)/S/ls-s.ld
 
 SECURE_BOOT_SRC := \
-  $(TZ_DRV_BOOT)/S/src/bootloader.c \
-  $(TZ_DRV_BOOT)/S/src/stm32l5/tz_init.c
+  $(TZ_DRV_BOOT)/$(BOARD)/S/src/bootloader.c \
+  $(TZ_DRV_BOOT)/$(BOARD)/S/src/tz_init.c
 
 SECURE_BOOT_O := $(patsubst %.c, build/s/%.o, $(SECURE_BOOT_SRC))
 
