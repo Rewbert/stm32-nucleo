@@ -16,4 +16,10 @@ build/s/boards/%.o: boards/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
 
+BOARD_NS_O := build/ns/boards/$(BOARD)/board.o
+
+build/ns/boards/%.o: boards/%.c
+	mkdir -p $(dir $@)
+	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
+
 endif
