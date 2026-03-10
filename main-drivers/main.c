@@ -39,6 +39,43 @@ static void button_callback(exti_edge_t edge) {
     uart_write(board_console(), (const uint8_t *)msg, sizeof(msg) - 1);
 }
 
+/**
+ * @brief This function initialises a button the a breadboard. The button is connected from
+ * pin on board -> capacitor -> button -> capacitor -> gnd on board (if that makes any sense).
+ *
+ * We need to 1) configure the gpio and 2) configure the EXTI peripheral 
+ */
+static void inline breadboard_button_init() {
+    /*** Configure the GPIO pin ***/
+    board_gpio_backend_t bb_button_backend;
+    gpio_dev_t bb_button;
+    board_gpio_create(&bb_button, BOARD_GPIO_PORT_A, 2, &bb_button_backend);
+
+    gpio_config_t bb_button_cfg = {
+        .mode            = GPIO_MODE_INPUT,
+        .pull            = GPIO_PULLUP,
+        .alternate       = GPIO_AF0,
+        .security_domain = GPIO_SECURE,
+    };
+    gpio_init(&bb_button, &bb_button_cfg);
+
+    /*** Configure the EXTI line ***/
+    board_exti_backend_t bb_exti_backend;
+    exti_dev_t bb_exti;
+    board_exti_create(&bb_exti, &bb_exti_backend);
+
+    exti_config_t bb_exti_cfg = {
+        .port             = EXTI_PORT_A,
+        .pin              = 2,
+        .edge             = EXTI_EDGE_FALLING,
+        .priority         = 0,
+        .secure           = true,
+        .target_nonsecure = false,
+    };
+    exti_init(&bb_exti, &bb_exti_cfg);
+    exti_register_callback(&bb_exti, button_callback);
+}
+
 void main(void) {
     sys_init();
 
@@ -51,8 +88,8 @@ void main(void) {
     gpio_init(board_led(BOARD_LED_BLUE),  &led_cfg);
     gpio_init(board_led(BOARD_LED_GREEN), &led_cfg);
 
-
     board_button_init(board_button(BOARD_BUTTON_USER), GPIO_SECURE, EXTI_EDGE_FALLING, button_callback);
+    breadboard_button_init();
 
     while (1) {
         gpio_toggle(board_led(BOARD_LED_RED));
