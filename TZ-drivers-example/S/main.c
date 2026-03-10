@@ -8,6 +8,7 @@
 #include "drivers/pwr.h"
 #include "drivers/systick.h"
 #include "drivers/irq.h"
+#include "drivers/tzsc.h"
 
 #include "boards/board.h"
 #include "breadboard.h"
