@@ -77,15 +77,15 @@ void board_exti_create(exti_dev_t *dev, board_exti_backend_t *backend, uint8_t p
  */
 void board_init(void);
 
-gpio_dev_t  *board_led(board_led_t led);
-gpio_dev_t  *board_button(board_button_t btn);
-exti_dev_t  *board_button_exti(board_button_t btn);
-uart_dev_t  *board_console(void);
+gpio_dev_t   *board_led(board_led_t led);
+gpio_dev_t   *board_button(board_button_t btn);
+exti_dev_t   *board_button_exti(board_button_t btn);
+uart_dev_t   *board_console(void);
 tzsc_periph_t board_console_periph(void);
-rcc_dev_t   *board_rcc(void);
-flash_dev_t *board_flash(void);
-pwr_dev_t   *board_pwr(void);
-tzsc_dev_t  *board_tzsc(void);
+rcc_dev_t    *board_rcc(void);
+flash_dev_t  *board_flash(void);
+pwr_dev_t    *board_pwr(void);
+tzsc_dev_t   *board_tzsc(void);
 
 void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t edge, void (*button_callback)(exti_edge_t edge));
 
