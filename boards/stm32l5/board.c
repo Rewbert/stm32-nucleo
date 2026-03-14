@@ -137,6 +137,15 @@ void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t
     exti_register_callback(board_button_exti(BOARD_BUTTON_USER), button_callback);
 }
 
+void board_configure_pll(void) {
+    /* STM32L552ZEQ: MSI 4 MHz × 55 / 1 / 7 → 110 MHz */
+    rcc_configure_pll(board_rcc(), board_flash(), 55, 1, 7, 110000000);
+}
+
+uint32_t board_sysclk_hz(void) {
+    return 110000000U;
+}
+
 gpio_dev_t *board_led(board_led_t led) {
     return &leds[led];
 }

@@ -1,4 +1,4 @@
-#include "stm32l5xx.h" // only need this for the m33-specific SysTick_Config (for now)
+
 #include "domain/domain.h"
 #include "domain/cmsis_select.h"
 
@@ -15,7 +15,7 @@
 static void sys_init(void) {
     board_init();
 
-    rcc_configure_pll(board_rcc(), board_flash(), 55, 1, 7, 110000000); // 110 MHz on my stm32l5
+    board_configure_pll();
 
     rcc_enable(board_rcc(), RCC_GPIOA);
     rcc_enable(board_rcc(), RCC_GPIOB);
@@ -29,7 +29,7 @@ static void sys_init(void) {
     };
     uart_init(board_console(), &uart_cfg);
     
-    SysTick_Config(110000);
+    SysTick_Config(board_sysclk_hz() / 1000);
     irq_enable();
 }
 

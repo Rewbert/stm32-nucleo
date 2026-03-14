@@ -19,8 +19,8 @@
  * 
  */
 void sys_init() {
-    rcc_configure_pll(board_rcc(), board_flash(), 55, 1, 7, 110000000); // 110 MHz on my stm32l5
-    systick_configure(110000);
+    board_configure_pll();
+    systick_configure(board_sysclk_hz() / 1000);
 
     // make the lpuart1 secure only
     tzsc_set_periph(board_tzsc(), board_console_periph(), TZSC_SECURE);

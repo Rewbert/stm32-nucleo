@@ -29,6 +29,7 @@ typedef enum {
     RCC_LPUART1,
     RCC_PWR,
     RCC_GTZC,
+    RCC_GTZC2,  /* Second GTZC instance — exists on STM32U5, no-op on STM32L5 */
     RCC_PERIPH_COUNT,
 } rcc_periph_t;
 

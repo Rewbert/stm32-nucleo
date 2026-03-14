@@ -89,6 +89,12 @@ tzsc_dev_t   *board_tzsc(void);
 
 void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t edge, void (*button_callback)(exti_edge_t edge));
 
+/* Configure PLL for this board's rated clock. Call after board_init(). */
+void board_configure_pll(void);
+
+/* Returns the SYSCLK frequency in Hz after board_configure_pll() runs. */
+uint32_t board_sysclk_hz(void);
+
 #define BOARD_MPCBB_COUNT 2
 #define BOARD_MPCBB1_SUPERBLOCKS 24
 #define BOARD_MPCBB2_SUPERBLOCKS 8
