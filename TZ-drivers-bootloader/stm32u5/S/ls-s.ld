@@ -1,8 +1,9 @@
 ENTRY(reset_handler)
 
 /* STM32U5A5ZJQ — 4 MB flash, 2.5 MB SRAM total.
- * Secure region: first 2 MB of flash (0x0C000000 secure-bus alias).
- * Stack: top of the 384 KB secure SRAM1 region (superblocks 0-23). */
+ * Secure flash: first 2 MB (0x0C000000 secure-bus alias).
+ * Secure SRAM: 1248 KB contiguous block — SRAM1 (768K) + SRAM2 (64K) + SRAM3 first 416K (SBs 0-25).
+ * Stack: top of SRAM at 0x30138000. */
 
 MEMORY
 {
@@ -10,10 +11,10 @@ MEMORY
     FLASH     (rx):  ORIGIN = 0x0C000800, LENGTH = 2040K /* 2 MB − 2K ISR − 2K PERSIST − 4K NSC */
     PERSIST   (rw):  ORIGIN = 0x0C1FE800, LENGTH = 2K    /* Persistent mutable data in flash */
     FLASH_NSC (rx):  ORIGIN = 0x0C1FF000, LENGTH = 4K    /* Non-secure callable veneers */
-    SRAM1     (rwx): ORIGIN = 0x30000000, LENGTH = 384K  /* Superblocks 0-23 of SRAM1 (secure) */
+    SRAM      (rwx): ORIGIN = 0x30000000, LENGTH = 1248K /* SRAM1+SRAM2+SRAM3[SB 0-25] */
 }
 
-PROVIDE(_estack = ORIGIN(SRAM1) + LENGTH(SRAM1) - 4);
+PROVIDE(_estack = ORIGIN(SRAM) + LENGTH(SRAM) - 4);
 
 SECTIONS
 {
@@ -64,7 +65,7 @@ SECTIONS
         *(.data.*)
         . = ALIGN(4);
         _edata = .;
-    } > SRAM1 AT> FLASH
+    } > SRAM AT> FLASH
 
     _sidata = LOADADDR(.data);
 
@@ -79,7 +80,7 @@ SECTIONS
         . = ALIGN(4);
         _ebss = .;
         __bss_end__ = _ebss;
-    } > SRAM1
+    } > SRAM
 
     . = ALIGN(8);
     _end = .;
