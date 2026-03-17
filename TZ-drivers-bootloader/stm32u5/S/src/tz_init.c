@@ -46,6 +46,13 @@
  * last 4 KB. The nonsecure callable region starts at 0x0C1FF000 and ends at 0x0C1FFFFF. Directly
  * after the nonsecure callable region, nonsecure FLASH starts. It runs from 0x08200000 to 0x083FFFFF.
  * 
+ *
+ * NOTE: For FLASH, you configure it as secure/nonsecure in two different ways. You can configure
+ * the option bytes SECWMx_PSTR and SECWMx_PEND, to have a persistent division that is loaded right at reset.
+ * Alternatively, you can modify certain FLASH registers at boot-time, but this must then be done at every boot.
+ * I do not have too many details here, as I've picked the first option. I use STM32_Programmer_CLI to program these
+ * option bytes.
+ * Naturally, the TZEN option byte must of course also be set to 1.
  */
 
 #define NUM_SAU_REGIONS 8
