@@ -36,6 +36,7 @@ typedef enum {
 typedef enum {
     RCC_PCKL1 = 0,
     RCC_PCKL2,
+    RCC_PCKL3,
     RCC_SYSCLK,
     RCC_HSI16,
     RCC_HSI48,
