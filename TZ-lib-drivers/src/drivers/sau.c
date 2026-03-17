@@ -3,8 +3,6 @@
 
 #include "drivers/sau.h"
 
-#include "stm32l5xx.h"
-
 #define RNR_MASK          0xFF
 #define RBAR_MASK         0xFFFFFFE0
 #define RLAR_MASK         0xFFFFFFE0

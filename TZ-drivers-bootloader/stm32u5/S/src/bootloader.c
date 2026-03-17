@@ -102,6 +102,8 @@ extern uint32_t _etext, _sdata, _sidata, _edata, _sbss, _ebss;
 
 extern void tz_init(void);
 
+volatile int x = 6;
+
 void reset_handler(void) {
     uint32_t data_size = (uint32_t)&_edata - (uint32_t)&_sdata;
     uint8_t *flash_data = (uint8_t*)&_sidata;

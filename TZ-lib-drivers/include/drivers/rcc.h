@@ -2,6 +2,7 @@
 #define DRIVERS_RCC_H
 
 #include "drivers/flash.h"
+#include "drivers/pwr.h"
 
 /**
  * @brief A simple attempt at a board-agnostic (up to STM32) RCC driver. There is an enum of peripherals, but
@@ -59,7 +60,7 @@ typedef struct {
     int (*is_enabled)(struct rcc_dev *dev, rcc_periph_t periph);
     void (*set_peripheral_clock)(struct rcc_dev *dev, rcc_periph_t periph, rcc_periph_clock_source_t clock);
 
-    void (*configure_pll)(struct rcc_dev *dev, struct flash_dev *flash, uint32_t pll_n, uint32_t pll_m, uint32_t pll_div, uint32_t target_sysclk_hz);
+    void (*configure_pll)(struct rcc_dev *dev, struct pwr_dev *pwr, struct flash_dev *flash, uint32_t pll_n, uint32_t pll_m, uint32_t pll_div, uint32_t target_sysclk_hz);
 } rcc_driver_api_t;
 
 typedef struct rcc_dev {
@@ -95,8 +96,8 @@ static inline void rcc_set_peripheral_clock(rcc_dev_t *dev, rcc_periph_t periph,
     dev->api->set_peripheral_clock(dev, periph, clock);
 }
 
-static inline void rcc_configure_pll(struct rcc_dev *dev, struct flash_dev *flash, uint32_t pll_n, uint32_t pll_m, uint32_t pll_div, uint32_t target_sysclk_hz) {
-    dev->api->configure_pll(dev, flash, pll_n, pll_m, pll_div, target_sysclk_hz);
+static inline void rcc_configure_pll(struct rcc_dev *dev, struct pwr_dev *pwr, struct flash_dev *flash, uint32_t pll_n, uint32_t pll_m, uint32_t pll_div, uint32_t target_sysclk_hz) {
+    dev->api->configure_pll(dev, pwr, flash, pll_n, pll_m, pll_div, target_sysclk_hz);
 }
 
 #endif // DRIVERS_RCC_H

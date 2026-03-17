@@ -3,7 +3,6 @@
  */
 
 #include <stdint.h>
-#include "stm32l5xx.h"           /* for SysTick_Config, TZ_SysTick_Config_NS */
 #include "domain/cmsis_select.h" /* for HAL_SECURE */
 #include "drivers/systick.h"
 

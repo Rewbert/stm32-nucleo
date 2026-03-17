@@ -146,12 +146,14 @@ static inline void stm32l5_rcc_set_wait_states(struct flash_dev *flash, uint32_t
 
 // input for me to get 110 MHz is m = 1, n = 55, div = 7
 void stm32l5_configure_pll(struct rcc_dev *dev,
+                           struct pwr_dev *pwr,
                            struct flash_dev *flash,
                            uint32_t pll_n,
                            uint32_t pll_m,
                            uint32_t pll_div,
                            uint32_t target_sysclk_hz) {
 #if HAL_SECURE
+    (void)pwr; /* L5 runs within its default voltage range — no VOS change needed */
 //    RCCx->SECCFGR |= (1 << RCC_SECCFGR_PLLSEC_Pos); // come back to this when we enable trustzone for this board
 
     if (RCCx->CR & RCC_CR_PLLON) {

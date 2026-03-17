@@ -153,36 +153,48 @@ static inline void stm32u5_rcc_set_wait_states(struct flash_dev *flash, uint32_t
  * Note: the U5 PLLCFGR layout differs from L5 — PLLM is zero-based here.
  */
 void stm32u5_configure_pll(struct rcc_dev *dev,
+                            struct pwr_dev *pwr,
                             struct flash_dev *flash,
                             uint32_t pll_n,
                             uint32_t pll_m,
                             uint32_t pll_div,
                             uint32_t target_sysclk_hz) {
 #if HAL_SECURE
+    /* Step 0: disable PLL1 if already running */
     if (RCCx->CR & RCC_CR_PLL1ON) {
         RCCx->CR &= ~RCC_CR_PLL1ON;
         while (RCCx->CR & RCC_CR_PLL1RDY);
     }
 
-    stm32u5_rcc_set_wait_states(flash, target_sysclk_hz);
+    /* Step 1: set PLL1SRC = MSIS and PLL1MBOOST = /1 BEFORE enabling the EPOD booster.
+     * The booster uses PLL1's input clock / PLL1MBOOST as its clock source.
+     * PLL1SRC resets to 0 (no clock), so the booster would never start without this. */
+    RCCx->PLL1CFGR = (RCCx->PLL1CFGR
+                      & ~(RCC_PLL1CFGR_PLL1SRC_Msk | RCC_PLL1CFGR_PLL1MBOOST_Msk))
+                     | RCC_PLL1CFGR_PLL1SRC_0; /* MSIS source; PLL1MBOOST /1 (bits [15:12] = 0) */
 
-    /* Ensure MSIS is running at ~4 MHz (reset default, range 4) */
+    /* Step 2: ensure MSIS is running at 4 MHz (reset default) */
     RCCx->CR |= RCC_CR_MSISON;
     while (!(RCCx->CR & RCC_CR_MSISRDY));
 
-    RCCx->PLL1CFGR = 0;
-    RCCx->PLL1CFGR |= RCC_PLL1CFGR_PLL1SRC_0; /* Select MSIS as PLL1 source */
-    RCCx->PLL1CFGR |= ((pll_m - 1) << RCC_PLL1CFGR_PLL1M_Pos);
-    /* PLL1N lives in PLL1DIVR, not PLL1CFGR */
-    RCCx->PLL1DIVR = (  ((pll_div - 1) << RCC_PLL1DIVR_PLL1R_Pos)
-                      | ((pll_n   - 1) << RCC_PLL1DIVR_PLL1N_Pos)
-                      );
-    RCCx->PLL1CFGR |= RCC_PLL1CFGR_PLL1REN; /* Enable PLLR output */
+    /* Steps 3–4: raise Vcore and enable EPOD booster (blocking, via pwr driver).
+     * Must happen after PLL1SRC/PLL1MBOOST are set so the booster has a valid clock. */
+    if (target_sysclk_hz > 55000000)
+        pwr_set_voltage_scaling(pwr, PWR_RANGE_1);
 
+    /* Step 5: flash wait states for new frequency */
+    stm32u5_rcc_set_wait_states(flash, target_sysclk_hz);
+
+    /* Step 6: configure PLL1 dividers (PLL1N in PLL1DIVR, PLL1M in PLL1CFGR) */
+    RCCx->PLL1CFGR &= ~RCC_PLL1CFGR_PLL1M_Msk;
+    RCCx->PLL1CFGR |= ((pll_m - 1) << RCC_PLL1CFGR_PLL1M_Pos);
+    RCCx->PLL1DIVR  = ((pll_div - 1) << RCC_PLL1DIVR_PLL1R_Pos)
+                    | ((pll_n   - 1) << RCC_PLL1DIVR_PLL1N_Pos);
+    RCCx->PLL1CFGR |= RCC_PLL1CFGR_PLL1REN;
+
+    /* Steps 7–8: enable PLL1 and switch SYSCLK */
     RCCx->CR |= RCC_CR_PLL1ON;
     while (!(RCCx->CR & RCC_CR_PLL1RDY));
-
-    /* Switch SYSCLK to PLL1R */
     RCCx->CFGR1 = (RCCx->CFGR1 & ~RCC_CFGR1_SW) | (0x3U << RCC_CFGR1_SW_Pos);
     while ((RCCx->CFGR1 & RCC_CFGR1_SWS) != (0x3U << RCC_CFGR1_SWS_Pos));
 #endif
@@ -193,7 +205,7 @@ static const rcc_driver_api_t stm32u5_rcc_api = {
     .disable              = stm32u5_rcc_disable,
     .is_enabled           = stm32u5_rcc_is_enabled,
     .set_peripheral_clock = stm32u5_rcc_set_peripheral_clock,
-    .configure_pll        = stm32u5_configure_pll,
+    .configure_pll = stm32u5_configure_pll,
 };
 
 void stm32u5_rcc_create(rcc_dev_t *dev) {

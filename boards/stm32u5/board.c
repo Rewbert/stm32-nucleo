@@ -138,8 +138,9 @@ void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t
 }
 
 void board_configure_pll(void) {
-    /* STM32U5A5ZJQ: MSIS 4 MHz × 40 / 1 / 1 → 160 MHz */
-    rcc_configure_pll(board_rcc(), board_flash(), 40, 1, 1, 160000000);
+    /* STM32U5A5ZJQ: MSIS 4 MHz × 40 / 1 / 1 → 160 MHz.
+     * VOS + EPOD booster sequencing is handled inside rcc_configure_pll. */
+    rcc_configure_pll(board_rcc(), board_pwr(), board_flash(), 40, 1, 1, 160000000);
 }
 
 uint32_t board_sysclk_hz(void) {
