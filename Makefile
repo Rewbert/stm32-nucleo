@@ -44,3 +44,8 @@ debug: $(FILE)
 debug_tz: $(SECURE) $(NONSECURE)
 	test -n "$(SECURE)" || (echo "Usage: make debug_tz SECURE=secure.elf NONSECURE=nonsecure.elf" && exit 1)
 	$(DEBUGGER) $(DEBUGGERFLAGS) $(SECURE) -ex "add-symbol-file $(NONSECURE)"
+
+##### Option bytes management #####
+
+read_option_bytes:
+	STM32_Programmer_CLI -c port=SWD -ob displ
