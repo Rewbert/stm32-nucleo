@@ -121,7 +121,7 @@ static inline void console_init(void) {
 void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t edge, void (*button_callback)(exti_edge_t edge)) {
     gpio_config_t btn_cfg = {
         .mode            = GPIO_MODE_INPUT,
-        .pull            = GPIO_NOPULL,
+        .pull            = GPIO_PULLDOWN, /* Board has 100 kΩ pull-down + 100 nF filter; press = HIGH */
         .alternate       = GPIO_AF0,
         .security_domain = security,
     };
@@ -130,7 +130,7 @@ void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t
     exti_config_t exti_cfg = {
         .port             = EXTI_PORT_C,
         .pin              = 13,
-        .edge             = EXTI_EDGE_FALLING,
+        .edge             = EXTI_EDGE_RISING, /* Active-HIGH: press drives PC13 HIGH */
         .priority         = 0,
         .secure           = true,
         .target_nonsecure = false,
