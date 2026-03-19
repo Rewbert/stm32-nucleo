@@ -10,9 +10,6 @@ static volatile uint32_t ticks;
 
 void systick_configure(uint32_t reload) {
     SysTick_Config(reload);
-#if HAL_SECURE
-    TZ_SysTick_Config_NS(reload);
-#endif
 }
 
 uint32_t systick_get_ticks(void) {
