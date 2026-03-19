@@ -34,6 +34,7 @@ static const rcc_desc_t rcc_table[RCC_PERIPH_COUNT] = {
     [RCC_GPIOH] = { &RCCx->AHB2ENR1, RCC_AHB2ENR1_GPIOHEN },
 
     [RCC_LPUART1] = { &RCCx->APB3ENR, RCC_APB3ENR_LPUART1EN },
+    [RCC_USART1]  = { &RCCx->APB2ENR, RCC_APB2ENR_USART1EN  },
     [RCC_PWR]     = { &RCCx->AHB3ENR, RCC_AHB3ENR_PWREN     },
     [RCC_GTZC]    = { &RCCx->AHB1ENR, RCC_AHB1ENR_GTZC1EN   },
     [RCC_GTZC2]   = { &RCCx->AHB3ENR, RCC_AHB3ENR_GTZC2EN   },
@@ -90,6 +91,18 @@ typedef struct {
  * Encoding: 000=PCLK3, 001=SYSCLK, 010=HSI16, 011=LSE, 100=MSIK
  */
 static const rcc_clock_mux_desc_t clock_mux_table[] = {
+    /* USART1SEL in CCIPR1 [1:0]: 00=PCLK2, 01=SYSCLK, 10=HSI16, 11=LSE */
+    [RCC_USART1] = {
+        .reg       = &RCCx->CCIPR1,
+        .mask      = RCC_CCIPR1_USART1SEL_Msk,
+        .pos       = RCC_CCIPR1_USART1SEL_Pos,
+        .clock_map = {
+            [RCC_PCKL2]  = 0x0U,
+            [RCC_SYSCLK] = 0x1U,
+            [RCC_HSI16]  = 0x2U,
+            [RCC_LSE]    = 0x3U,
+        },
+    },
     [RCC_LPUART1] = {
         .reg       = &RCCx->CCIPR3,
         .mask      = RCC_CCIPR3_LPUART1SEL_Msk,

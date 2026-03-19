@@ -1,15 +1,15 @@
 /*
  * Board: STM32U5A5ZJQ Nucleo-144 (MB1549)
  *
- * Pins (same physical layout as STM32L5 Nucleo-144):
+ * Pins (per UM2861):
  *   Green LED : PC7
  *   Blue  LED : PB7
- *   Red   LED : PA9
+ *   Red   LED : PG2
  *
  *   User button: PC13 (active low)
  *
- *   Console UART: LPUART1 (PG7=TX, PG8=RX, AF8)
- *   GPIOG requires VDDIO2 — enabled via PWR_SVMCR.IO2SV (U5) instead of PWR_CR2.IOSV (L5)
+ *   Console UART: USART1 (PA9=TX, PA10=RX, AF7) — default VCP wiring
+ *   GPIOG requires VDDIO2 (for red LED on PG2) — enabled via PWR_SVMCR.IO2SV (U5)
  */
 
 #include "boards/board.h"
@@ -19,7 +19,7 @@
 
 #include "backends/stm32u5/gpio.h"
 #include "backends/stm32u5/exti.h"
-#include "backends/stm32u5/lpuart1.h"
+#include "backends/stm32u5/usart1.h"
 #include "backends/stm32u5/flash.h"
 #include "backends/stm32u5/rcc.h"
 #include "backends/stm32u5/pwr.h"
@@ -59,8 +59,8 @@ static gpio_dev_t             button_gpio;
 static stm32u5_exti_backend_t button_exti_backend;
 static exti_dev_t             button_exti;
 
-static stm32u5_lpuart1_backend_t console_backend;
-static uart_dev_t                console;
+static stm32u5_usart1_backend_t console_backend;
+static uart_dev_t               console;
 
 static rcc_dev_t rcc;
 static pwr_dev_t pwr;
@@ -74,17 +74,23 @@ static tzsc_dev_t             tzsc;
 static inline void console_init(void);
 
 void board_init(void) {
-    stm32u5_gpio_create(&leds[BOARD_LED_GREEN], GPIO_CMSIS(C), 7,  &led_backends[BOARD_LED_GREEN]);
-    stm32u5_gpio_create(&leds[BOARD_LED_BLUE],  GPIO_CMSIS(B), 7,  &led_backends[BOARD_LED_BLUE]);
-    stm32u5_gpio_create(&leds[BOARD_LED_RED],   GPIO_CMSIS(A), 9,  &led_backends[BOARD_LED_RED]);
+    /* Red LED is on PG2, which sits on the VDDIO2 rail — enable it before
+     * touching GPIOG. Green (PC7) and blue (PB7) are on the main supply. */
+    stm32u5_rcc_create(&rcc);
+    stm32u5_pwr_create(&pwr);
+    rcc_enable(&rcc, RCC_PWR);
+    pwr_enable_vddio2(&pwr);
+    rcc_enable(&rcc, RCC_GPIOG);
+
+    stm32u5_gpio_create(&leds[BOARD_LED_GREEN], GPIO_CMSIS(C), 7, &led_backends[BOARD_LED_GREEN]);
+    stm32u5_gpio_create(&leds[BOARD_LED_BLUE],  GPIO_CMSIS(B), 7, &led_backends[BOARD_LED_BLUE]);
+    stm32u5_gpio_create(&leds[BOARD_LED_RED],   GPIO_CMSIS(G), 2, &led_backends[BOARD_LED_RED]);
 
     stm32u5_gpio_create(&button_gpio, GPIO_CMSIS(C), 13, &button_gpio_backend);
     stm32u5_exti_create(&button_exti, &button_exti_backend, 13); /* PC13 user button */
 
-    stm32u5_lpuart1_create(&console, LPUART1x, &console_backend);
+    stm32u5_usart1_create(&console, USART1x, &console_backend);
 
-    stm32u5_rcc_create(&rcc);
-    stm32u5_pwr_create(&pwr);
     stm32u5_flash_create(&flash, FLASHx, &flash_backend);
     stm32u5_tzsc_create(&tzsc, &tzsc_backend);
 
@@ -92,28 +98,24 @@ void board_init(void) {
 }
 
 static inline void console_init(void) {
-    /* GPIOG (and therefore LPUART1 on PG7/PG8) sits on the VDDIO2 supply rail.
-     * On U5 the rail is validated via PWR_SVMCR.IO2SV (not CR2.IOSV as on L5). */
-    rcc_enable(board_rcc(), RCC_PWR);
-    pwr_enable_vddio2(board_pwr());
+    /* USART1 is on PA9 (TX) / PA10 (RX), AF7 — default VCP wiring on MB1549.
+     * GPIOA is on the main supply; no VDDIO2 needed here. */
+    rcc_enable(board_rcc(), RCC_GPIOA);
+    rcc_enable(board_rcc(), RCC_USART1);
+    rcc_set_peripheral_clock(board_rcc(), RCC_USART1, RCC_SYSCLK);
 
-    rcc_enable(board_rcc(), RCC_GPIOG);
-
-    rcc_enable(board_rcc(), RCC_LPUART1);
-    rcc_set_peripheral_clock(board_rcc(), RCC_LPUART1, RCC_SYSCLK);
-
-    board_gpio_backend_t pg7_backend, pg8_backend;
-    gpio_dev_t pg7, pg8;
-    board_gpio_create(&pg7, BOARD_GPIO_PORT_G, 7, &pg7_backend);
-    board_gpio_create(&pg8, BOARD_GPIO_PORT_G, 8, &pg8_backend);
+    board_gpio_backend_t pa9_backend, pa10_backend;
+    gpio_dev_t pa9, pa10;
+    board_gpio_create(&pa9,  BOARD_GPIO_PORT_A, 9,  &pa9_backend);
+    board_gpio_create(&pa10, BOARD_GPIO_PORT_A, 10, &pa10_backend);
     gpio_config_t uart_pin_cfg = {
         .mode            = GPIO_MODE_AF,
         .pull            = GPIO_PULLUP,
-        .alternate       = GPIO_AF8,
+        .alternate       = GPIO_AF7,
         .security_domain = GPIO_SECURE,
     };
-    gpio_init(&pg7, &uart_pin_cfg);
-    gpio_init(&pg8, &uart_pin_cfg);
+    gpio_init(&pa9,  &uart_pin_cfg);
+    gpio_init(&pa10, &uart_pin_cfg);
 }
 
 void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t edge, void (*button_callback)(exti_edge_t edge)) {
@@ -166,7 +168,7 @@ uart_dev_t *board_console(void) {
 }
 
 tzsc_periph_t board_console_periph(void) {
-    return TZSC_PERIPH_LPUART1;
+    return TZSC_PERIPH_USART1;
 }
 
 rcc_dev_t *board_rcc(void) {

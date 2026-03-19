@@ -21,6 +21,7 @@
 #define PWRx               PWR_S
 #define EXTIx              EXTI_S
 #define LPUART1x           LPUART1_S
+#define USART1x            USART1_S
 #define FLASHx             FLASH_S
 #define GTZC_TZSCx         GTZC_TZSC_S
 
@@ -31,6 +32,7 @@
 #define PWRx               PWR_NS
 #define EXTIx              EXTI_NS
 #define LPUART1x           LPUART1_NS
+#define USART1x            USART1_NS
 #define FLASHx             FLASH_NS
 #define GTZC_TZSCx         GTZC_TZSC_NS
 
