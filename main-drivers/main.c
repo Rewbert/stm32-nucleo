@@ -29,7 +29,7 @@ static void sys_init(void) {
     };
     uart_init(board_console(), &uart_cfg);
     
-    SysTick_Config(board_sysclk_hz() / 1000);
+    systick_configure(board_sysclk_hz() / 1000);
     irq_enable();
 }
 
@@ -83,6 +83,7 @@ void main(void) {
         .mode      = GPIO_MODE_OUTPUT,
         .pull      = GPIO_NOPULL,
         .alternate = GPIO_AF0,
+        .security_domain    = GPIO_NONSECURE,
     };
     gpio_init(board_led(BOARD_LED_RED),   &led_cfg);
     gpio_init(board_led(BOARD_LED_BLUE),  &led_cfg);
@@ -91,16 +92,16 @@ void main(void) {
     board_button_init(board_button(BOARD_BUTTON_USER), GPIO_SECURE, EXTI_EDGE_FALLING, button_callback);
     breadboard_button_init();
 
-    while (1) {
-        gpio_toggle(board_led(BOARD_LED_RED));
-        gpio_toggle(board_led(BOARD_LED_BLUE));
-        gpio_toggle(board_led(BOARD_LED_GREEN));
+    // while (1) {
+    //     gpio_toggle(board_led(BOARD_LED_RED));
+    //     gpio_toggle(board_led(BOARD_LED_BLUE));
+    //     gpio_toggle(board_led(BOARD_LED_GREEN));
 
-        const char msg[] = "hello world!\r\n";
-        uart_write(board_console(), (const uint8_t *)msg, sizeof(msg) - 1);
+    //     const char msg[] = "hello world!\r\n";
+    //     uart_write(board_console(), (const uint8_t *)msg, sizeof(msg) - 1);
 
-        systick_delay_ms(500);
-    }
+    //     systick_delay_ms(500);
+    // }
 }
 
 NONSECURE_CALLABLE int add(int x) {
