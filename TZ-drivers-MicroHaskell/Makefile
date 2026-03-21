@@ -1,11 +1,11 @@
 include mk-drivers/board.mk
 
 ###
-# Build the TZ-drivers-HasTEE application: MicroHaskell running in both the
+# Build the TZ-drivers-MicroHaskell application: MicroHaskell running in both the
 # secure and non-secure worlds using the TZ-lib-drivers/boards framework.
 ###
 
-APP       := TZ-drivers-HasTEE
+APP       := TZ-drivers-MicroHaskell
 MHS       := MicroHs
 MHS_DIR   := $(MHS)/src/runtime
 MHS_BIN   := $(MHS)/bin/mhs
