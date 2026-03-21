@@ -52,9 +52,12 @@ static inline void stm32u5_gpio_set_seccfgr(stm32u5_gpio_backend_t *backend, gpi
 static void stm32u5_gpio_init(struct gpio_dev *dev, gpio_config_t *config) {
     stm32u5_gpio_backend_t *backend = (stm32u5_gpio_backend_t*) dev->backend;
 
+    /* Set AFR before MODER: switching MODER to AF while AFR still holds the
+     * reset value (AF0) briefly connects the pin to the wrong peripheral,
+     * which can glitch the line and produce a spurious byte on the receiver. */
+    stm32u5_gpio_set_af(backend, config->mode, config->alternate);
     stm32u5_gpio_set_mode(backend, config->mode);
     stm32u5_gpio_set_pupdr(backend, config->pull);
-    stm32u5_gpio_set_af(backend, config->mode, config->alternate);
     stm32u5_gpio_set_seccfgr(backend, config->security_domain);
 }
 
