@@ -8,6 +8,13 @@ import Control.Monad.IO.Class
 
 import Setup
 
+import Foreign.C.String (CString, withCString, peekCStringLen)
+import Foreign.C.Types (CInt)
+import Foreign.Marshal.Alloc (allocaBytes, alloca)
+import Foreign.Storable (peek)
+
+foreign import ccall "sg.h sg" c_sg :: CString -> CString -> Ptr CInt -> IO ()
+
 -- * Secure monad, a monad for describing secure computation
 
 data Secure a = SecureDummy
@@ -25,18 +32,6 @@ instance Monad Secure where
 
 unsafeLiftIO :: IO a -> Secure a
 unsafeLiftIO _ = SecureDummy
-
-instance Storable a => Storable (Secure a) where
-    sizeOf :: Storable a => Secure a -> Int
-    sizeOf _ = error "cannot use Storable on non secure"
-
-    alignment :: Storable a => Secure a -> Int
-    alignment _ = error "cannot use Storable on non secure"
-
-    peek :: Storable a => Ptr (Secure a) -> IO (Secure a)
-    peek ptr = error "cannot use Storable on non secure"
-
-    poke = error "cannot use Storable on non secure"
 
 -- * Embedding NonSecureCallable functions
 
@@ -87,8 +82,24 @@ modifySRef ref f = do
 
 -- * Invoking non secure callable function in the secure world
 
+c_sg_wrapper :: String -> IO String
+c_sg_wrapper str =
+    withCString str $ \cInput ->
+    allocaBytes 128 $ \outBuf ->
+    alloca $ \lenPtr -> do
+        c_sg cInput outBuf lenPtr
+        len <- peek lenPtr
+        peekCStringLen (outBuf, fromIntegral len)
+
 sg :: (Show a, Read a) => Callable (Secure a) -> IO a
-sg _ = return $ error "TODO: here is where we actually invoke the trustzone, shipping this closure and retrieving the result"
+sg (Callable fun args) = do
+    let msg = show (fun, args)
+    r <- c_sg_wrapper msg
+
+    putStr "from the secure world, the nonsecure application received back: "
+    putStrLn $ r ++ "\r"
+
+    error "TODO: here is where we actually invoke the trustzone, shipping this closure and retrieving the result\r"
 
 nonSecure :: IO a -> Setup ()
 nonSecure ns = do

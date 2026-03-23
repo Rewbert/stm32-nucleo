@@ -1,17 +1,20 @@
+{-# LANGUAGE CPP #-}
 module SimpleExample where
 
 import Setup
---import Secure -- import Secure -- import only one of these, and compile the program twice
-import Secure
 
-foreign import ccall "hal/clock.h delay_ms" delay :: Int -> IO ()
-foreign import ccall "toggle_green_led" toggle :: IO ()
+-- Conditional compilation to include one of two implementations of the same API
+#ifdef SECURE
+import Secure
+#else
+import NonSecure
+#endif
+
+foreign import ccall "drivers/systick.h systick_delay_ms" delay  :: Int -> IO ()
+foreign import ccall "config.h   toggle_blue_led" toggle :: IO ()
 
 secureBlink :: Secure ()
-secureBlink = do
-    unsafeLiftIO toggle
-    unsafeLiftIO $ delay 500
-    secureBlink
+secureBlink = unsafeLiftIO toggle
 
 loop :: Callable (Secure ()) -> IO ()
 loop nsc_f = do

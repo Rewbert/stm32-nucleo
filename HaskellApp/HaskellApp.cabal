@@ -12,21 +12,26 @@ build-type:         Simple
 extra-doc-files:    CHANGELOG.md
 -- extra-source-files:
 
+flag secure
+    manual: True
+    default: False
+
 common warnings
     ghc-options: -Wall
 
-executable HaskellApp
+executable HaskellApp.c
     import:           warnings
-    main-is:          Main.hs
+    main-is:          SimpleExample.hs
     other-modules:    Control.Monad.State.Class
                       Control.Monad.State
                       Control.Monad.IO.Class
                       Secure
                       NonSecure
                       Setup
-                      ExampleWithPersistent
-    -- other-extensions:
-    c-sources: stubs.c
+
+    if(flag(secure))
+        mhs-options: -DSECURE
+
     build-depends:    base
     hs-source-dirs:   app
     default-language: Haskell2010

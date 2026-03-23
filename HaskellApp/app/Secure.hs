@@ -32,29 +32,6 @@ instance Monad Secure where
 unsafeLiftIO :: IO a -> Secure a
 unsafeLiftIO = Secure
 
--- | We will pretend that we store actual secure values, but we actually only need to be
--- able to read storable values from the heap and reconstruct them as Secure (return -val-).
---
--- We never need to store a secure value. We only want to be able to assign the return type
--- of our foreign functions as Secure, so that the type checker disallows the normal world
--- from invoking them
---
--- To do this, when we read values from the heap we just refer to the underlying values
--- storable instance.
-instance Storable a => Storable (Secure a) where
-    sizeOf :: Storable a => Secure a -> Int
-    sizeOf _ = sizeOf (error "do not evaluate" :: a)
-
-    alignment :: Storable a => Secure a -> Int
-    alignment _ = alignment (error "do not evaluate" :: a)
-
-    peek :: Storable a => Ptr (Secure a) -> IO (Secure a)
-    peek ptr = do
-        v <- peek (unsafeCoerce ptr :: Ptr a)
-        return $ Secure $ return v
-
-    poke = error "should never poke Secure"
-
 -- * Embedding NonSecureCallable functions
 
 class NonSecureCallable a where
@@ -128,5 +105,7 @@ runSetup (Setup s) = do
     -- When a NSC function is called we need to make sure that we can query the vTable for the function.
 
     -- bindvTable vTable
+
+    putStrLn $ "produced a vTable with length: " ++ show (length vTable) ++ "\r"
 
     return ()
