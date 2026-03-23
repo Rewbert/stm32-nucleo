@@ -33,6 +33,9 @@ void stm32_init() {
     rcc_enable(board_rcc(), RCC_GPIOA);
     rcc_enable(board_rcc(), RCC_GPIOC);
 
+    pwr_enable_vddio2(board_pwr());
+    rcc_enable(board_rcc(), RCC_GPIOG);
+
     gpio_config_t red_cfg = {
         .mode            = GPIO_MODE_OUTPUT,
         .pull            = GPIO_NOPULL,
@@ -40,6 +43,7 @@ void stm32_init() {
         .security_domain = GPIO_SECURE,
     };
     gpio_init(board_led(BOARD_LED_RED), &red_cfg);
+    gpio_init(board_led(BOARD_LED_BLUE), &red_cfg);
 
     gpio_config_t green_cfg = {
         .mode            = GPIO_MODE_OUTPUT,
@@ -56,6 +60,8 @@ void stm32_exit(int n) {
     gpio_toggle(board_led(BOARD_LED_RED));
 }
 
+extern void *c_handle_nsc_call(void *);
+
 NONSECURE_CALLABLE void *sg(const char *input, char *result, int *len) {
     char *prefix = "secure world received from the nonsecure world: ";
     uart_write(board_console(), prefix, strlen(prefix));
@@ -63,13 +69,16 @@ NONSECURE_CALLABLE void *sg(const char *input, char *result, int *len) {
     uart_write(board_console(), input, strlen(input));
     uart_write(board_console(), "\r\n", 2);
 
-    char *str = "hello from Secure world!\r";
+//    char *res = (char *) c_handle_nsc_call((void *) input);
+    char *res = "hello from Secure world!\r";
 
-    for(int i = 0; i < strlen(str); i++) {
-        result[i] = str[i];
-    }
+    // char *str = "hello from Secure world!\r";
 
-    *len = strlen(str);
+    // for(int i = 0; i < strlen(str); i++) {
+    //     result[i] = res[i];
+    // }
+
+    *len = strlen(res);
 }
 
 void main(void) {

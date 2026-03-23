@@ -99,7 +99,7 @@ sg (Callable fun args) = do
     putStr "from the secure world, the nonsecure application received back: "
     putStrLn $ r ++ "\r"
 
-    error "TODO: here is where we actually invoke the trustzone, shipping this closure and retrieving the result\r"
+    return $ read r
 
 nonSecure :: IO a -> Setup ()
 nonSecure ns = do

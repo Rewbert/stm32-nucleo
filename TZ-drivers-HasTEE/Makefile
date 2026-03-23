@@ -11,10 +11,12 @@ MHS_DIR   := $(MHS)/src/runtime
 MHS_BIN   := $(MHS)/bin/mhs
 
 # Extra include paths on top of what board.mk provides.
-MHS_INC := -I$(MHS_DIR) -I$(APP)/shared
+# Secure build prepends -I$(APP)/S so the shadow config.h there is found first.
+MHS_INC_S  := -I$(MHS_DIR) -I$(APP)/S -I$(APP)/shared
+MHS_INC_NS := -I$(MHS_DIR) -I$(APP)/shared
 
-SECURE_CPPFLAGS   += $(MHS_INC)
-NONSECURE_CPPFLAGS += $(MHS_INC)
+SECURE_CPPFLAGS    += $(MHS_INC_S)
+NONSECURE_CPPFLAGS += $(MHS_INC_NS)
 
 SECURE_LIB          := build/$(APP)/secure_cmse_import.lib
 SECURE_IMPLIB_FLAGS := -Wl,--cmse-implib,--out-implib=$(SECURE_LIB)
@@ -31,16 +33,17 @@ HASKELL_SRC = \
 CABAL=mcabal
 
 $(APP)/S/gen2.c: $(HASKELL_SRC)
-	cd HaskellApp && mcabal -fsecure build && cp dist-mcabal/bin/mhs/HaskellApp.c ../$(APP)/S/gen2.c
+	cd HaskellApp && mhs -DSECURE -ilib -iapp -c -ogen.c app/SimpleExample.hs && cp gen.c ../$(APP)/S/gen2.c && rm gen.c
 
 $(APP)/NS/gen2.c: $(HASKELL_SRC)
-	cd HaskellApp && mcabal build && cp dist-mcabal/bin/mhs/HaskellApp.c ../$(APP)/NS/gen2.c
+	cd HaskellApp && mhs -ilib -iapp -ogen.c app/SimpleExample.hs && cp gen.c ../$(APP)/NS/gen2.c && rm gen.c
 
 # --- Secure application ---
 
-SECURE_SRC := \
-  $(APP)/S/main.c     \
-  $(APP)/S/gen2.c     \
+SECURE_SRC :=            \
+  $(APP)/S/main.c        \
+  $(APP)/S/gen2.c        \
+  $(APP)/S/vtable.c      \
   $(APP)/shared/config.c \
   $(APP)/shared/stubs.c  \
   $(APP)/shared/extra.c  \
