@@ -5,11 +5,21 @@ module Secure where
 
 import Foreign.Storable
 import Foreign.Ptr
+import Foreign.StablePtr
 import Control.Monad.State
 import Data.IORef
 import Unsafe.Coerce
+import Data.Word
+import Foreign.C.String
+
 
 import Setup
+import Foreign.C.String
+
+foreign import ccall "set_vtable_ptr" c_set_vtable_ptr :: Word32 -> IO ()
+foreign import ccall "get_vtable_ptr" c_get_vtable_ptr :: IO Word32
+
+foreign export ccall "c_handle_nsc_call" handle_nsc_call :: CString -> IO CString
 
 -- * Secure monad, a monad for describing secure computation
 
@@ -93,6 +103,38 @@ sg _ = return $ error "the server should never execute this function"
 
 nonSecure :: IO a -> Setup ()
 nonSecure _ = return ()
+
+-- | Make sure that the vTable persists
+storeVTable :: [(Int, [String] -> IO String)] -> IO (StablePtr ([(Int, [String] -> IO String)]))
+storeVTable vtbl = do
+    sp <- newStablePtr vtbl
+    let w = fromIntegral $ ptrToWordPtr $ castStablePtrToPtr sp
+    c_set_vtable_ptr w
+    return sp
+
+-- | Reconstruct the vTable
+getVTable :: IO ([(Int, [String] -> IO String)])
+getVTable = do
+    w <- c_get_vtable_ptr
+    let sp = castPtrToStablePtr (wordPtrToPtr (fromIntegral w)) :: StablePtr ([(Int, [String] -> IO String)])
+    deRefStablePtr sp
+
+handle_nsc_call :: CString -> IO CString
+handle_nsc_call cstr = do
+    str <- peekCAString cstr
+    let (funIdx, args) = read str :: (Int, [String])
+
+    vTable <- getVTable
+    let fun = lookupFun funIdx vTable
+
+    res <- fun args
+    newCAString res
+
+lookupFun :: Int -> [(Int, [String] -> IO String)] -> ([String] -> IO String)
+lookupFun idx [] = error $ "cannot find fun with index " ++ show idx ++ "\r"
+lookupFun idx ((idx', f):xs)
+    | idx == idx' = f
+    | otherwise   = lookupFun idx xs
 
 runSetup :: Setup () -> IO ()
 runSetup (Setup s) = do
