@@ -17,8 +17,17 @@ foreign import ccall "config.h          toggle_blue_led"  toggle :: IO ()
 foreign export ccall "app_main" main :: IO ()
 #endif
 
-secureBlink :: Secure ()
-secureBlink = unsafeLiftIO toggle
+readPrintModify :: Secure (SRef Int) -> Secure ()
+readPrintModify sr = do
+    r <- sr
+    c <- readSRef r
+    unsafeLiftIO $ putStrLn ("current secure state: " ++ show c ++ "\r")
+    writeSRef r $ c + 1
+
+secureBlink :: Secure (SRef Int) -> Secure ()
+secureBlink r = do
+    readPrintModify r
+    unsafeLiftIO toggle
 
 loop :: Callable (Secure ()) -> IO ()
 loop nsc_f = do
@@ -28,7 +37,9 @@ loop nsc_f = do
 
 app :: Setup ()
 app = do
-    f <- callable secureBlink
+    ref <- initialSRef 0
+
+    f <- callable $ secureBlink ref
     nonSecure $ loop f
 
 main :: IO ()

@@ -12,6 +12,8 @@ import Unsafe.Coerce
 import Data.Word
 import Foreign.C.String
 
+import Control.Monad.IO.Class
+
 
 import Setup
 import Foreign.C.String
@@ -80,7 +82,9 @@ callable f = do
 type SRef a = IORef a
 
 initialSRef :: a -> Setup (Secure (SRef a))
-initialSRef a = return $ newSRef a
+initialSRef a = do
+    r <- liftIO $ newIORef a
+    return $ return r
 
 newSRef :: a -> Secure (SRef a)
 newSRef a = Secure $ newIORef a
@@ -148,9 +152,6 @@ runSetup (Setup s) = do
 
     -- bindvTable vTable
 
-    putStrLn "going to store the vtable..."
     storeVTable vTable
-
-    putStrLn $ "produced a vTable with length: " ++ show (length vTable) ++ "\r"
 
     return ()

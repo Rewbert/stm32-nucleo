@@ -89,7 +89,7 @@ c_sg_wrapper str =
     alloca $ \lenPtr -> do
         c_sg cInput outBuf lenPtr
         len <- peek lenPtr
-        putStrLn $ "nonsecure received " ++ show len ++ " bytes back\r"
+--        putStrLn $ "nonsecure received " ++ show len ++ " bytes back\r"
         peekCStringLen (outBuf, fromIntegral len)
 
 sg :: (Show a, Read a) => Callable (Secure a) -> IO a
@@ -97,8 +97,8 @@ sg (Callable fun args) = do
     let msg = show (fun, args)
     r <- c_sg_wrapper msg
 
-    putStr "from the secure world, the nonsecure application received back: "
-    putStrLn $ r ++ "\r"
+--    putStr "from the secure world, the nonsecure application received back: "
+--    putStrLn $ r ++ "\r"
 
     return $ read r
 

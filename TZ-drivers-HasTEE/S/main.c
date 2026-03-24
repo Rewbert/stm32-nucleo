@@ -66,11 +66,11 @@ extern void app_main();
 /*******************************/
 
 NONSECURE_CALLABLE void *sg(const char *input, char *result, int *len) {
-    char *prefix = "secure world received from the nonsecure world: ";
-    uart_write(board_console(), prefix, strlen(prefix));
+    // char *prefix = "secure world received from the nonsecure world: ";
+    // uart_write(board_console(), prefix, strlen(prefix));
 
-    uart_write(board_console(), input, strlen(input));
-    uart_write(board_console(), "\r\n", 2);
+    // uart_write(board_console(), input, strlen(input));
+    // uart_write(board_console(), "\r\n", 2);
 
     char *res = (char *) c_handle_nsc_call((void *) input);
 
