@@ -89,6 +89,7 @@ c_sg_wrapper str =
     alloca $ \lenPtr -> do
         c_sg cInput outBuf lenPtr
         len <- peek lenPtr
+        putStrLn $ "nonsecure received " ++ show len ++ " bytes back\r"
         peekCStringLen (outBuf, fromIntegral len)
 
 sg :: (Show a, Read a) => Callable (Secure a) -> IO a

@@ -11,7 +11,11 @@ import NonSecure
 #endif
 
 foreign import ccall "drivers/systick.h systick_delay_ms" delay  :: Int -> IO ()
-foreign import ccall "config.h   toggle_blue_led" toggle :: IO ()
+foreign import ccall "config.h          toggle_blue_led"  toggle :: IO ()
+
+#ifdef SECURE
+foreign export ccall "app_main" main :: IO ()
+#endif
 
 secureBlink :: Secure ()
 secureBlink = unsafeLiftIO toggle

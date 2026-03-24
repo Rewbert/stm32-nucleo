@@ -148,6 +148,7 @@ runSetup (Setup s) = do
 
     -- bindvTable vTable
 
+    putStrLn "going to store the vtable..."
     storeVTable vTable
 
     putStrLn $ "produced a vTable with length: " ++ show (length vTable) ++ "\r"
