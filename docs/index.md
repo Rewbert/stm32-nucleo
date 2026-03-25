@@ -40,6 +40,8 @@ Example applications
 
 **IMPORTANT**: Before the trustzone code here can be flashed into either board, some option bytes have to be modified. Namely, the TZEN bit has to be set to 1, and two of the watermark registers have to be configured to mark on of the two banks as nonsecure. By default, all the memory is secure, so we need to modify that. This is a persistent change that _you only need to do once_. To do this we change `SECWM2_PSTRT=0x1` and `SECWM2_PEND=0x0`. This marks the entire second bank as nonsecure (which is right for us, given that we do a 50/50 split of the memory). **do not change the RDP crap**, you may end up bricking your board.
 
+I set these options bytes with `STM32_Programmer_CLI`. I believe the command is `STM32_Programmer_CLI -c port=SWD -ob TZEN=1 SECWM2_PSTRT=0x1 SECWM2_PEND=0x0`.
+
 Flash with `make flash_tz SECURE=<your secure elf> NONSECURE=<your nonsecure elf>`. You will get some checksum error afterwards, but you can disregard that (or tell me how to fix it).
 
 Debug with
