@@ -1,4 +1,4 @@
-# 2. Build and Flash
+# 3. Build and Flash
 
 ## Building the Example App
 
