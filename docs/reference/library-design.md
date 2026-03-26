@@ -39,7 +39,7 @@ I have singled out the `gpio.h` driver to showcase where GPIO relevant files wou
 
 A device is a struct holding two things, a pointer to an API, and a pointer to an opaqie, board-specific state. The GPIO device driver looks like this
 
-```
+```c
 typedef struct gpio_dev {
     const gpio_driver_api_t *api;
     void *backend;
@@ -50,7 +50,7 @@ The `backend` should never be touched by application code, but will instead be u
 
 Each of the API functions take the whole device driver as input (aside from other required parameters). The GPIO vtable looks like
 
-```
+```c
 typedef struct {
     void (*init)(struct gpio_dev *dev, gpio_config_t *config);
     void (*write)(struct gpio_dev *dev, gpio_level_t level);
@@ -61,7 +61,7 @@ typedef struct {
 
 There is a _create_ functions for every driver, that is board-specific and will make sure to initialise the `backend` and construct the vtable properly. The `backend` type itself may differ between boards, and is therefore defined once for each board, in `include/backend/`. For STM32L5, the backend definition is
 
-```
+```c
 #ifndef BACKENDS_STM32L5_GPIO_H
 #define BACKENDS_STM32L5_GPIO_H
 
@@ -88,7 +88,7 @@ By default, a majority of the peripherals on the boards are owned by the secure 
 
 An example is the MPCBB driver. It configures the security policy of the SRAM, and can only be operated by the secure application. The generic API for the MPCBB is
 
-```
+```c
 struct mpcbb_dev;
 
 typedef enum {
@@ -121,7 +121,7 @@ static inline void mpcbb_lock(mpcbb_dev_t *dev) {
 
 If we look at the actual implementation of this peripheral, the functionality is guarded by CPP macros
 
-```
+```c
 void stm32l5_set_superblocks(struct mpcbb_dev *dev, uint32_t first, uint32_t count, mpcbb_security_t sec) {
 #if HAL_SECURE
   ...
