@@ -1,6 +1,6 @@
 # Preparing the Board for TrustZone
 
-A factory new board comes with TrustZone disabled by default. If you want to you TrustZone, you have to make two modifications to the board (both controlled via option bytes).
+A factory new board comes with TrustZone disabled by default. If you want to use TrustZone, you have to make two modifications to the board (both controlled via option bytes).
 
 First, the `TZEN` bit has to be set to `0x1`, and then parts of the second bank of FLASH has to be marked as nonsecure. If you use the bootloader I've written, we need to mark the entire second bank of FLASH as nonsecure, as the bootloader does a 50/50 split of the memory between the secure and nonsecure application.
 
@@ -8,8 +8,14 @@ There are watermarks that we can configure to achieve this. The watermarks defin
 
 I do this with `STM32_Programmer_CLI`. I do not remember how I installed it, but I believe it came with some ST software (the STMCubeIDE perhaps?). I am sure searching online will yield results. The command that I ran was
 ```
-`STM32_Programmer_CLI -c port=SWD -ob TZEN=1 SECWM2_PSTRT=0x1 SECWM2_PEND=0x0`
+STM32_Programmer_CLI -c port=SWD -ob TZEN=1 SECWM2_PSTRT=0x1 SECWM2_PEND=0x0
 ```
+
+You can read the option bytes back with
+```
+STM32_Programmer_CLI -c port=SWD -ob displ
+```
+The top-level makefile defines this, so you can just do `make read_option_bytes`.
 
 I had to do these modifications to both the STM32L5 and STM32U5.
 
