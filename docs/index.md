@@ -67,9 +67,10 @@ I've cloned it in my $(HOME), built it, and then refer to it in the top-level ma
 - [Build a TrustZone Application](how-to/trustzone-build.md)
 - [Expose a Function to the Non-Secure World](how-to/nonsecure-callable.md)
 
-### API Reference
+### Library API Reference
 
-- [board.h](reference/board.md) — Primary entry point
+- [library design](reference/library-design.md) <- this has text, read here
+- [board.h](reference/board.md)
 - [gpio.h](reference/gpio.md)
 - [uart.h](reference/uart.md)
 - [exti.h](reference/exti.md)
@@ -81,7 +82,7 @@ I've cloned it in my $(HOME), built it, and then refer to it in the top-level ma
 
 ### Concepts
 
-- [TrustZone](concepts/trustzone-init-sequence.md)
+- [TrustZone](concepts/trustzone-init-sequence.md) <- this has text, read here
 - [Architecture Overview](concepts/architecture.md)
 - [The Vtable / Opaque Backend Pattern](concepts/vtable-backend-pattern.md)
 - [The HAL_SECURE Compilation Model](concepts/hal-secure-model.md)
