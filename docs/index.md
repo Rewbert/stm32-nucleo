@@ -38,10 +38,6 @@ Example applications
 
 **TODO** (move the building and flashing crap to appropriate sections later, but leave here for Lennart to find for the moment)
 
-**IMPORTANT**: Before the trustzone code here can be flashed into either board, some option bytes have to be modified. Namely, the TZEN bit has to be set to 1, and two of the watermark registers have to be configured to mark on of the two banks as nonsecure. By default, all the memory is secure, so we need to modify that. This is a persistent change that _you only need to do once_. To do this we change `SECWM2_PSTRT=0x1` and `SECWM2_PEND=0x0`. This marks the entire second bank as nonsecure (which is right for us, given that we do a 50/50 split of the memory). **do not change the RDP crap**, you may end up bricking your board.
-
-I set these options bytes with `STM32_Programmer_CLI`. I believe the command is `STM32_Programmer_CLI -c port=SWD -ob TZEN=1 SECWM2_PSTRT=0x1 SECWM2_PEND=0x0`.
-
 Flash with `make flash_tz SECURE=<your secure elf> NONSECURE=<your nonsecure elf>`. You will get some checksum error afterwards, but you can disregard that (or tell me how to fix it).
 
 Debug with
@@ -55,9 +51,10 @@ I've cloned it in my $(HOME), built it, and then refer to it in the top-level ma
 
 ### Getting Started
 
-1. [Setup](getting-started/01-setup.md)
-2. [Build and Flash](getting-started/02-build-and-flash.md)
-3. [Hello World](getting-started/03-hello-world.md)
+1. [Preparing the Board](getting-started/01-preparing-the-board.md) <- this has text, read here
+2. [Setup](getting-started/02-setup.md)
+3. [Build and Flash](getting-started/03-build-and-flash.md)
+4. [Hello World](getting-started/04-hello-world.md)
 
 ### How-To Guides
 
