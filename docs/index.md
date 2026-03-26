@@ -52,7 +52,7 @@ I've cloned it in my $(HOME), built it, and then refer to it in the top-level ma
 ### Getting Started
 
 1. [Preparing the Board](getting-started/01-preparing-the-board.md) <- this has text, read here
-2. [Setup](getting-started/02-setup.md)
+2. [Setup](getting-started/02-setup.md) <- this has text, red here
 3. [Build and Flash](getting-started/03-build-and-flash.md)
 4. [Hello World](getting-started/04-hello-world.md)
 
