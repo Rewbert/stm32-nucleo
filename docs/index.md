@@ -31,29 +31,16 @@ The key directories are
 
 Example applications
 
-* `TZ-drivers-MicroHaskell/` Compiles and runs two instances of MHS, one in the secure application and one in the nonsecure. They just print and play with the LEDs, and do not communicate with each other. **NOTE**: For this to work, you need to clone MicroHs into the root of the project. Look at the makefile in `TZ-drivers-MicroHaskell/` to see how it looks for the mhs runtime sources. Build with `make -f TZ-drivers-MicroHaskell/Makefile BOARD=[stm32l5|stm32u5] all`
-* `TZ-drivers-HasTEE/` This is my own main project. It runs two MHS instances, much like the above mentioned project, but there is also a communication path between them. The Haskell code that goes together with this project can be found in `HaskellApp/` (perhaps this should be moved to be within `TZ-drivers-HasTEE/`...). Build with `make -f TZ-drivers-HasTEE/Makefile BOARD=[stm32l5|stm32u5] all`
-* `TZ-drivers-example/` This little project shows how I might perhaps structure a project that has a breadboard with some buttons hooked up, as well as how configuring those buttons. Not a super interesting example, but here we are. Build with `make -f tz-drivers-elf.mk BOARD=[stm32l5|stm32u5] all`
-* `main-drivers/` and `ns-main-drivers/` are the secure and nonsecure applications of yet another small example. It configures UART, the on board button, the LEDs, etc. Build with `make -f elf.mk BOARD=[stm32l5|stm32u5] all`.
-
-**TODO** (move the building and flashing crap to appropriate sections later, but leave here for Lennart to find for the moment)
-
-Flash with `make flash_tz SECURE=<your secure elf> NONSECURE=<your nonsecure elf>`. You will get some checksum error afterwards, but you can disregard that (or tell me how to fix it).
-
-Debug with
-
-1. Terminal one, `make BOARD=[stm32l5|stm32u5] openocd`
-2. Terminal two, `make debug_tz SECURE=<your secure elf> NONSECURE=<your nonsecure elf>`. This opens GDB
-
-**NOTE**: I had to clone and manually build **openocd** myself, from ST's fork, to be able to flash the STM32U5. They have not managed to upstream their STM32U5 support into mainline openocd yet. Here is the repo: https://github.com/STMicroelectronics/OpenOCD
-
-I've cloned it in my $(HOME), built it, and then refer to it in the top-level makefile in the root of this project.
+* `TZ-drivers-MicroHaskell/` Compiles and runs two instances of MHS, one in the secure application and one in the nonsecure. They just print and play with the LEDs, and do not communicate with each other. **NOTE**: For this to work, you need to clone MicroHs into the root of the project. Look at the makefile in `TZ-drivers-MicroHaskell/` to see how it looks for the mhs runtime sources.
+* `TZ-drivers-HasTEE/` This is my own main project. It runs two MHS instances, much like the above mentioned project, but there is also a communication path between them. The Haskell code that goes together with this project can be found in `HaskellApp/` (perhaps this should be moved to be within `TZ-drivers-HasTEE/`...).
+* `TZ-drivers-example/` This little project shows how I might perhaps structure a project that has a breadboard with some buttons hooked up, as well as how configuring those buttons. Not a super interesting example, but here we are.
+* `main-drivers/` and `ns-main-drivers/` are the secure and nonsecure applications of yet another small example. It configures UART, the on board button, the LEDs, etc.
 
 ### Getting Started
 
 1. [Preparing the Board](getting-started/01-preparing-the-board.md) <- this has text, read here
 2. [Setup](getting-started/02-setup.md) <- this has text, red here
-3. [Build and Flash](getting-started/03-build-and-flash.md)
+3. [Build and Flash](getting-started/03-build-and-flash.md) <- this has text, read here
 4. [Hello World](getting-started/04-hello-world.md)
 
 ### How-To Guides

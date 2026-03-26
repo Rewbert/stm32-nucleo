@@ -36,14 +36,14 @@ SECURE_LIB          := build/tz-drivers-secure_cmse_import.lib
 SECURE_IMPLIB_FLAGS := -Wl,--cmse-implib,--out-implib=$(SECURE_LIB)
 
 .PHONY: all
-all: tz-secure.elf tz-nonsecure.elf
+all: secure.elf nonsecure.elf
 
 $(dir $(SECURE_LIB)):
 	mkdir -p $@
 
-tz-secure.elf: $(SECURE_BOOT_O) $(BOARD_O) $(SHARED_S_O) $(S_APP_O) $(TZ_LIB_DRV_SECURE_A) | $(dir $(SECURE_LIB))
+secure.elf: $(SECURE_BOOT_O) $(BOARD_O) $(SHARED_S_O) $(S_APP_O) $(TZ_LIB_DRV_SECURE_A) | $(dir $(SECURE_LIB))
 	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) $(SECURE_LDFLAGS) -o $@ $^ $(SECURE_IMPLIB_FLAGS)
 
-tz-nonsecure.elf: tz-secure.elf $(NONSECURE_BOOT_O) $(BOARD_NS_O) $(SHARED_NS_O) $(NS_APP_O) $(TZ_LIB_DRV_NONSECURE_A)
+nonsecure.elf: secure.elf $(NONSECURE_BOOT_O) $(BOARD_NS_O) $(SHARED_NS_O) $(NS_APP_O) $(TZ_LIB_DRV_NONSECURE_A)
 	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) $(NONSECURE_LDFLAGS) -o $@ \
 		$(NONSECURE_BOOT_O) $(BOARD_NS_O) $(SHARED_NS_O) $(NS_APP_O) $(TZ_LIB_DRV_NONSECURE_A) $(SECURE_LIB)
