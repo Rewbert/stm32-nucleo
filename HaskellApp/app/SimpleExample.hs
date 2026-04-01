@@ -24,23 +24,24 @@ readPrintModify sr = do
     unsafeLiftIO $ putStrLn ("current secure state: " ++ show c ++ "\r")
     writeSRef r $ c + 1
 
-secureBlink :: Secure (SRef Int) -> Secure ()
-secureBlink r = do
+secureBlink :: Secure (SRef Int) -> Int -> Secure ()
+secureBlink r m = do
     readPrintModify r
+    unsafeLiftIO $ putStrLn $ "message from nonsecure: " ++ show m ++ "\r"
     unsafeLiftIO toggle
 
-loop :: Callable (Secure ()) -> IO ()
-loop nsc_f = do
-    sg nsc_f
+loop :: Callable (Int -> Secure ()) -> Int -> IO ()
+loop nsc_f i = do
+    sg $ nsc_f <.> i
     delay 500
-    loop nsc_f
+    loop nsc_f (i + 1)
 
 app :: Setup ()
 app = do
     ref <- initialSRef 0
 
     f <- callable $ secureBlink ref
-    nonSecure $ loop f
+    nonSecure $ loop f 0
 
 main :: IO ()
 main = runSetup app
