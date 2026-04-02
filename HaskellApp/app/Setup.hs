@@ -1,16 +1,30 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
-module Setup (Setup(..), SetupState(..), initialSetupState) where
+module Setup (Setup(..), SetupState(..), initialSetupState, BFILE,
+              primHSerialize, primHDeserialize) where
 
 import Control.Monad.State
+import Foreign.Ptr
 
 -- import Control.Monad.State.Class as STC
 import Control.Monad.IO.Class as IOC
+
+{-
+I define these BFILE things here, because they are required by both the secure and nonsecure application.
+They are re-exported for them both to use.
+-}
+data BFILE
+
+-- These are primitives offered by the MHS RTS
+primHSerialize   :: Ptr BFILE -> a -> IO ()
+primHSerialize    = _primitive "IO.serialize"
+primHDeserialize :: Ptr BFILE -> IO a
+primHDeserialize  = _primitive "IO.deserialize"
 
 -- * Setup monad, for configurations that affect both applications
 
 data SetupState = SetupState
   {
-    nonSecureCallable :: [(Int, [String] -> IO String)]
+    nonSecureCallable :: [(Int, Ptr BFILE -> IO (Ptr BFILE))]
   , counter           :: Int
   }
 

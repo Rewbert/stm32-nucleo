@@ -40,6 +40,13 @@ void toggle_blue_led(void);
 
 int unlink(void *x);
 
+/*
+Required forward declarations for BFILE functions, or else make goes :'(
+A smarter solution is to move the generic BFILE definitions to a header file, and include that.
+*/
+struct BFILE;
+void closeb_rd_mem(struct BFILE *bp);
+
 #define ERR(str) while(1) {}
 #define ERR1(sr,a) while(1) {}
 
