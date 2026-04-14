@@ -28,6 +28,7 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/NonSecure.hs \
   $(HASKELL_DIR)/app/Secure.hs \
   $(HASKELL_DIR)/app/Setup.hs \
+  $(HASKELL_DIR)/app/HW.hs \
   $(HASKELL_DIR)/app/SimpleExample.hs
 
 CABAL=mcabal

@@ -17,32 +17,27 @@ foreign import ccall "config.h          toggle_blue_led"  toggle :: IO ()
 foreign export ccall "app_main" main :: IO ()
 #endif
 
-readPrintModify :: Secure (SRef Int) -> Secure ()
-readPrintModify sr = do
-    r <- sr
-    c <- readSRef r
-    unsafeLiftIO $ putStrLn ("current secure state: " ++ show c ++ "\r")
-    writeSRef r $ c + 1
-
-secureBlink :: Secure (SRef Int) -> Int -> Int -> Secure Int
-secureBlink r m n = do
-    readPrintModify r
+-- | Evaluates in the TrustZone
+secureBlink :: Int -> Int -> (Int -> Int -> Int) -> Secure Int
+secureBlink m n f = do
     unsafeLiftIO $ putStrLn $ "message from nonsecure: m = " ++ show m ++ " and n = " ++ show n ++ "\r"
     unsafeLiftIO toggle
-    return $ m + n
+    return $ f m n
 
-loop :: Callable (Int -> Int -> Secure Int) -> Int -> Int -> IO ()
+-- | Nonsecure code, executing outside of the TrustZone (loops forever)
+loop :: Callable (Int -> Int -> (Int -> Int -> Int) -> Secure Int) -> Int -> Int -> IO ()
 loop nsc_f i j = do
-    r <- sg $ nsc_f <.> i <.> j
+    let fullyAppliedF = nsc_f <.> i <.> j <.> (\m n -> if m `mod` 2 == 0 then m + n else m * n)
+    r <- sg fullyAppliedF -- dispatch secure function from nonsecure world
+
     putStrLn $ "result from secure: " ++ show r ++ "\r"
+
     delay 500
     loop nsc_f (i + 1) (j + 10)
 
 app :: Setup ()
 app = do
-    ref <- initialSRef 0
-
-    f <- callable $ secureBlink ref
+    f <- callable $ secureBlink -- mark secureBlink as callable from the nonsecure world
     nonSecure $ loop f 0 0
 
 main :: IO ()

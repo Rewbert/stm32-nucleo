@@ -8,6 +8,8 @@ import Foreign.Ptr
 -- import Control.Monad.State.Class as STC
 import Control.Monad.IO.Class as IOC
 
+import HW
+
 {-
 I define these BFILE things here, because they are required by both the secure and nonsecure application.
 They are re-exported for them both to use.
