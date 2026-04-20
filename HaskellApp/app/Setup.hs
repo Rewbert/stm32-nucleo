@@ -9,6 +9,7 @@ import Foreign.Ptr
 import Control.Monad.IO.Class as IOC
 
 import HW
+import Hardware
 
 {-
 I define these BFILE things here, because they are required by both the secure and nonsecure application.
