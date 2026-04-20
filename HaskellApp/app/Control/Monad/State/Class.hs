@@ -1,7 +1,8 @@
 {-# LANGUAGE FunctionalDependencies #-}
+
 module Control.Monad.State.Class where
 
-class Monad m => MonadState s m | m -> s where
+class (Monad m) => MonadState s m | m -> s where
     -- | Return the state from the internals of the monad.
     get :: m s
     get = state (\s -> (s, s))
@@ -13,10 +14,10 @@ class Monad m => MonadState s m | m -> s where
     -- | Embed a simple state action into the monad.
     state :: (s -> (a, s)) -> m a
     state f = do
-      s <- get
-      let ~(a, s') = f s
-      put s'
-      return a
+        s <- get
+        let ~(a, s') = f s
+        put s'
+        return a
 
-modify :: MonadState s m => (s -> s) -> m ()
+modify :: (MonadState s m) => (s -> s) -> m ()
 modify f = state (\s -> ((), f s))

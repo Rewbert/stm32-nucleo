@@ -1,18 +1,18 @@
 module Drivers.PWR (
-      PWR
-    , PWRRange(..)
-    , pwr_enable_vddio2
-    , pwr_disable_vddio2
-    , pwr_set_voltage_scaling
+    PWR,
+    PWRRange (..),
+    pwr_enable_vddio2,
+    pwr_disable_vddio2,
+    pwr_set_voltage_scaling,
 ) where
 
+import Foreign.C.Types (CInt (..))
 import Foreign.HAL.Utils
 import Foreign.Ptr (Ptr)
-import Foreign.C.Types (CInt(..))
 
-foreign import ccall "drivers/pwr.h pwr_enable_vddio2"        pwrEnableVddio2      :: PWR -> IO ()
-foreign import ccall "drivers/pwr.h pwr_disable_vddio2"       pwrDisableVddio2     :: PWR -> IO ()
-foreign import ccall "drivers/pwr.h pwr_set_voltage_scaling"  pwrSetVoltageScaling :: PWR -> CInt -> IO ()
+foreign import ccall "drivers/pwr.h pwr_enable_vddio2" pwrEnableVddio2 :: PWR -> IO ()
+foreign import ccall "drivers/pwr.h pwr_disable_vddio2" pwrDisableVddio2 :: PWR -> IO ()
+foreign import ccall "drivers/pwr.h pwr_set_voltage_scaling" pwrSetVoltageScaling :: PWR -> CInt -> IO ()
 
 type PWR = Ptr () -- pwr_dev_t *
 

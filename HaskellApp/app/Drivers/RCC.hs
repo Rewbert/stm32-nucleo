@@ -1,13 +1,13 @@
 module Drivers.RCC where
 
-import Foreign.HAL.Utils
-import Foreign.Storable
-import Foreign.Ptr
-import Foreign.C.Types
 import Data.Word (Word32)
+import Foreign.C.Types
+import Foreign.HAL.Utils
+import Foreign.Ptr
+import Foreign.Storable
 
-import Drivers.PWR
 import Drivers.FLASH
+import Drivers.PWR
 
 foreign import ccall "drivers/rcc.h rcc_enable" rccEnable :: RCC -> CInt -> IO ()
 foreign import ccall "drivers/rcc.h rcc_disable" rccDisable :: RCC -> CInt -> IO ()
@@ -15,7 +15,7 @@ foreign import ccall "drivers/rcc.h rcc_is_enabled" rccIsEnabled :: RCC -> CInt 
 foreign import ccall "drivers/rcc.h rcc_set_peripheral_clock" rccSetPeripheralClock :: RCC -> CInt -> CInt -> IO ()
 foreign import ccall "drivers/rcc.h rcc_configure_pll" rccConfigurePll :: RCC -> PWR -> FLASH -> CUInt -> CUInt -> CUInt -> CUInt -> IO ()
 
-type RCC    = Ptr ()  -- rcc_dev_t *
+type RCC = Ptr () -- rcc_dev_t *
 
 -- rcc_periph_t
 data RCCPeriph
@@ -34,19 +34,19 @@ data RCCPeriph
     | RCC_USART1
 
 instance Enum RCCPeriph where
-    fromEnum RCC_GPIOA   = 0
-    fromEnum RCC_GPIOB   = 1
-    fromEnum RCC_GPIOC   = 2
-    fromEnum RCC_GPIOD   = 3
-    fromEnum RCC_GPIOE   = 4
-    fromEnum RCC_GPIOF   = 5
-    fromEnum RCC_GPIOG   = 6
-    fromEnum RCC_GPIOH   = 7
+    fromEnum RCC_GPIOA = 0
+    fromEnum RCC_GPIOB = 1
+    fromEnum RCC_GPIOC = 2
+    fromEnum RCC_GPIOD = 3
+    fromEnum RCC_GPIOE = 4
+    fromEnum RCC_GPIOF = 5
+    fromEnum RCC_GPIOG = 6
+    fromEnum RCC_GPIOH = 7
     fromEnum RCC_LPUART1 = 8
-    fromEnum RCC_PWR     = 9
-    fromEnum RCC_GTZC    = 10
-    fromEnum RCC_GTZC2   = 11
-    fromEnum RCC_USART1  = 12
+    fromEnum RCC_PWR = 9
+    fromEnum RCC_GTZC = 10
+    fromEnum RCC_GTZC2 = 11
+    fromEnum RCC_USART1 = 12
 
     toEnum 0 = RCC_GPIOA
     toEnum 1 = RCC_GPIOB
@@ -93,34 +93,34 @@ data RCCPeriphClockSource
     | RCC_NO_CLOCK
 
 instance Enum RCCPeriphClockSource where
-    fromEnum RCC_PCKL1      = 0
-    fromEnum RCC_PCKL2      = 1
-    fromEnum RCC_PCKL3      = 2
-    fromEnum RCC_SYSCLK     = 3
-    fromEnum RCC_HSI16      = 4
-    fromEnum RCC_HSI48      = 5
-    fromEnum RCC_LSE        = 6
-    fromEnum RCC_HSE        = 7
-    fromEnum RCC_MSI        = 8
-    fromEnum RCC_PLL_Q      = 9
+    fromEnum RCC_PCKL1 = 0
+    fromEnum RCC_PCKL2 = 1
+    fromEnum RCC_PCKL3 = 2
+    fromEnum RCC_SYSCLK = 3
+    fromEnum RCC_HSI16 = 4
+    fromEnum RCC_HSI48 = 5
+    fromEnum RCC_LSE = 6
+    fromEnum RCC_HSE = 7
+    fromEnum RCC_MSI = 8
+    fromEnum RCC_PLL_Q = 9
     fromEnum RCC_PLL_SAI1_P = 10
     fromEnum RCC_PLL_SAI1_R = 11
-    fromEnum RCC_NO_CLOCK   = 12
+    fromEnum RCC_NO_CLOCK = 12
 
-    toEnum 0  = RCC_PCKL1
-    toEnum 1  = RCC_PCKL2
-    toEnum 2  = RCC_PCKL3
-    toEnum 3  = RCC_SYSCLK
-    toEnum 4  = RCC_HSI16
-    toEnum 5  = RCC_HSI48
-    toEnum 6  = RCC_LSE
-    toEnum 7  = RCC_HSE
-    toEnum 8  = RCC_MSI
-    toEnum 9  = RCC_PLL_Q
+    toEnum 0 = RCC_PCKL1
+    toEnum 1 = RCC_PCKL2
+    toEnum 2 = RCC_PCKL3
+    toEnum 3 = RCC_SYSCLK
+    toEnum 4 = RCC_HSI16
+    toEnum 5 = RCC_HSI48
+    toEnum 6 = RCC_LSE
+    toEnum 7 = RCC_HSE
+    toEnum 8 = RCC_MSI
+    toEnum 9 = RCC_PLL_Q
     toEnum 10 = RCC_PLL_SAI1_P
     toEnum 11 = RCC_PLL_SAI1_R
     toEnum 12 = RCC_NO_CLOCK
-    toEnum _  = error "RCCPeriphClockSource error: not valid enum variant"
+    toEnum _ = error "RCCPeriphClockSource error: not valid enum variant"
 
 instance Storable RCCPeriphClockSource where
     sizeOf :: RCCPeriphClockSource -> Int

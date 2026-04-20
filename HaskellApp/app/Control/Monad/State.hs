@@ -1,18 +1,19 @@
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Control.Monad.State (StateT(..), evalStateT, execStateT, module Control.Monad.State.Class) where
+{-# LANGUAGE FunctionalDependencies #-}
 
-import Control.Monad.State.Class
+module Control.Monad.State (StateT (..), evalStateT, execStateT, module Control.Monad.State.Class) where
+
 import Control.Monad.IO.Class
+import Control.Monad.State.Class
 
-newtype StateT s m a = StateT { runStateT :: s -> m (a,s) }
+newtype StateT s m a = StateT {runStateT :: s -> m (a, s)}
 
-evalStateT :: Monad m => StateT s m a -> s -> m a
+evalStateT :: (Monad m) => StateT s m a -> s -> m a
 evalStateT m s = do
     p <- runStateT m s
     return $ fst p
 
-execStateT :: Monad m => StateT s m a -> s -> m s
+execStateT :: (Monad m) => StateT s m a -> s -> m s
 execStateT m s = do
     p <- runStateT m s
     return $ snd p
@@ -23,19 +24,19 @@ execStateT m s = do
 -- state f = StateT (return . f)
 
 instance (Functor m) => Functor (StateT s m) where
-    fmap f m = StateT $ \ s ->
+    fmap f m = StateT $ \s ->
         fmap (\ ~(a, s') -> (f a, s')) $ runStateT m s
 
 instance (Functor m, Monad m) => Applicative (StateT s m) where
-    pure a = StateT $ \ s -> return (a, s)
-    StateT mf <*> StateT mx = StateT $ \ s -> do
+    pure a = StateT $ \s -> return (a, s)
+    StateT mf <*> StateT mx = StateT $ \s -> do
         ~(f, s') <- mf s
         ~(x, s'') <- mx s'
         return (f x, s'')
     m *> k = m >>= \_ -> k
 
 instance (Monad m) => Monad (StateT s m) where
-    m >>= k  = StateT $ \ s -> do
+    m >>= k = StateT $ \s -> do
         ~(a, s') <- runStateT m s
         runStateT (k a) s'
 
@@ -43,10 +44,10 @@ instance (MonadIO m) => MonadIO (StateT s m) where
     liftIO = lift . liftIO
       where
         lift m = StateT $ \s -> do
-                   a <- m
-                   return (a, s)
+            a <- m
+            return (a, s)
 
-instance Monad m => MonadState s (StateT s m) where
+instance (Monad m) => MonadState s (StateT s m) where
     state f = StateT (return . f)
 
 -- get :: (Monad m) => StateT s m s
@@ -57,4 +58,4 @@ instance Monad m => MonadState s (StateT s m) where
 -- put s = state $ \ _ -> ((), s)
 
 modify :: (Monad m) => (s -> s) -> StateT s m ()
-modify f = state $ \ s -> ((), f s)
+modify f = state $ \s -> ((), f s)

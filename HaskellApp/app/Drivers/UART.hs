@@ -1,35 +1,34 @@
 module Drivers.UART (
-      UART
-    , UARTParity(..)
-    , UARTConfig(..)
-    
-    , uart_init
-    , uart_write
-    , uart_read
+    UART,
+    UARTParity (..),
+    UARTConfig (..),
+    uart_init,
+    uart_write,
+    uart_read,
 ) where
 
-import Foreign.Marshal.Alloc
-import Foreign.HAL.Utils
-import Foreign.Storable
+import Data.Word (Word32, Word8)
+import Foreign.C.String
 import Foreign.C.Types
+import Foreign.HAL.Utils
+import Foreign.Marshal.Alloc
 import Foreign.Marshal.Utils
 import Foreign.Ptr
-import Data.Word (Word8, Word32)
-import Foreign.C.String
+import Foreign.Storable
 
-type UART = Ptr ()  -- uart_dev_t *
+type UART = Ptr () -- uart_dev_t *
 
 -- uart_config_t passed as Ptr () (caller fills in C)
-foreign import ccall "drivers/uart.h uart_init"  c_uart_init  :: UART -> Ptr ()   -> IO ()
+foreign import ccall "drivers/uart.h uart_init" c_uart_init :: UART -> Ptr () -> IO ()
 foreign import ccall "drivers/uart.h uart_write" c_uart_write :: UART -> Ptr CChar -> CInt -> IO ()
-foreign import ccall "drivers/uart.h uart_read"  c_uart_read  :: UART -> Ptr CChar -> CInt -> IO CInt
+foreign import ccall "drivers/uart.h uart_read" c_uart_read :: UART -> Ptr CChar -> CInt -> IO CInt
 
 data UARTParity = NONE | EVEN | ODD
 
 instance Enum UARTParity where
     fromEnum NONE = 0
     fromEnum EVEN = 1
-    fromEnum ODD  = 2
+    fromEnum ODD = 2
 
     toEnum 0 = NONE
     toEnum 1 = EVEN
@@ -50,11 +49,11 @@ instance Storable UARTParity where
     poke ptr v = poke (castPtr ptr) (CInt $ fromInteger $ toInteger $ fromEnum v)
 
 data UARTConfig = UARTConfig
-  { baudrate    :: Int
-  , word_length :: Int
-  , stop_bits   :: Int
-  , parity      :: UARTParity
-  }
+    { baudrate :: Int
+    , word_length :: Int
+    , stop_bits :: Int
+    , parity :: UARTParity
+    }
 
 instance Storable UARTConfig where
     sizeOf :: UARTConfig -> Int
@@ -64,17 +63,18 @@ instance Storable UARTConfig where
     alignment _ = 4
 
     peek :: Ptr UARTConfig -> IO UARTConfig
-    peek ptr = UARTConfig
-        <$> (fromIntegral <$> (peek (castPtr ptr)             :: IO Word32))
-        <*> (fromIntegral <$> (peek (castPtr ptr `plusPtr` 4) :: IO Word8))
-        <*> (fromIntegral <$> (peek (castPtr ptr `plusPtr` 5) :: IO Word8))
-        <*> peek (castPtr ptr `plusPtr` 8)
+    peek ptr =
+        UARTConfig
+            <$> (fromIntegral <$> (peek (castPtr ptr) :: IO Word32))
+            <*> (fromIntegral <$> (peek (castPtr ptr `plusPtr` 4) :: IO Word8))
+            <*> (fromIntegral <$> (peek (castPtr ptr `plusPtr` 5) :: IO Word8))
+            <*> peek (castPtr ptr `plusPtr` 8)
 
     poke :: Ptr UARTConfig -> UARTConfig -> IO ()
     poke ptr v = do
-        poke (castPtr ptr)             (fromIntegral (baudrate    v) :: Word32)
+        poke (castPtr ptr) (fromIntegral (baudrate v) :: Word32)
         poke (castPtr ptr `plusPtr` 4) (fromIntegral (word_length v) :: Word8)
-        poke (castPtr ptr `plusPtr` 5) (fromIntegral (stop_bits   v) :: Word8)
+        poke (castPtr ptr `plusPtr` 5) (fromIntegral (stop_bits v) :: Word8)
         poke (castPtr ptr `plusPtr` 8) (parity v)
 
 -- API

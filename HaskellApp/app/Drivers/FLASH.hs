@@ -1,13 +1,13 @@
 module Drivers.FLASH (
-      FLASH
-    , flash_set_latency
-    , flash_get_latency
+    FLASH,
+    flash_set_latency,
+    flash_get_latency,
 ) where
 
-import Foreign.Ptr (Ptr)
 import Data.Word (Word32)
+import Foreign.Ptr (Ptr)
 
-type FLASH = Ptr ()  -- flash_dev_t *
+type FLASH = Ptr () -- flash_dev_t *
 
 foreign import ccall "drivers/flash.h flash_set_latency" flashSetLatency :: FLASH -> Word32 -> IO ()
 foreign import ccall "drivers/flash.h flash_get_latency" flashGetLatency :: FLASH -> IO Word32

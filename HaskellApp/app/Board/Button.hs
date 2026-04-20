@@ -1,15 +1,15 @@
 module Board.Button (
-      Button(..)
-    , board_button
-    , board_button_exti
+    Button (..),
+    board_button,
+    board_button_exti,
 ) where
 
-import Foreign.HAL.Utils
-import Foreign.Storable
-import Foreign.Ptr
-import Foreign.C.Types (CInt(..))
-import Drivers.GPIO (GPIO)
 import Drivers.EXTI (EXTI)
+import Drivers.GPIO (GPIO)
+import Foreign.C.Types (CInt (..))
+import Foreign.HAL.Utils
+import Foreign.Ptr
+import Foreign.Storable
 
 foreign import ccall "boards/board.h board_button" c_board_button :: CInt -> IO GPIO
 foreign import ccall "boards/board.h board_button_exti" c_board_button_exti :: CInt -> IO EXTI
@@ -17,8 +17,10 @@ foreign import ccall "boards/board.h board_button_exti" c_board_button_exti :: C
 data Button = BLUE
 
 instance Enum Button where
+    fromEnum :: Button -> Int
     fromEnum BLUE = 0
 
+    toEnum :: Int -> Button
     toEnum 0 = BLUE
     toEnum _ = error "Button error: not a valid enum variant"
 

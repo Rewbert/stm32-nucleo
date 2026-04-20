@@ -1,21 +1,20 @@
 module Drivers.TZSC (
-      TZSC
-    , TZSCSecurity(..)
-    , TZSCPeriph(..)
-    
-    , tzsc_set_periph
-    , tzsc_lock
+    TZSC,
+    TZSCSecurity (..),
+    TZSCPeriph (..),
+    tzsc_set_periph,
+    tzsc_lock,
 ) where
 
-import Foreign.HAL.Utils
-import Foreign.Storable
-import Foreign.Ptr
 import Foreign.C.Types
+import Foreign.HAL.Utils
+import Foreign.Ptr
+import Foreign.Storable
 
 foreign import ccall "drivers/tzsc.h tzsc_set_periph" c_tzsc_set_periph :: TZSC -> CInt -> CInt -> IO ()
-foreign import ccall "drivers/tzsc.h tzsc_lock"       c_tzsc_lock       :: TZSC -> IO ()
+foreign import ccall "drivers/tzsc.h tzsc_lock" c_tzsc_lock :: TZSC -> IO ()
 
-type TZSC = Ptr ()  -- tzsc_dev_t *
+type TZSC = Ptr () -- tzsc_dev_t *
 
 -- tzsc_security_t
 data TZSCSecurity = TZSC_SECURE | TZSC_NONSECURE
@@ -49,7 +48,7 @@ data TZSCPeriph = TZSC_LPUART1 | TZSC_USART1 -- there are numerous more, but I j
 instance Enum TZSCPeriph where
     fromEnum :: TZSCPeriph -> Int
     fromEnum TZSC_LPUART1 = 21
-    fromEnum TZSC_USART1  = 33
+    fromEnum TZSC_USART1 = 33
 
     toEnum :: Int -> TZSCPeriph
     toEnum 21 = TZSC_LPUART1

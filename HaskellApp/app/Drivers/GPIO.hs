@@ -1,36 +1,36 @@
 module Drivers.GPIO (
-      -- * GPIO device type
-      GPIO
+    -- * GPIO device type
+    GPIO,
 
-      -- * GPIO options and configuration
-    , GPIOSecurity(..)
-    , GPIOMode(..)
-    , GPIOPull(..)
-    , GPIOAF(..)
-    , GPIOPort(..)
-    , GPIOConfig(..)
+    -- * GPIO options and configuration
+    GPIOSecurity (..),
+    GPIOMode (..),
+    GPIOPull (..),
+    GPIOAF (..),
+    GPIOPort (..),
+    GPIOConfig (..),
 
-      -- * Operations on GPIO devices
-    , gpio_init
-    , gpio_write
-    , gpio_read
-    , gpio_toggle
+    -- * Operations on GPIO devices
+    gpio_init,
+    gpio_write,
+    gpio_read,
+    gpio_toggle,
 ) where
 
+import Foreign.C.Types (CInt (..))
+import Foreign.HAL.Utils
 import Foreign.Marshal.Alloc
 import Foreign.Marshal.Utils
 import Foreign.Ptr
-import Foreign.C.Types (CInt(..))
 import Foreign.Storable
-import Foreign.HAL.Utils
 
 -- gpio_config_t is passed as Ptr () (caller fills in C)
-foreign import ccall "drivers/gpio.h gpio_init"   gpioInit   :: GPIO -> Ptr () -> IO ()
-foreign import ccall "drivers/gpio.h gpio_write"  gpioWrite  :: GPIO -> CInt   -> IO ()
-foreign import ccall "drivers/gpio.h gpio_read"   gpioRead   :: GPIO -> IO CInt
+foreign import ccall "drivers/gpio.h gpio_init" gpioInit :: GPIO -> Ptr () -> IO ()
+foreign import ccall "drivers/gpio.h gpio_write" gpioWrite :: GPIO -> CInt -> IO ()
+foreign import ccall "drivers/gpio.h gpio_read" gpioRead :: GPIO -> IO CInt
 foreign import ccall "drivers/gpio.h gpio_toggle" gpioToggle :: GPIO -> IO ()
 
-type GPIO = Ptr ()  -- gpio_dev_t *
+type GPIO = Ptr () -- gpio_dev_t *
 
 -- gpio_level_t
 gpioLow :: CInt
@@ -44,7 +44,7 @@ data GPIOSecurity = GPIOSecure | GPIONonsecure
 
 instance Enum GPIOSecurity where
     fromEnum :: GPIOSecurity -> Int
-    fromEnum GPIOSecure    = 0
+    fromEnum GPIOSecure = 0
     fromEnum GPIONonsecure = 1
 
     toEnum :: Int -> GPIOSecurity
@@ -69,9 +69,9 @@ instance Storable GPIOSecurity where
 data GPIOMode = Input | Output | AF | Analog
 
 instance Enum GPIOMode where
-    fromEnum Input  = 0
+    fromEnum Input = 0
     fromEnum Output = 1
-    fromEnum AF     = 2
+    fromEnum AF = 2
     fromEnum Analog = 3
 
     toEnum 0 = Input
@@ -97,8 +97,8 @@ instance Storable GPIOMode where
 data GPIOPull = Nopull | Pullup | Pulldown
 
 instance Enum GPIOPull where
-    fromEnum Nopull   = 0
-    fromEnum Pullup   = 1
+    fromEnum Nopull = 0
+    fromEnum Pullup = 1
     fromEnum Pulldown = 2
 
     toEnum 0 = Nopull
@@ -123,16 +123,16 @@ instance Storable GPIOPull where
 data GPIOAF = AF0 | AF1 | AF2 | AF3 | AF4 | AF5 | AF6 | AF7 | AF8 | AF9 | AF10 | AF11 | AF12 | AF13 | AF14 | AF15
 
 instance Enum GPIOAF where
-    fromEnum AF0  = 0
-    fromEnum AF1  = 1
-    fromEnum AF2  = 2
-    fromEnum AF3  = 3
-    fromEnum AF4  = 4
-    fromEnum AF5  = 5
-    fromEnum AF6  = 6
-    fromEnum AF7  = 7
-    fromEnum AF8  = 8
-    fromEnum AF9  = 9
+    fromEnum AF0 = 0
+    fromEnum AF1 = 1
+    fromEnum AF2 = 2
+    fromEnum AF3 = 3
+    fromEnum AF4 = 4
+    fromEnum AF5 = 5
+    fromEnum AF6 = 6
+    fromEnum AF7 = 7
+    fromEnum AF8 = 8
+    fromEnum AF9 = 9
     fromEnum AF10 = 10
     fromEnum AF11 = 11
     fromEnum AF12 = 12
@@ -140,16 +140,16 @@ instance Enum GPIOAF where
     fromEnum AF14 = 14
     fromEnum AF15 = 15
 
-    toEnum 0  = AF0 
-    toEnum 1  = AF1 
-    toEnum 2  = AF2 
-    toEnum 3  = AF3 
-    toEnum 4  = AF4 
-    toEnum 5  = AF5 
-    toEnum 6  = AF6 
-    toEnum 7  = AF7 
-    toEnum 8  = AF8 
-    toEnum 9  = AF9 
+    toEnum 0 = AF0
+    toEnum 1 = AF1
+    toEnum 2 = AF2
+    toEnum 3 = AF3
+    toEnum 4 = AF4
+    toEnum 5 = AF5
+    toEnum 6 = AF6
+    toEnum 7 = AF7
+    toEnum 8 = AF8
+    toEnum 9 = AF9
     toEnum 10 = AF10
     toEnum 11 = AF11
     toEnum 12 = AF12
@@ -173,34 +173,36 @@ instance Storable GPIOAF where
 
 -- gpio_config_t
 data GPIOConfig = GPIOConfig
-  { mode            :: GPIOMode
-  , pull            :: GPIOPull
-  , alternate       :: GPIOAF
-  , security_domain :: GPIOSecurity
-  }
+    { mode :: GPIOMode
+    , pull :: GPIOPull
+    , alternate :: GPIOAF
+    , security_domain :: GPIOSecurity
+    }
 
 instance Storable GPIOConfig where
     sizeOf :: GPIOConfig -> Int
-    sizeOf _ = sizeOf (undefined :: GPIOMode) +
-               sizeOf (undefined :: GPIOPull) +
-               sizeOf (undefined :: GPIOAF)   +
-               sizeOf (undefined :: GPIOSecurity)
+    sizeOf _ =
+        sizeOf (undefined :: GPIOMode)
+            + sizeOf (undefined :: GPIOPull)
+            + sizeOf (undefined :: GPIOAF)
+            + sizeOf (undefined :: GPIOSecurity)
 
     alignment :: GPIOConfig -> Int
     alignment _ = 4
 
     peek :: Ptr GPIOConfig -> IO GPIOConfig
-    peek ptr = GPIOConfig
-        <$> peek (castPtr ptr)
-        <*> peek (castPtr ptr `plusPtr`  4)
-        <*> peek (castPtr ptr `plusPtr`  8)
-        <*> peek (castPtr ptr `plusPtr` 12)
+    peek ptr =
+        GPIOConfig
+            <$> peek (castPtr ptr)
+            <*> peek (castPtr ptr `plusPtr` 4)
+            <*> peek (castPtr ptr `plusPtr` 8)
+            <*> peek (castPtr ptr `plusPtr` 12)
 
     poke :: Ptr GPIOConfig -> GPIOConfig -> IO ()
-    poke ptr GPIOConfig{ mode = m, pull = p, alternate = a, security_domain = s} = do
-        poke (castPtr ptr)              m
-        poke (castPtr ptr `plusPtr` 4)  p
-        poke (castPtr ptr `plusPtr` 8)  a
+    poke ptr GPIOConfig{mode = m, pull = p, alternate = a, security_domain = s} = do
+        poke (castPtr ptr) m
+        poke (castPtr ptr `plusPtr` 4) p
+        poke (castPtr ptr `plusPtr` 8) a
         poke (castPtr ptr `plusPtr` 12) s
 
 -- GPIO port
