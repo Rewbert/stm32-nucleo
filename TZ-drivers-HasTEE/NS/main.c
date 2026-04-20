@@ -13,8 +13,8 @@ int mhs_main(int argc, char **argv);
 
 /* SysTick only — PLL and UART were configured by the secure world and must not be touched again. */
 void stm32_init() {
-    systick_configure(board_sysclk_hz() / 1000);
-    irq_enable();
+    // systick_configure(board_sysclk_hz() / 1000);
+    // irq_enable();
 }
 
 void stm32_exit(int n) {

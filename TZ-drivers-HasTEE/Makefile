@@ -30,7 +30,7 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/Setup.hs \
   $(HASKELL_DIR)/app/HW.hs \
   $(HASKELL_DIR)/app/SimpleExample.hs \
-  $(HASKELL_DIR)/app/Hardware.hs \
+  $(HASKELL_DIR)/app/HAL.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/SysTick.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/GPIO.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/UART.hs \
@@ -39,6 +39,7 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/HAL/Drivers/FLASH.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/EXTI.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/TZSC.hs \
+  $(HASKELL_DIR)/app/HAL/Drivers/IRQ.hs \
   $(HASKELL_DIR)/app/HAL/Board/Board.hs \
   $(HASKELL_DIR)/app/HAL/Board/LED.hs \
   $(HASKELL_DIR)/app/HAL/Board/Button.hs

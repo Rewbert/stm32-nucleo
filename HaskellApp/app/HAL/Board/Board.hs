@@ -1,12 +1,14 @@
 module HAL.Board.Board (
     board_init,
     board_configure_pll,
+    board_sysclk_hz,
     board_gpio_create,
     board_exti_create,
     board_rcc,
     board_pwr,
     board_flash,
     board_console,
+    board_console_periph,
     board_tzsc,
 ) where
 
@@ -29,6 +31,7 @@ foreign import ccall "boards/board.h board_configure_pll" boardConfigurePll :: I
 
 foreign import ccall "boards/board.h board_sysclk_hz" boardSysclkHz :: IO Word32
 foreign import ccall "boards/board.h board_console" boardConsole :: IO UART
+foreign import ccall "boards/board.h board_console_periph" boardConsolePeriph :: IO CInt
 foreign import ccall "boards/board.h board_rcc" boardRcc :: IO RCC
 foreign import ccall "boards/board.h board_flash" boardFlash :: IO FLASH
 foreign import ccall "boards/board.h board_pwr" boardPwr :: IO PWR
@@ -44,6 +47,9 @@ board_init = boardInit
 
 board_configure_pll :: IO ()
 board_configure_pll = boardConfigurePll
+
+board_sysclk_hz :: IO Int
+board_sysclk_hz = (fromInteger . toInteger) <$> boardSysclkHz
 
 -- * GPIO creation
 
@@ -85,6 +91,9 @@ board_flash = boardFlash
 
 board_console :: IO UART
 board_console = boardConsole
+
+board_console_periph :: IO TZSCPeriph
+board_console_periph = (toEnum . fromCInt) <$> boardConsolePeriph
 
 board_tzsc :: IO TZSC
 board_tzsc = boardTzsc

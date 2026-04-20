@@ -103,8 +103,10 @@ void stm32u5_tzsc_create(tzsc_dev_t *dev, stm32u5_tzsc_backend_t *backend) {
 #if HAL_SECURE
     backend->tzsc1 = GTZC_TZSC1_S;
     backend->tzsc2 = GTZC_TZSC2_S;
+#endif
 
+    // we want to be able to initialize this on the nonsecure side as well such that
+    // the API is there, even if the API functions never do anything on the nonsecure side.
     dev->api     = &stm32u5_tzsc_api;
     dev->backend = backend;
-#endif
 }

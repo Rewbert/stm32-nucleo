@@ -73,6 +73,7 @@ static inline void stm32l5_set_parity(struct uart_dev *dev, uart_parity_t parity
 }
 
 void stm32l5_init(struct uart_dev *dev, uart_config_t *config) {
+#if HAL_SECURE
     stm32l5_lpuart1_backend_t *backend = (stm32l5_lpuart1_backend_t*) dev->backend;
 
     stm32l5_set_baudrate(dev, config->baudrate);
@@ -81,6 +82,7 @@ void stm32l5_init(struct uart_dev *dev, uart_config_t *config) {
     stm32l5_set_parity(dev, config->parity);
 
     backend->uart->CR1 |= (USART_CR1_UE | USART_CR1_TE | USART_CR1_RE);
+#endif
 }
 
 void stm32l5_write(struct uart_dev *dev, const uint8_t *data, size_t len) {
