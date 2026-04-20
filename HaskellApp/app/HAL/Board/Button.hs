@@ -14,14 +14,14 @@ import Foreign.Storable
 foreign import ccall "boards/board.h board_button" c_board_button :: CInt -> IO GPIO
 foreign import ccall "boards/board.h board_button_exti" c_board_button_exti :: CInt -> IO EXTI
 
-data Button = BLUE
+data Button = BLUE_BUTTON
 
 instance Enum Button where
     fromEnum :: Button -> Int
-    fromEnum BLUE = 0
+    fromEnum BLUE_BUTTON = 0
 
     toEnum :: Int -> Button
-    toEnum 0 = BLUE
+    toEnum 0 = BLUE_BUTTON
     toEnum _ = error "Button error: not a valid enum variant"
 
 instance Storable Button where
