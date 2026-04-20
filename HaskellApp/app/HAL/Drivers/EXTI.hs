@@ -1,4 +1,4 @@
-module Drivers.EXTI (
+module HAL.Drivers.EXTI (
     EXTI,
     EXTIEdge (..),
     EXTIConfig (..),
@@ -16,7 +16,7 @@ import Foreign.Marshal.Utils
 import Foreign.Ptr
 import Foreign.Storable
 
-import Drivers.GPIO
+import HAL.Drivers.GPIO
 
 foreign import ccall "drivers/exti.h exti_init" c_exti_init :: EXTI -> Ptr () -> IO ()
 foreign import ccall "drivers/exti.h exti_register_callback" c_exti_register_callback :: EXTI -> Ptr () -> IO () -- actually, think more about this, and don't implement this now

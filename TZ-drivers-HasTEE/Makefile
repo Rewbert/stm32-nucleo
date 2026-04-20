@@ -31,17 +31,17 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/HW.hs \
   $(HASKELL_DIR)/app/SimpleExample.hs \
   $(HASKELL_DIR)/app/Hardware.hs \
-  $(HASKELL_DIR)/app/Drivers/SysTick.hs \
-  $(HASKELL_DIR)/app/Drivers/GPIO.hs \
-  $(HASKELL_DIR)/app/Drivers/UART.hs \
-  $(HASKELL_DIR)/app/Drivers/RCC.hs \
-  $(HASKELL_DIR)/app/Drivers/PWR.hs \
-  $(HASKELL_DIR)/app/Drivers/FLASH.hs \
-  $(HASKELL_DIR)/app/Drivers/EXTI.hs \
-  $(HASKELL_DIR)/app/Drivers/TZSC.hs \
-  $(HASKELL_DIR)/app/Board/Board.hs \
-  $(HASKELL_DIR)/app/Board/LED.hs \
-  $(HASKELL_DIR)/app/Board/Button.hs
+  $(HASKELL_DIR)/app/HAL/Drivers/SysTick.hs \
+  $(HASKELL_DIR)/app/HAL/Drivers/GPIO.hs \
+  $(HASKELL_DIR)/app/HAL/Drivers/UART.hs \
+  $(HASKELL_DIR)/app/HAL/Drivers/RCC.hs \
+  $(HASKELL_DIR)/app/HAL/Drivers/PWR.hs \
+  $(HASKELL_DIR)/app/HAL/Drivers/FLASH.hs \
+  $(HASKELL_DIR)/app/HAL/Drivers/EXTI.hs \
+  $(HASKELL_DIR)/app/HAL/Drivers/TZSC.hs \
+  $(HASKELL_DIR)/app/HAL/Board/Board.hs \
+  $(HASKELL_DIR)/app/HAL/Board/LED.hs \
+  $(HASKELL_DIR)/app/HAL/Board/Button.hs
 
 CABAL=mcabal
 

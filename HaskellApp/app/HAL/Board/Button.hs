@@ -1,11 +1,11 @@
-module Board.Button (
+module HAL.Board.Button (
     Button (..),
     board_button,
     board_button_exti,
 ) where
 
-import Drivers.EXTI (EXTI)
-import Drivers.GPIO (GPIO)
+import HAL.Drivers.EXTI (EXTI)
+import HAL.Drivers.GPIO (GPIO)
 import Foreign.C.Types (CInt (..))
 import Foreign.HAL.Utils
 import Foreign.Ptr

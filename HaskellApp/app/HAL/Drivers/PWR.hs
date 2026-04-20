@@ -1,4 +1,4 @@
-module Drivers.PWR (
+module HAL.Drivers.PWR (
     PWR,
     PWRRange (..),
     pwr_enable_vddio2,

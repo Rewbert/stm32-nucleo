@@ -1,4 +1,4 @@
-module Drivers.FLASH (
+module HAL.Drivers.FLASH (
     FLASH,
     flash_set_latency,
     flash_get_latency,

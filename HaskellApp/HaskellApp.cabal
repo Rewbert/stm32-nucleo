@@ -29,17 +29,17 @@ executable HaskellApp.c
                       NonSecure
                       Setup
                       Hardware
-                      Drivers.SysTick
-                      Drivers.GPIO
-                      Drivers.UART
-                      Drivers.RCC
-                      Drivers.PWR
-                      Drivers.Flash
-                      Drivers.EXTI
-                      Drivers.TZSC
-                      Board.Board
-                      Board.LED
-                      Board.Button
+                      HAL.Drivers.SysTick
+                      HAL.Drivers.GPIO
+                      HAL.Drivers.UART
+                      HAL.Drivers.RCC
+                      HAL.Drivers.PWR
+                      HAL.Drivers.Flash
+                      HAL.Drivers.EXTI
+                      HAL.Drivers.TZSC
+                      HAL.Board.Board
+                      HAL.Board.LED
+                      HAL.Board.Button
 
     if(flag(secure))
         mhs-options: -DSECURE

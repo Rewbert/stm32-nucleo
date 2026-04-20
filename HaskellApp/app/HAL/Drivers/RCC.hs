@@ -1,4 +1,4 @@
-module Drivers.RCC where
+module HAL.Drivers.RCC where
 
 import Data.Word (Word32)
 import Foreign.C.Types
@@ -6,8 +6,8 @@ import Foreign.HAL.Utils
 import Foreign.Ptr
 import Foreign.Storable
 
-import Drivers.FLASH
-import Drivers.PWR
+import HAL.Drivers.FLASH
+import HAL.Drivers.PWR
 
 foreign import ccall "drivers/rcc.h rcc_enable" rccEnable :: RCC -> CInt -> IO ()
 foreign import ccall "drivers/rcc.h rcc_disable" rccDisable :: RCC -> CInt -> IO ()

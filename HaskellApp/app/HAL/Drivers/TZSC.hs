@@ -1,4 +1,4 @@
-module Drivers.TZSC (
+module HAL.Drivers.TZSC (
     TZSC,
     TZSCSecurity (..),
     TZSCPeriph (..),

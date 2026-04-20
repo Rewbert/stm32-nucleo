@@ -2,14 +2,14 @@
 -- Importing this module causes MicroHaskell to typecheck the full FFI surface.
 module Hardware where
 
-import Drivers.SysTick
-import Drivers.GPIO
-import Drivers.UART
-import Drivers.RCC
-import Drivers.PWR
-import Drivers.FLASH
-import Drivers.EXTI
-import Drivers.TZSC
-import Board.Board
-import Board.LED
-import Board.Button
+import HAL.Drivers.SysTick
+import HAL.Drivers.GPIO
+import HAL.Drivers.UART
+import HAL.Drivers.RCC
+import HAL.Drivers.PWR
+import HAL.Drivers.FLASH
+import HAL.Drivers.EXTI
+import HAL.Drivers.TZSC
+import HAL.Board.Board
+import HAL.Board.LED
+import HAL.Board.Button

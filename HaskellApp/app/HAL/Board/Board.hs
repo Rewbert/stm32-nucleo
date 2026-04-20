@@ -1,4 +1,4 @@
-module Board.Board (
+module HAL.Board.Board (
     board_init,
     board_configure_pll,
     board_gpio_create,
@@ -16,13 +16,13 @@ import Foreign.Marshal.Alloc
 import Foreign.Ptr
 
 import Data.Word (Word32)
-import Drivers.EXTI
-import Drivers.FLASH
-import Drivers.GPIO
-import Drivers.PWR
-import Drivers.RCC
-import Drivers.TZSC
-import Drivers.UART
+import HAL.Drivers.EXTI
+import HAL.Drivers.FLASH
+import HAL.Drivers.GPIO
+import HAL.Drivers.PWR
+import HAL.Drivers.RCC
+import HAL.Drivers.TZSC
+import HAL.Drivers.UART
 
 foreign import ccall "boards/board.h board_init" boardInit :: IO ()
 foreign import ccall "boards/board.h board_configure_pll" boardConfigurePll :: IO ()

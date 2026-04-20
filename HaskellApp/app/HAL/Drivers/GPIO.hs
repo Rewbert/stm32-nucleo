@@ -1,4 +1,4 @@
-module Drivers.GPIO (
+module HAL.Drivers.GPIO (
     -- * GPIO device type
     GPIO,
 

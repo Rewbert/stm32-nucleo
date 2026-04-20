@@ -1,10 +1,10 @@
-module Board.LED (
+module HAL.Board.LED (
     LED (..),
     board_led,
     toggle_led,
 ) where
 
-import Drivers.GPIO (GPIO, gpio_toggle, gpio_write)
+import HAL.Drivers.GPIO (GPIO, gpio_toggle, gpio_write)
 import Foreign.C.Types
 import Foreign.HAL.Utils
 import Foreign.Ptr

@@ -1,4 +1,4 @@
-module Drivers.SysTick (
+module HAL.Drivers.SysTick (
     systick_configure,
     systick_get_ticks,
     systick_delay_ms,

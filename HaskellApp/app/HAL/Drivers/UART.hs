@@ -1,4 +1,4 @@
-module Drivers.UART (
+module HAL.Drivers.UART (
     UART,
     UARTParity (..),
     UARTConfig (..),
