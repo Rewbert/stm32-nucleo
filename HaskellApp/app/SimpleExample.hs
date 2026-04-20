@@ -13,9 +13,6 @@ import Secure
 import NonSecure
 #endif
 
-foreign import ccall "drivers/systick.h systick_delay_ms" delay  :: Int -> IO ()
-foreign import ccall "config.h          toggle_blue_led"  toggle :: IO ()
-
 #ifdef SECURE
 foreign export ccall "app_main" main :: IO ()
 #endif
@@ -26,10 +23,10 @@ console_write str = do
     uart_write uart str
 
 -- | Evaluates in the TrustZone
-secureBlink :: Int -> Int -> Secure Int
-secureBlink m n = do
+secureBlink :: GPIO -> Int -> Int -> Secure Int
+secureBlink led m n = do
     unsafeLiftIO $ console_write $ "message from nonsecure: m = " ++ show m ++ " and n = " ++ show n ++ "\r\n"
-    unsafeLiftIO toggle
+    unsafeLiftIO $ gpio_toggle led
     return $ m + n
 
 -- | Nonsecure code, executing outside of the TrustZone (loops forever)
@@ -40,7 +37,8 @@ loop nsc_f i j = do
 
     console_write $ "result from secure: " ++ show r ++ "\r\n"
 
-    delay 500
+    systick_delay_ms 500
+--    delay 500
     loop nsc_f (i + 1) (j + 10)
 
 board_setup :: IO ()
@@ -86,7 +84,9 @@ app :: Setup ()
 app = do
     liftIO $ board_setup
 
-    f <- callable $ secureBlink -- mark secureBlink as callable from the nonsecure world
+    blue_led <- liftIO $ board_led BLUE
+
+    f <- callable $ secureBlink blue_led -- mark secureBlink as callable from the nonsecure world
     nonSecure $ loop f 0 0
 
 main :: IO ()
