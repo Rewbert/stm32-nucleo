@@ -94,16 +94,16 @@ instance Storable GPIOMode where
     poke ptr v = poke (castPtr ptr) (CInt $ fromInteger $ toInteger $ fromEnum v)
 
 -- gpio_pull_t
-data GPIOPull = Nopull | Pullup | Pulldown
+data GPIOPull = NOPULL | PULLUP | PULLDOWN
 
 instance Enum GPIOPull where
-    fromEnum Nopull = 0
-    fromEnum Pullup = 1
-    fromEnum Pulldown = 2
+    fromEnum NOPULL = 0
+    fromEnum PULLUP = 1
+    fromEnum PULLDOWN = 2
 
-    toEnum 0 = Nopull
-    toEnum 1 = Pullup
-    toEnum 2 = Pulldown
+    toEnum 0 = NOPULL
+    toEnum 1 = PULLUP
+    toEnum 2 = PULLDOWN
     toEnum _ = error "GPIOPull error: not a valid enum variant"
 
 instance Storable GPIOPull where
