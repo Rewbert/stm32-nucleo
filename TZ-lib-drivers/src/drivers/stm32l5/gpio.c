@@ -48,14 +48,14 @@ static inline void stm32l5_gpio_set_seccfgr(stm32l5_gpio_backend_t *backend, gpi
 
 static void stm32l5_gpio_init(struct gpio_dev *dev, gpio_config_t *config) {
     // disable interrupts here
-
+#if HAL_SECURE
     stm32l5_gpio_backend_t *backend = (stm32l5_gpio_backend_t*) dev->backend;
 
     stm32l5_gpio_set_af(backend, config->mode, config->alternate);
     stm32l5_gpio_set_mode(backend, config->mode);
     stm32l5_gpio_set_pupdr(backend, config->pull);
     stm32l5_gpio_set_seccfgr(backend, config->security_domain);
-
+#endif
     // enable interrupts here
 }
 
