@@ -34,10 +34,6 @@ void stm32_exit(int n);
 int ffs(int x);
 #define FFS ffs
 
-void toggle_red_led(void);
-void toggle_green_led(void);
-void toggle_blue_led(void);
-
 int unlink(void *x);
 
 /*
