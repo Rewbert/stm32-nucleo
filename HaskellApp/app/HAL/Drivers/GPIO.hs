@@ -66,18 +66,18 @@ instance Storable GPIOSecurity where
     poke ptr v = poke (castPtr ptr) (CInt $ fromInteger $ toInteger $ fromEnum v)
 
 -- gpio_mode_t
-data GPIOMode = Input | Output | AF | Analog
+data GPIOMode = INPUT | OUTPUT | AF | ANALOG
 
 instance Enum GPIOMode where
-    fromEnum Input = 0
-    fromEnum Output = 1
+    fromEnum INPUT = 0
+    fromEnum OUTPUT = 1
     fromEnum AF = 2
-    fromEnum Analog = 3
+    fromEnum ANALOG = 3
 
-    toEnum 0 = Input
-    toEnum 1 = Output
+    toEnum 0 = INPUT
+    toEnum 1 = OUTPUT
     toEnum 2 = AF
-    toEnum 3 = Analog
+    toEnum 3 = ANALOG
     toEnum _ = error "GPIOMode error: not a valid enum variant"
 
 instance Storable GPIOMode where
