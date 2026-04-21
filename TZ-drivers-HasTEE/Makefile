@@ -25,9 +25,17 @@ SECURE_IMPLIB_FLAGS := -Wl,--cmse-implib,--out-implib=$(SECURE_LIB)
 
 HASKELL_DIR=HaskellApp
 HASKELL_SRC = \
-  $(HASKELL_DIR)/app/NonSecure.hs \
-  $(HASKELL_DIR)/app/Secure.hs \
-  $(HASKELL_DIR)/app/Setup.hs \
+  $(HASKELL_DIR)/app/Effectless/NonSecure.hs \
+  $(HASKELL_DIR)/app/Effectless/Secure.hs \
+  $(HASKELL_DIR)/app/Effectless/Setup.hs \
+  $(HASKELL_DIR)/app/Effectful/Internal/NonSecure.hs \
+  $(HASKELL_DIR)/app/Effectful/Internal/Secure.hs \
+  $(HASKELL_DIR)/app/Effectful/Internal/Setup.hs \
+  $(HASKELL_DIR)/app/Effectful/TypeLevel/List.hs \
+  $(HASKELL_DIR)/app/Effectful/TypeLevel/Number.hs \
+  $(HASKELL_DIR)/app/Effectful/NonSecure.hs \
+  $(HASKELL_DIR)/app/Effectful/Secure.hs \
+  $(HASKELL_DIR)/app/Effectful/Setup.hs \
   $(HASKELL_DIR)/app/HW.hs \
   $(HASKELL_DIR)/app/SimpleExample.hs \
   $(HASKELL_DIR)/app/HAL.hs \

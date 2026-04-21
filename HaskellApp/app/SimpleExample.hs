@@ -1,16 +1,18 @@
+{-# LANGUAGE QualifiedDo #-}
 {-# LANGUAGE CPP #-}
 module SimpleExample where
 
 import HAL
 
-import Setup
+import qualified Control.Monad.IxMonad as Ix
+import Effectful.Setup
 import Control.Monad.IO.Class
 
 -- Conditional compilation to include one of two implementations of the same API
 #ifdef SECURE
-import Secure
+import Effectful.Secure
 #else
-import NonSecure
+import Effectful.NonSecure
 #endif
 
 #ifdef SECURE
@@ -23,22 +25,21 @@ console_write str = do
     uart_write uart str
 
 -- | Evaluates in the TrustZone
-secureBlink :: GPIO -> Int -> Int -> Secure Int
+secureBlink :: GPIO -> Int -> Int -> Secure () Int
 secureBlink led m n = do
-    unsafeLiftIO $ console_write $ "message from nonsecure: m = " ++ show m ++ " and n = " ++ show n ++ "\r\n"
-    unsafeLiftIO $ gpio_toggle led
+    secureLiftIO $ console_write $ "message from nonsecure: m = " ++ show m ++ " and n = " ++ show n ++ "\r\n"
+    secureLiftIO $ gpio_toggle led
     return $ m + n
 
 -- | Nonsecure code, executing outside of the TrustZone (loops forever)
-loop :: Callable (Int -> Int -> Secure Int) -> Int -> Int -> IO ()
+loop :: Callable (Int -> Int -> Secure () Int) -> Int -> Int -> Nonsecure () ()
 loop nsc_f i j = do
     let fullyAppliedF = nsc_f <.> i <.> j
     r <- sg fullyAppliedF -- dispatch secure function from nonsecure world
 
-    console_write $ "result from secure: " ++ show r ++ "\r\n"
+    nonsecureLiftIO $ console_write $ "result from secure: " ++ show r ++ "\r\n"
 
-    systick_delay_ms 500
---    delay 500
+    nonsecureLiftIO $ systick_delay_ms 500
     loop nsc_f (i + 1) (j + 10)
 
 board_setup :: IO ()
@@ -80,14 +81,13 @@ board_setup = do
     -- finally, enable IRQ
     irq_enable
 
-app :: Setup ()
-app = do
-    liftIO $ board_setup
+app = Ix.do
+    liftSetupIO $ board_setup
 
-    blue_led <- liftIO $ board_led BLUE
+    blue_led <- liftSetupIO $ board_led BLUE
 
     f <- callable $ secureBlink blue_led -- mark secureBlink as callable from the nonsecure world
-    nonSecure $ loop f 0 0
+    nonsecure $ loop f 0 0
 
 main :: IO ()
 main = runSetup app

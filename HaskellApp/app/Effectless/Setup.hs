@@ -1,5 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
-module Setup (Setup(..), SetupState(..), initialSetupState, BFILE,
+module Effectless.Setup (Setup(..), SetupState(..), initialSetupState, BFILE,
               primHSerialize, primHDeserialize) where
 
 import Control.Monad.State

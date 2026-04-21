@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Secure where
+module Effectless.Secure where
 
 import Foreign.Ptr
 import Foreign.StablePtr
@@ -16,7 +16,7 @@ import Unsafe.Coerce
 
 import Control.Monad.IO.Class
 
-import Setup
+import Effectless.Setup
 
 foreign import ccall "set_vtable_ptr" c_set_vtable_ptr :: Word32 -> IO ()
 foreign import ccall "get_vtable_ptr" c_get_vtable_ptr :: IO Word32
