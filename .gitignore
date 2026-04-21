@@ -6,3 +6,4 @@ tmp_libc/
 
 *.elf
 *.lib
+*_stub.h
