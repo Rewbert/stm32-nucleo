@@ -1,3 +1,6 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE QualifiedDo #-}
 module Effectful.Internal.NonSecure where
 
@@ -9,6 +12,7 @@ import Foreign.C.Types
 import qualified Control.Monad.IxMonad as Ix
 import qualified Control.Monad.State as ST
 
+import Effectful.TypeLevel.List
 import Effectful.Internal.Setup
 
 foreign import ccall "sg.h sg"       c_sg           :: Ptr BFILE -> Ptr Word8 -> Ptr CInt -> IO ()
@@ -51,20 +55,20 @@ instance Monad (Nonsecure effects) where
 
 -- * NSC API
 
-class NonSecureCallable a where
+class NonSecureCallable effects a | a -> effects where
     mkNSC :: a -> (Ptr BFILE -> IO (Ptr BFILE))
 
-instance NonSecureCallable (Secure effects a) where
+instance NonSecureCallable effects (Secure effects a) where
     mkNSC _ = \_ -> error "NS world cannot invoke mkNSC"
 
-instance NonSecureCallable b => NonSecureCallable (a -> b) where
+instance NonSecureCallable effects b => NonSecureCallable effects (a -> b) where
     mkNSC _ = \_ -> error "NS world cannot invoke mkNSC"
 
 -- A function is identified by a vtable index, and a list of IO actions that write an
 -- argument to a given BFILE
 data Callable a = Callable Int [Ptr BFILE -> IO ()]
 
-callable :: (NonSecureCallable a) => a -> Setup ns s ns s (Callable a)
+callable :: (NonSecureCallable s a) => a -> Setup ns s ns s (Callable a)
 callable _ = Ix.do
     setupst <- get
     put $ setupst { counter = counter setupst + 1 }
@@ -141,7 +145,7 @@ nonsecure (Nonsecure ioa) = liftSetupIO ioa
 
 -- * Entry point
 
-runSetup :: Setup () () ns s () -> IO ()
+runSetup :: Setup Nil Nil ns s () -> IO ()
 runSetup (Setup s) = do
     () <- ST.evalStateT s initialSetupState
     return ()

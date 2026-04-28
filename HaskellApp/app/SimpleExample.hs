@@ -23,73 +23,6 @@ import qualified Effectful.HAL as H
 foreign export ccall "app_main" main :: IO ()
 #endif
 
-console_write :: String -> IO ()
-console_write str = do
-    uart <- board_console
-    uart_write uart str
-
--- | Evaluates in the TrustZone
-secureBlink :: GPIO -> Int -> Int -> Secure () Int
-secureBlink led m n = do
-    secureLiftIO $ console_write $ "message from nonsecure: m = " ++ show m ++ " and n = " ++ show n ++ "\r\n"
-    secureLiftIO $ gpio_toggle led
-    return $ m + n
-
-secureBlinkE :: (Member (H.GPIO pin port) effects) => H.GPIO pin port -> Int -> Int -> Secure effects Int
-secureBlinkE gpio m n = do
-    H.gpio_toggle gpio
-    return $ m + n
-
--- | Nonsecure code, executing outside of the TrustZone (loops forever)
-loop :: Callable (Int -> Int -> Secure () Int) -> Int -> Int -> Nonsecure () ()
-loop nsc_f i j = do
-    let fullyAppliedF = nsc_f <.> i <.> j
-    r <- sg fullyAppliedF -- dispatch secure function from nonsecure world
-
-    nonsecureLiftIO $ console_write $ "result from secure: " ++ show r ++ "\r\n"
-
-    nonsecureLiftIO $ systick_delay_ms 500
-    loop nsc_f (i + 1) (j + 10)
-
-board_setup :: IO ()
-board_setup = do
-    -- initialise the board
-    board_init
-    board_configure_pll
-
-    -- configure systick handler
-    hz <- board_sysclk_hz
-    systick_configure $ hz `div` 1000
-
-    -- release the uart to the nonsecure world
-    tzsc <- board_tzsc
-    periph <- board_console_periph
-    tzsc_set_periph tzsc periph TZSC_NONSECURE
-
-    -- initialise and configure the uart
-    uart <- board_console
-    uart_init uart $ UARTConfig { baudrate = 115200, word_length = 8, stop_bits = 1, parity = NONE }
-
-    -- enable GPIO peripherals
-    rcc <- board_rcc
-    rcc_enable rcc RCC_GPIOA
-    rcc_enable rcc RCC_GPIOB
-    rcc_enable rcc RCC_GPIOC
-
-    -- configure and initialise two secure LEDs
-    let secure_led_config = GPIOConfig { mode = OUTPUT, pull = NOPULL, alternate = AF0, security_domain = GPIOSecure }
-    red_led <- board_led RED
-    blue_led <- board_led BLUE
-    gpio_init red_led secure_led_config
-    gpio_init blue_led secure_led_config
-
-    -- configure and initialise one nonsecure LED
-    green_led <- board_led GREEN
-    gpio_init green_led $ secure_led_config { security_domain = GPIONonsecure }
-
-    -- finally, enable IRQ
-    irq_enable
-
 {-
 red   led = G 2
 blue  led = B 7
@@ -103,49 +36,63 @@ type BLUELED = H.GPIO N7 H.B
 type NonsecureEffects = Cons GREENLED (Cons H.UART Nil)
 type SecureEffects    = Cons REDLED (Cons BLUELED Nil)
 
-board_setup_2 :: Setup Nil Nil NonsecureEffects SecureEffects ()
-board_setup_2 = Ix.do
+secureBlink :: (Member (H.GPIO pin port) effects)
+            => H.GPIO pin port -> Int -> Int -> Secure effects Int
+secureBlink gpio m n = do
+    H.gpio_toggle gpio
+    return $ m + n
+
+loop :: H.UART -> Callable (Int -> Int -> Secure SecureEffects Int) -> Int -> Int -> Nonsecure NonsecureEffects ()
+loop uart nsc_f i j = do
+    let fullyAppliedF = nsc_f <.> i <.> j
+    r <- sg fullyAppliedF
+
+    H.uart_write uart ("result from secure: " ++ show r ++ "\r\n")
+    H.systick_delay_ms 500
+    loop uart nsc_f (i + 1) (j + 10)
+
+app :: Setup Nil Nil NonsecureEffects SecureEffects ()
+app = Ix.do
+    -- init board and configure frequency
     H.board_init
     H.board_configure_pll
 
+    -- set systick handler to fire every ms
     hz <- H.board_sysclk_hz
     H.systick_configure (hz `div` 1000)
 
+    -- configure UART
     uart <- H.get_console
     H.uart_init uart $ UARTConfig { baudrate = 115200, word_length = 8, stop_bits = 1, parity = NONE }
 
+    -- release the UART to the nonsecure domain
     tzsc <- H.get_tzsc
-    H.tzsc_release_periph @Nil tzsc uart
+    H.tzsc_release_periph @Nil tzsc uart -- commenting out this should make the loop function not work, as the uart effect is not there. However, it still does. FIgure out why.
 
+    -- enable GPIO ports
     rcc <- H.get_rcc
     H.rcc_enable rcc H.RCC_GPIOA
     H.rcc_enable rcc H.RCC_GPIOB
     H.rcc_enable rcc H.RCC_GPIOC
 
+    -- configure secure LEDs
     blue <- H.get_gpio @N7 @H.B
     red <- H.get_gpio @N2 @H.G
     let cfg = H.GPIOConfig { H.mode = OUTPUT, H.pull = NOPULL, H.alternate = AF0 }
     H.gpio_init_secure red cfg
     H.gpio_init_secure blue cfg
 
+    -- configure nonsecure LED
     green <- H.get_gpio @N7 @H.C
     H.gpio_init_nonsecure @SecureEffects green cfg
 
     H.irq_enable
 
-    f <- callable $ secureBlinkE blue
+    -- mark secureBlink as callable from the nonsecure domain
+    f <- callable $ secureBlink blue
 
-    Ix.return ()
---    f <- callable $ secureBlink blue
-
-app :: Setup () () () () ()
-app = Ix.do
-    liftSetupIO $ board_setup
-
-    blue_led <- liftSetupIO $ board_led BLUE
-
-    f <- callable $ secureBlink blue_led -- mark secureBlink as callable from the nonsecure world
-    nonsecure $ loop f 0 0
+    -- run the nonsecure application
+    nonsecure $ loop uart f 0 0
 
 main :: IO ()
 main = runSetup app

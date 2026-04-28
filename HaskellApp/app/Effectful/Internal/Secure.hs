@@ -1,3 +1,6 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE QualifiedDo #-}
 module Effectful.Internal.Secure where
 
@@ -11,6 +14,7 @@ import Foreign.StablePtr
 import Foreign.Ptr
 import Foreign.C.Types
 
+import Effectful.TypeLevel.List
 import Effectful.Internal.Setup
 import qualified Control.Monad.IxMonad as Ix
 import Control.Monad.IO.Class
@@ -68,17 +72,17 @@ instance Monad (Nonsecure effects) where
 
 -- * NSC API
 
-class NonSecureCallable a where
+class NonSecureCallable effects a | a -> effects where
     mkNSC :: a -> (Ptr BFILE -> IO (Ptr BFILE))
 
-instance NonSecureCallable (Secure effects a) where
+instance NonSecureCallable effects (Secure effects a) where
     mkNSC (Secure ioa) = \_ -> do
         a   <- ioa
         wbf <- c_openb_wr_mem
         primHSerialize wbf a
         return wbf
 
-instance NonSecureCallable b => NonSecureCallable (a -> b) where
+instance NonSecureCallable effects b => NonSecureCallable effects (a -> b) where
     mkNSC f = \inBf -> do
         x <- primHDeserialize inBf
         _ <- c_getb inBf   -- skip the '\n' appended by serialise
@@ -86,7 +90,7 @@ instance NonSecureCallable b => NonSecureCallable (a -> b) where
 
 data Callable a = CallableDummy
 
-callable :: (NonSecureCallable a) => a -> Setup ns s ns s (Callable a)
+callable :: (NonSecureCallable s a) => a -> Setup ns s ns s (Callable a)
 callable f = Ix.do
     let g inBf = mkNSC f inBf
     modify $ \st ->
@@ -211,7 +215,7 @@ lookupFun idx ((idx', f):xs)
 nonsecure :: Nonsecure ns () -> Setup ins is ns s ()
 nonsecure NonSecure = liftSetupIO (return ())
 
-runSetup :: Setup () () ns s () -> IO ()
+runSetup :: Setup Nil Nil ns s () -> IO ()
 runSetup (Setup s) = do
     (a, (SetupState { nonSecureCallable = vTable })) <- ST.runStateT s initialSetupState
     storeVTable vTable
