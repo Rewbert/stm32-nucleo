@@ -33,6 +33,13 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/Effectful/Internal/Setup.hs \
   $(HASKELL_DIR)/app/Effectful/TypeLevel/List.hs \
   $(HASKELL_DIR)/app/Effectful/TypeLevel/Number.hs \
+  $(HASKELL_DIR)/app/Effectful/HAL/GPIO.hs \
+  $(HASKELL_DIR)/app/Effectful/HAL/UART.hs \
+  $(HASKELL_DIR)/app/Effectful/HAL/TZSC.hs \
+  $(HASKELL_DIR)/app/Effectful/HAL/SysTick.hs \
+  $(HASKELL_DIR)/app/Effectful/HAL/Board.hs \
+  $(HASKELL_DIR)/app/Effectful/HAL/RCC.hs \
+  $(HASKELL_DIR)/app/Effectful/HAL.hs \
   $(HASKELL_DIR)/app/Effectful/NonSecure.hs \
   $(HASKELL_DIR)/app/Effectful/Secure.hs \
   $(HASKELL_DIR)/app/Effectful/Setup.hs \

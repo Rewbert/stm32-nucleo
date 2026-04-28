@@ -15,6 +15,10 @@ import Effectful.Secure
 import Effectful.NonSecure
 #endif
 
+import Effectful.TypeLevel.List
+import Effectful.TypeLevel.Number
+import qualified Effectful.HAL as H
+
 #ifdef SECURE
 foreign export ccall "app_main" main :: IO ()
 #endif
@@ -29,6 +33,11 @@ secureBlink :: GPIO -> Int -> Int -> Secure () Int
 secureBlink led m n = do
     secureLiftIO $ console_write $ "message from nonsecure: m = " ++ show m ++ " and n = " ++ show n ++ "\r\n"
     secureLiftIO $ gpio_toggle led
+    return $ m + n
+
+secureBlinkE :: (Member (H.GPIO pin port) effects) => H.GPIO pin port -> Int -> Int -> Secure effects Int
+secureBlinkE gpio m n = do
+    H.gpio_toggle gpio
     return $ m + n
 
 -- | Nonsecure code, executing outside of the TrustZone (loops forever)
@@ -81,6 +90,55 @@ board_setup = do
     -- finally, enable IRQ
     irq_enable
 
+{-
+red   led = G 2
+blue  led = B 7
+green led = C 7
+-}
+
+type REDLED = H.GPIO N2 H.G
+type GREENLED = H.GPIO N7 H.C
+type BLUELED = H.GPIO N7 H.B
+
+type NonsecureEffects = Cons GREENLED (Cons H.UART Nil)
+type SecureEffects    = Cons REDLED (Cons BLUELED Nil)
+
+board_setup_2 :: Setup Nil Nil NonsecureEffects SecureEffects ()
+board_setup_2 = Ix.do
+    H.board_init
+    H.board_configure_pll
+
+    hz <- H.board_sysclk_hz
+    H.systick_configure (hz `div` 1000)
+
+    uart <- H.get_console
+    H.uart_init uart $ UARTConfig { baudrate = 115200, word_length = 8, stop_bits = 1, parity = NONE }
+
+    tzsc <- H.get_tzsc
+    H.tzsc_release_periph @Nil tzsc uart
+
+    rcc <- H.get_rcc
+    H.rcc_enable rcc H.RCC_GPIOA
+    H.rcc_enable rcc H.RCC_GPIOB
+    H.rcc_enable rcc H.RCC_GPIOC
+
+    blue <- H.get_gpio @N7 @H.B
+    red <- H.get_gpio @N2 @H.G
+    let cfg = H.GPIOConfig { H.mode = OUTPUT, H.pull = NOPULL, H.alternate = AF0 }
+    H.gpio_init_secure red cfg
+    H.gpio_init_secure blue cfg
+
+    green <- H.get_gpio @N7 @H.C
+    H.gpio_init_nonsecure @SecureEffects green cfg
+
+    H.irq_enable
+
+    f <- callable $ secureBlinkE blue
+
+    Ix.return ()
+--    f <- callable $ secureBlink blue
+
+app :: Setup () () () () ()
 app = Ix.do
     liftSetupIO $ board_setup
 
