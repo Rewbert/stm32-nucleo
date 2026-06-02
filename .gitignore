@@ -1,4 +1,4 @@
-.build/
+build/
 newlib-cygwin/
 tmp_libc/
 */dist-newstyle
@@ -7,3 +7,6 @@ tmp_libc/
 *.elf
 *.lib
 *_stub.h
+TODO
+.mhscache
+MicroHs/
