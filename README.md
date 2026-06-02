@@ -25,9 +25,8 @@ NOTE: The repository contains a lot of old artifacts right now that are obsolete
 * `TZ-lib-drivers/` -- A driver library written with TrustZone awareness in mind. Each driver compiles  for both the secure and non-secure worlds depending on whether `-DSECURE` is passed. Covers GPIO, UART (LPUART1), RCC, PWR, EXTI, SysTick, Flash, MPCBB, and SAU. It is vastly incomplete, and will still undergo major changes as I experiment further with TrustZone. The supported peripherals are those I've needed, and no more.
 * `boards/` -- Board abstraction. `board.h` defines a board-independent API: `board_led()`, `board_console()`, `board_rcc()`, `board_button_exti()`, and so on. The implementation in `boards/stm32l5/board.c` wires these up. The idea is that adding a second board (e.g. STM32U5) should only require a new implementation file here.
 * `TZ-drivers-bootloader/` -- The bootloader(s) for the secure and nonsecure world. It runs before the application and sets up the memory protection (via the MPCBB driver), which partitions SRAM1 and SRAM2 between the secure and non-secure worlds. The chip-specific initialisation lives in `TZ-drivers-bootloader/S/src/stm32l5/tz_init.c`.
-* `main-drivers/` -- An example application, written against `TZ-lib-drivers/` and the board abstraction. It initialises the clock, UART, LEDs, and a button interrupt, then blinks the LEDs and echoes a message over serial. While this repo contains TrustZone experiments, this application currently pretends that it is the secure half of a TrustZone application. No nonsecure application yet exists, but the example can be flashed and executed anyway.
-* `mk/` and `mk-drivers/` -- Makefile includes. `mk/common/toolchain.mk` defines the toolchain flags. `mk-drivers/` contains reusable build rules for the driver library, bootloader, and board, which any application makefile can include. Most other files in `mk/` are unimportant at the moment. Follow the inludes from `mk-drivers/` to figure out what Makefiles are interesting.
-* `elf.mk` -- Example of a top-level application Makefile (it currently builds the `main-drivers/` appliaction).
+* `examples/` -- Example applications using `TZ-lib-drivers/` and the board abstraction. Each example has its own Makefile and builds a secure/non-secure ELF pair.
+* `mk-drivers/` -- Makefile includes. `mk-drivers/toolchain.mk` defines the toolchain flags. `mk-drivers/` contains reusable build rules for the driver library, bootloader, and board, which any application makefile can include.
 
 ---
 
@@ -69,10 +68,10 @@ The TrustZone setup follows the standard Arm TrustZone-M model: the secure world
 
 ##### How to build
 
-The main application using `TZ-lib-drivers/` and the board abstraction is built with:
+The small blink-and-button example using `TZ-lib-drivers/` and the board abstraction is built with:
 
 ```bash
-make -f elf.mk all
+make -f examples/blink-and-button/Makefile all
 ```
 
 This produces `secure.elf`. To flash it:

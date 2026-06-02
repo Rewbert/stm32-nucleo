@@ -1,6 +1,10 @@
 #ifndef CONFIG_STM32L5_H
 #define CONFIG_STM32L5_H
 
+#include <stdbool.h>
+
+void _exit(int n);
+
 #define PACKED // don't want packed on Cortex M
 
 #define WANT_STDIO 1
