@@ -2760,7 +2760,7 @@ const int combexprlen = 55058;
 #include "drivers/uart.h"
 #include "drivers/gpio.h"
 #include "drivers/irq.h"
-#include "boards/board.h"
+#include "firmware/boards/board.h"
 #include "drivers/rcc.h"
 #include "drivers/tzsc.h"
 from_t mhs_systick_delay_ms(int s) { systick_delay_ms(mhs_to_Word(s, 0)); return mhs_from_Unit(s, 1); }

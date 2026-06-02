@@ -26,19 +26,19 @@ import HAL.Drivers.RCC
 import HAL.Drivers.TZSC
 import HAL.Drivers.UART
 
-foreign import ccall "boards/board.h board_init" boardInit :: IO ()
-foreign import ccall "boards/board.h board_configure_pll" boardConfigurePll :: IO ()
+foreign import ccall "firmware/boards/board.h board_init" boardInit :: IO ()
+foreign import ccall "firmware/boards/board.h board_configure_pll" boardConfigurePll :: IO ()
 
-foreign import ccall "boards/board.h board_sysclk_hz" boardSysclkHz :: IO Word32
-foreign import ccall "boards/board.h board_console" boardConsole :: IO UART
-foreign import ccall "boards/board.h board_console_periph" boardConsolePeriph :: IO CInt
-foreign import ccall "boards/board.h board_rcc" boardRcc :: IO RCC
-foreign import ccall "boards/board.h board_flash" boardFlash :: IO FLASH
-foreign import ccall "boards/board.h board_pwr" boardPwr :: IO PWR
-foreign import ccall "boards/board.h board_tzsc" boardTzsc :: IO TZSC
+foreign import ccall "firmware/boards/board.h board_sysclk_hz" boardSysclkHz :: IO Word32
+foreign import ccall "firmware/boards/board.h board_console" boardConsole :: IO UART
+foreign import ccall "firmware/boards/board.h board_console_periph" boardConsolePeriph :: IO CInt
+foreign import ccall "firmware/boards/board.h board_rcc" boardRcc :: IO RCC
+foreign import ccall "firmware/boards/board.h board_flash" boardFlash :: IO FLASH
+foreign import ccall "firmware/boards/board.h board_pwr" boardPwr :: IO PWR
+foreign import ccall "firmware/boards/board.h board_tzsc" boardTzsc :: IO TZSC
 
-foreign import ccall "boards/board.h board_gpio_create" c_board_gpio_create :: GPIO -> CInt -> CUChar -> Ptr () -> IO ()
-foreign import ccall "boards/board.h board_exti_create" c_board_exti_create :: EXTI -> Ptr () -> CUChar -> IO ()
+foreign import ccall "firmware/boards/board.h board_gpio_create" c_board_gpio_create :: GPIO -> CInt -> CUChar -> Ptr () -> IO ()
+foreign import ccall "firmware/boards/board.h board_exti_create" c_board_exti_create :: EXTI -> Ptr () -> CUChar -> IO ()
 
 -- * Board Initialisation
 

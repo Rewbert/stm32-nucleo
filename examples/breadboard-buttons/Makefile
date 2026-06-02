@@ -2,7 +2,7 @@ include mk-drivers/board.mk
 
 ###
 # Build the breadboard-buttons example: a secure/non-secure pair with
-# shared breadboard button setup using the TZ-lib-drivers/boards framework.
+# shared breadboard button setup using the firmware/drivers and firmware/boards framework.
 ###
 
 APP := examples/breadboard-buttons

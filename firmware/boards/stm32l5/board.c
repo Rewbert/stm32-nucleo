@@ -12,7 +12,7 @@
  *   UART : LPUART1 (PG7=TX, PG8=RX)
  */
 
-#include "boards/board.h"
+#include "firmware/boards/board.h"
 
 #include "domain/cmsis_select.h"
 #include "stm32l5xx.h"

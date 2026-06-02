@@ -1,4 +1,4 @@
-#include "boards/board.h"
+#include "firmware/boards/board.h"
 #include "drivers/gpio.h"
 #include "drivers/systick.h"
 

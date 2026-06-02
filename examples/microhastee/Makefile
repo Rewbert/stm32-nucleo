@@ -2,7 +2,7 @@ include mk-drivers/board.mk
 
 ###
 # Build the MicroHasTEE example: MicroHaskell running in both the secure and
-# non-secure worlds using the TZ-lib-drivers/boards framework.
+# non-secure worlds using the firmware/drivers and firmware/boards framework.
 ###
 
 APP       := examples/microhastee

@@ -2,7 +2,7 @@ include mk-drivers/board.mk
 
 ###
 # Build the blink-and-button example: a small secure/non-secure pair using the
-# TZ-lib-drivers/boards framework.
+# firmware/drivers and firmware/boards framework.
 ###
 
 APP := examples/blink-and-button

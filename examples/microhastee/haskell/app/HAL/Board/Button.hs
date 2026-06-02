@@ -11,8 +11,8 @@ import Foreign.HAL.Utils
 import Foreign.Ptr
 import Foreign.Storable
 
-foreign import ccall "boards/board.h board_button" c_board_button :: CInt -> IO GPIO
-foreign import ccall "boards/board.h board_button_exti" c_board_button_exti :: CInt -> IO EXTI
+foreign import ccall "firmware/boards/board.h board_button" c_board_button :: CInt -> IO GPIO
+foreign import ccall "firmware/boards/board.h board_button_exti" c_board_button_exti :: CInt -> IO EXTI
 
 data Button = BLUE_BUTTON
 

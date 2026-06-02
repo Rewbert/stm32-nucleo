@@ -8,7 +8,7 @@ include mk-drivers/drivers.mk
 # drivers to access the MPCBB peripheral for TrustZone memory configuration.
 ###
 
-TZ_DRV_BOOT := TZ-drivers-bootloader
+TZ_DRV_BOOT := firmware/bootloader
 
 TZ_CFLAGS := \
   $(CFLAGS) \
@@ -19,7 +19,6 @@ TZ_CFLAGS := \
 
 SECURE_INC := \
   $(TZ_LIB_DRV_INC) \
-  -Iboards \
   -I.
 
 SECURE_CPPFLAGS := \

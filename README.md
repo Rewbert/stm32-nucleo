@@ -21,18 +21,18 @@ NOTE: The repository contains a lot of old artifacts right now that are obsolete
 
 ##### Project structure
 
-* `CMSIS/` -- Common Microcontroller Software Interface Standard. Defines the register layouts and memory-mapped addresses for the chip. I've downloaded the relevant headers from the CMSIS GitHub and included them here. I am unsure of the division of ownership, but there are ST owned repos that include headers for these boards.
-* `TZ-lib-drivers/` -- A driver library written with TrustZone awareness in mind. Each driver compiles  for both the secure and non-secure worlds depending on whether `-DSECURE` is passed. Covers GPIO, UART (LPUART1), RCC, PWR, EXTI, SysTick, Flash, MPCBB, and SAU. It is vastly incomplete, and will still undergo major changes as I experiment further with TrustZone. The supported peripherals are those I've needed, and no more.
-* `boards/` -- Board abstraction. `board.h` defines a board-independent API: `board_led()`, `board_console()`, `board_rcc()`, `board_button_exti()`, and so on. The implementation in `boards/stm32l5/board.c` wires these up. The idea is that adding a second board (e.g. STM32U5) should only require a new implementation file here.
-* `TZ-drivers-bootloader/` -- The bootloader(s) for the secure and nonsecure world. It runs before the application and sets up the memory protection (via the MPCBB driver), which partitions SRAM1 and SRAM2 between the secure and non-secure worlds. The chip-specific initialisation lives in `TZ-drivers-bootloader/S/src/stm32l5/tz_init.c`.
-* `examples/` -- Example applications using `TZ-lib-drivers/` and the board abstraction. Each example has its own Makefile and builds a secure/non-secure ELF pair.
+* `vendor/CMSIS/` -- Common Microcontroller Software Interface Standard. Defines the register layouts and memory-mapped addresses for the chip. I've downloaded the relevant headers from the CMSIS GitHub and included them here. I am unsure of the division of ownership, but there are ST owned repos that include headers for these boards.
+* `firmware/drivers/` -- A driver library written with TrustZone awareness in mind. Each driver compiles  for both the secure and non-secure worlds depending on whether `-DSECURE` is passed. Covers GPIO, UART (LPUART1), RCC, PWR, EXTI, SysTick, Flash, MPCBB, and SAU. It is vastly incomplete, and will still undergo major changes as I experiment further with TrustZone. The supported peripherals are those I've needed, and no more.
+* `firmware/boards/` -- Board abstraction. `board.h` defines a board-independent API: `board_led()`, `board_console()`, `board_rcc()`, `board_button_exti()`, and so on. The implementation in `firmware/boards/stm32l5/board.c` wires these up. The idea is that adding a second board (e.g. STM32U5) should only require a new implementation file here.
+* `firmware/bootloader/` -- The bootloader(s) for the secure and nonsecure world. It runs before the application and sets up the memory protection (via the MPCBB driver), which partitions SRAM1 and SRAM2 between the secure and non-secure worlds. The chip-specific initialisation lives in `firmware/bootloader/stm32l5/S/src/tz_init.c`.
+* `examples/` -- Example applications using `firmware/drivers/` and the board abstraction. Each example has its own Makefile and builds a secure/non-secure ELF pair.
 * `mk-drivers/` -- Makefile includes. `mk-drivers/toolchain.mk` defines the toolchain flags. `mk-drivers/` contains reusable build rules for the driver library, bootloader, and board, which any application makefile can include.
 
 ---
 
 ##### The driver library
 
-`TZ-lib-drivers/` is an important part of the project. The drivers are designed to be portable across security domains. Each driver is compiled twice when building a TrustZone application: once with `-DSECURE` (producing `build/tz-lib-drivers-secure.a`) and once without (producing `build/tz-lib-drivers-nonsecure.a`). The `domain/domain.h` header takes care of selecting the right CMSIS headers and providing the `NONSECURE_CALLABLE` annotation for NSC functions.
+`firmware/drivers/` is an important part of the project. The drivers are designed to be portable across security domains. Each driver is compiled twice when building a TrustZone application: once with `-DSECURE` (producing `build/tz-lib-drivers-secure.a`) and once without (producing `build/tz-lib-drivers-nonsecure.a`). The `domain/domain.h` header takes care of selecting the right CMSIS headers and providing the `NONSECURE_CALLABLE` annotation for NSC functions.
 
 The idea is that every peripheral is compiled for both domains, but with security-aware functionality chucked away during compile time by the C preprocessor if we compile for the nonsecure world. I have implemented the parts of the peripherals that I currently use in my project, and will extend them with more of their functionality as I go along.
 
@@ -68,7 +68,7 @@ The TrustZone setup follows the standard Arm TrustZone-M model: the secure world
 
 ##### How to build
 
-The small blink-and-button example using `TZ-lib-drivers/` and the board abstraction is built with:
+The small blink-and-button example using `firmware/drivers/` and the board abstraction is built with:
 
 ```bash
 make -f examples/blink-and-button/Makefile all

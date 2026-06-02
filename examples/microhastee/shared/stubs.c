@@ -4,7 +4,7 @@
 #include <errno.h>
 
 #include "drivers/uart.h"
-#include "boards/board.h"
+#include "firmware/boards/board.h"
 
 /* Newlib nano syscall stubs. Most are meaningless in a bare-metal context. */
 

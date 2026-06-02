@@ -24,9 +24,10 @@ STMicroElectronics provides tools to program their devices, but they can feel he
 
 The key directories are
 
-* `TZ-drivers-bootloader/` Two bootloaders, one per board. Each maintains a vector table, implements the reset handler, and configures the TrustZone security policy (SAU/MPCBB). The secure bootloader then hands off to the secure applications `main`, and once that returns, hands off to the non-secure `main`.
-* `TZ-lib-drivers/` The TrustZone-aware HAL. Each peripheral is implemented as a device driver, with board-specific implementations where needed. Peripherals that belong to the CPU (rather than the MCU) are implemented once, shared across both boards.
-* `boards/` The board abstraction layer. Maps board-specific details such as which pin is which LED, where the buttons are, onto the driver interfaces in `TZ-lib-drivers/`.
+* `firmware/bootloader/` Two bootloaders, one per board. Each maintains a vector table, implements the reset handler, and configures the TrustZone security policy (SAU/MPCBB). The secure bootloader then hands off to the secure applications `main`, and once that returns, hands off to the non-secure `main`.
+* `firmware/drivers/` The TrustZone-aware HAL. Each peripheral is implemented as a device driver, with board-specific implementations where needed. Peripherals that belong to the CPU (rather than the MCU) are implemented once, shared across both boards.
+* `firmware/boards/` The board abstraction layer. Maps board-specific details such as which pin is which LED, where the buttons are, onto the driver interfaces in `firmware/drivers/`.
+* `vendor/CMSIS/` Vendored CMSIS headers used by the firmware.
 * `manuals/` Contains the reference manuals and user manuals for the STM32L5 and STM32U5 families of boards.
 
 Example applications

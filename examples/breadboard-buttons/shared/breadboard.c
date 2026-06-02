@@ -5,7 +5,7 @@
 #include "drivers/exti.h"
 #include "drivers/rcc.h"
 
-#include "board.h"
+#include "firmware/boards/board.h"
 
 #include "breadboard.h"
 

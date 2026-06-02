@@ -4,10 +4,10 @@
 
 ```
 Application
-    └── Board Abstraction (boards/)
-            └── Driver API (TZ-lib-drivers/include/)
-                    └── Driver Backends (TZ-lib-drivers/src/<mcu>/)
-                            └── CMSIS / Hardware Registers
+    └── Board Abstraction (firmware/boards/)
+            └── Driver API (firmware/drivers/include/)
+                    └── Driver Backends (firmware/drivers/src/<mcu>/)
+                            └── vendor/CMSIS / Hardware Registers
 ```
 
 ## The Driver Layer

@@ -7,7 +7,7 @@
 #include "drivers/gpio.h"
 #include "drivers/exti.h"
 
-#include "board.h"
+#include "firmware/boards/board.h"
 
 #include <stdint.h>
 

@@ -9,16 +9,16 @@ include mk-drivers/bootloader.mk
 # the BOARD binding works well enough.
 ###
 
-BOARD_SRC := boards/$(BOARD)/board.c
-BOARD_O   := build/s/boards/$(BOARD)/board.o
+BOARD_SRC := firmware/boards/$(BOARD)/board.c
+BOARD_O   := build/s/firmware/boards/$(BOARD)/board.o
 
-build/s/boards/%.o: boards/%.c
+build/s/firmware/boards/%.o: firmware/boards/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
 
-BOARD_NS_O := build/ns/boards/$(BOARD)/board.o
+BOARD_NS_O := build/ns/firmware/boards/$(BOARD)/board.o
 
-build/ns/boards/%.o: boards/%.c
+build/ns/firmware/boards/%.o: firmware/boards/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
 

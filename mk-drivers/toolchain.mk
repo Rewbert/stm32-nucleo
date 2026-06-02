@@ -16,13 +16,13 @@ BOARD ?= stm32l5
 ifeq ($(BOARD),stm32u5)
 COMMON_DEFS := -DSTM32U5A5xx
 CMSIS_INC := \
-  -ICMSIS/Device/ST/STM32U5/Include \
-  -ICMSIS/CMSIS/Core/Include
+  -Ivendor/CMSIS/Device/ST/STM32U5/Include \
+  -Ivendor/CMSIS/CMSIS/Core/Include
 else
 COMMON_DEFS := -DSTM32L552xx
 CMSIS_INC := \
-  -ICMSIS/Device/ST/STM32L5/Include \
-  -ICMSIS/CMSIS/Core/Include
+  -Ivendor/CMSIS/Device/ST/STM32L5/Include \
+  -Ivendor/CMSIS/CMSIS/Core/Include
 endif
 
 CPPFLAGS := $(COMMON_DEFS) $(CMSIS_INC)

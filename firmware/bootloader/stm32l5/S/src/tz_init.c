@@ -3,7 +3,7 @@
 #include "drivers/sau.h"
 #include "drivers/mpcbb.h"
 
-#include "board.h"
+#include "firmware/boards/board.h"
 
 #define NUM_SAU_REGIONS 8
 

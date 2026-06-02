@@ -9,7 +9,7 @@
 #include "drivers/systick.h"
 #include "drivers/irq.h"
 
-#include "boards/board.h"
+#include "firmware/boards/board.h"
 #include "breadboard.h"
 
 /**

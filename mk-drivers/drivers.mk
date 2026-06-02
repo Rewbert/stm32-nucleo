@@ -10,7 +10,7 @@ include mk-drivers/toolchain.mk
 
 BOARD ?= stm32l5
 
-TZ_LIB_DRV     := TZ-lib-drivers
+TZ_LIB_DRV     := firmware/drivers
 TZ_LIB_DRV_SRC := $(wildcard $(TZ_LIB_DRV)/src/drivers/$(BOARD)/*.c) \
                   $(wildcard $(TZ_LIB_DRV)/src/drivers/*.c)
 

@@ -9,7 +9,7 @@ An important design choice is that _every peripheral is compiled twice_, once fo
 The library is implemented using a driver model. The idea is that a generic API is defined in a driver format, and then the driver is reimplemented once per board. There are currently two implementations of each peripheral, one for STM32L5 and one for STM32U5. The structure is
 
 ```
-TZ-lib-drivers/
+firmware/drivers/
     include/
         backends/
             stm32l5/

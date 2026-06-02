@@ -2,7 +2,7 @@
 #include "domain/domain.h"
 #include "domain/cmsis_select.h"
 
-#include "boards/board.h"
+#include "firmware/boards/board.h"
 
 #include "drivers/gpio.h"
 #include "drivers/uart.h"

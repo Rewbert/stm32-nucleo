@@ -1,6 +1,6 @@
 #include "domain/cmsis_select.h"
 #include "drivers/gpio.h"
-#include "boards/board.h"
+#include "firmware/boards/board.h"
 
 int ffs(int x) {
     if (!x)

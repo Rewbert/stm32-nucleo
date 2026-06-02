@@ -10,7 +10,7 @@ import Foreign.HAL.Utils
 import Foreign.Ptr
 import Foreign.Storable
 
-foreign import ccall "boards/board.h board_led" c_board_led :: CInt -> IO GPIO
+foreign import ccall "firmware/boards/board.h board_led" c_board_led :: CInt -> IO GPIO
 
 data LED = GREEN | BLUE | RED
 

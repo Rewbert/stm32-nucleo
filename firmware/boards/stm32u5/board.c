@@ -12,7 +12,7 @@
  *   GPIOG requires VDDIO2 (for red LED on PG2) — enabled via PWR_SVMCR.IO2SV (U5)
  */
 
-#include "boards/board.h"
+#include "firmware/boards/board.h"
 
 #include "domain/cmsis_select.h"
 #include "stm32u5xx.h"

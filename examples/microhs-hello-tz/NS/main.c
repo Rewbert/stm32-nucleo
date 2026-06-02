@@ -3,7 +3,7 @@
 #include "drivers/systick.h"
 #include "drivers/irq.h"
 
-#include "boards/board.h"
+#include "firmware/boards/board.h"
 
 int mhs_main(int argc, char **argv);
 
