@@ -1,14 +1,15 @@
 include mk-drivers/board.mk
 
 ###
-# Build the TZ-drivers-HasTEE application: MicroHaskell running in both the
-# secure and non-secure worlds using the TZ-lib-drivers/boards framework.
+# Build the MicroHasTEE example: MicroHaskell running in both the secure and
+# non-secure worlds using the TZ-lib-drivers/boards framework.
 ###
 
-APP       := TZ-drivers-HasTEE
+APP       := examples/microhastee
 MHS       := MicroHs
 MHS_DIR   := $(MHS)/src/runtime
 MHS_BIN   := $(MHS)/bin/mhs
+MHS_BIN_ABS := $(abspath $(MHS_BIN))
 
 # Extra include paths on top of what board.mk provides.
 # Secure build prepends -I$(APP)/S so the shadow config.h there is found first.
@@ -23,7 +24,7 @@ SECURE_IMPLIB_FLAGS := -Wl,--cmse-implib,--out-implib=$(SECURE_LIB)
 
 # --- Haskell compilation rules ---
 
-HASKELL_DIR=HaskellApp
+HASKELL_DIR := $(APP)/haskell
 HASKELL_SRC = \
   $(HASKELL_DIR)/app/Effectless/NonSecure.hs \
   $(HASKELL_DIR)/app/Effectless/Secure.hs \
@@ -62,10 +63,10 @@ HASKELL_SRC = \
 CABAL=mcabal
 
 $(APP)/S/gen2.c: $(HASKELL_SRC)
-	cd HaskellApp && mhs -DSECURE -ilib -iapp -c -ogen.c app/SimpleExample.hs && cp gen.c ../$(APP)/S/gen2.c && rm gen.c
+	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -DSECURE -ilib -iapp -c -ogen.c app/SimpleExample.hs && cp gen.c ../S/gen2.c && rm gen.c
 
 $(APP)/NS/gen2.c: $(HASKELL_SRC)
-	cd HaskellApp && mhs -ilib -iapp -ogen.c app/SimpleExample.hs && cp gen.c ../$(APP)/NS/gen2.c && rm gen.c
+	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -ilib -iapp -ogen.c app/SimpleExample.hs && cp gen.c ../NS/gen2.c && rm gen.c
 
 # --- Secure application ---
 

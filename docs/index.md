@@ -32,7 +32,7 @@ The key directories are
 Example applications
 
 * `examples/microhs-hello-tz/` Compiles and runs two instances of MHS, one in the secure application and one in the nonsecure. They just print and play with the LEDs, and do not communicate with each other. **NOTE**: For this to work, you need to clone MicroHs into the root of the project. Look at the makefile in `examples/microhs-hello-tz/` to see how it looks for the mhs runtime sources.
-* `TZ-drivers-HasTEE/` This is my own main project. It runs two MHS instances, much like the above mentioned project, but there is also a communication path between them. The Haskell code that goes together with this project can be found in `HaskellApp/` (perhaps this should be moved to be within `TZ-drivers-HasTEE/`...).
+* `examples/microhastee/` This is my larger MicroHasTEE research prototype. It runs two MHS instances, much like the above mentioned project, but there is also a communication path between them. The Haskell code for the example lives in `examples/microhastee/haskell/`.
 * `examples/breadboard-buttons/` This little project shows how I might perhaps structure a project that has a breadboard with some buttons hooked up, as well as how configuring those buttons. Not a super interesting example, but here we are.
 * `examples/blink-and-button/` contains the secure and nonsecure applications of yet another small example. It configures UART, the on board button, the LEDs, etc.
 

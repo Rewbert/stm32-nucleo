@@ -7,7 +7,7 @@ The makefiles will assume you build for the STM32L5 board, unless you specify th
 - `examples/blink-and-button/` - built with `make -f examples/blink-and-button/Makefile BOARD=stm32u5 all`
 - `examples/breadboard-buttons/` - built with `make -f examples/breadboard-buttons/Makefile BOARD=stm32u5 all`
 - `examples/microhs-hello-tz/` - built with `make -f examples/microhs-hello-tz/Makefile BOARD=stm32u5 all`
-- `TZ-drivers-HasTEE/` - built with `make -f TZ-drivers-HasTEE/Makefile BOARD=stm32u5 all`
+- `examples/microhastee/` - built with `make -f examples/microhastee/Makefile BOARD=stm32u5 all`
 
 All of these targets will build two artifacts -- a `secure.elf` and `nonsecure.elf`.
 
