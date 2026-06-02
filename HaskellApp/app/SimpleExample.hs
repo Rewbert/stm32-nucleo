@@ -35,7 +35,6 @@ type BLUELED = H.GPIO N7 H.B
 
 type NonsecureEffects = Cons GREENLED (Cons H.UART Nil)
 type SecureEffects    = Cons REDLED (Cons BLUELED Nil)
---type SecureEffects = Cons REDLED (Cons BLUELED (Cons H.UART Nil))
 
 secureBlink :: (Member (H.GPIO pin port) effects)
             => H.GPIO pin port -> Int -> Int -> Secure effects Int
@@ -43,7 +42,7 @@ secureBlink gpio m n = do
     H.gpio_toggle gpio
     return $ m + n
 
-loop :: H.UART -> Callable (Int -> Int -> Secure SecureEffects Int) -> Int -> Int -> Nonsecure NonsecureEffects ()
+loop :: (Member H.UART effects) => H.UART -> Callable (Int -> Int -> Secure seffects Int) -> Int -> Int -> Nonsecure effects ()
 loop uart nsc_f i j = do
     let fullyAppliedF = nsc_f <.> i <.> j
     r <- sg fullyAppliedF
