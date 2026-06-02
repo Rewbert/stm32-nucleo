@@ -35,6 +35,7 @@ type BLUELED = H.GPIO N7 H.B
 
 type NonsecureEffects = Cons GREENLED (Cons H.UART Nil)
 type SecureEffects    = Cons REDLED (Cons BLUELED Nil)
+--type SecureEffects = Cons REDLED (Cons BLUELED (Cons H.UART Nil))
 
 secureBlink :: (Member (H.GPIO pin port) effects)
             => H.GPIO pin port -> Int -> Int -> Secure effects Int
@@ -89,7 +90,8 @@ app = Ix.do
     H.irq_enable
 
     -- mark secureBlink as callable from the nonsecure domain
-    f <- callable $ secureBlink blue
+    f <- callable $ secureBlink blue -- Setup Nil Nil ns effects (Callable (Int -> Int -> Secure effects ()))
+    -- sg :: Callable (Secure effects a) -> NonSecure a
 
     -- run the nonsecure application
     nonsecure $ loop uart f 0 0

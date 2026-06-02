@@ -212,7 +212,7 @@ lookupFun idx ((idx', f):xs)
 
 -- * Entry point
 
-nonsecure :: Nonsecure ns () -> Setup ins is ns s ()
+nonsecure :: Nonsecure ns () -> Setup ns s ns s ()
 nonsecure NonSecure = liftSetupIO (return ())
 
 runSetup :: Setup Nil Nil ns s () -> IO ()

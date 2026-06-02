@@ -1,6 +1,10 @@
 #ifndef CONFIG_STM32L5_H
 #define CONFIG_STM32L5_H
 
+#include <stdbool.h>
+
+void _exit(int n);
+
 #define PACKED // don't want packed on Cortex M
 
 #define WANT_STDIO 1
@@ -34,7 +38,7 @@ void stm32_exit(int n);
 int ffs(int x);
 #define FFS ffs
 
-int unlink(void *x);
+int unlink(const char *x);
 
 /*
 Required forward declarations for BFILE functions, or else make goes :'(

@@ -140,7 +140,7 @@ writeSRef _ _ = SecureDummy
 modifySRef :: SRef a -> (a -> a) -> Secure effects ()
 modifySRef _ _ = SecureDummy
 
-nonsecure :: Nonsecure ns () -> Setup ins is ns s ()
+nonsecure :: Nonsecure ns () -> Setup ns s ns s ()
 nonsecure (Nonsecure ioa) = liftSetupIO ioa
 
 -- * Entry point

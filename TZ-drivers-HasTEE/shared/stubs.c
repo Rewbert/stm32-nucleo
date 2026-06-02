@@ -86,7 +86,7 @@ int stat(const char *file, struct stat *st) {
     return 0;
 }
 
-int unlink(char *name) {
+int _unlink(const char *name) {
     errno = ENOENT;
     return -1;
 }
