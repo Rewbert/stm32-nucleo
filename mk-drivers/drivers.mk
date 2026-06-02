@@ -1,7 +1,7 @@
 ifndef MK_DRIVERS_DRIVERS
 MK_DRIVERS_DRIVERS := 1
 
-include mk/common/toolchain.mk
+include mk-drivers/toolchain.mk
 
 ###
 # This makefile builds two archives (secure and nonescure) of the driver library, which should later
