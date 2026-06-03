@@ -18,7 +18,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
       .gpio_cfg = { .mode            = GPIO_MODE_INPUT,
                     .pull            = GPIO_PULLUP,
                     .alternate       = GPIO_AF0,
-                    .security_domain = GPIO_NONSECURE,
                   },
       .exti_cfg = { .port             = EXTI_PORT_A,
                     .pin              = 2,
@@ -34,7 +33,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .gpio_cfg = { .mode            = GPIO_MODE_INPUT,
                   .pull            = GPIO_PULLUP,
                   .alternate       = GPIO_AF0,
-                  .security_domain = GPIO_NONSECURE,
                 },
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 3,
@@ -50,7 +48,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .gpio_cfg = { .mode            = GPIO_MODE_INPUT,
                   .pull            = GPIO_PULLUP,
                   .alternate       = GPIO_AF0,
-                  .security_domain = GPIO_NONSECURE,
                 },
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 5,
@@ -66,7 +63,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .gpio_cfg = { .mode            = GPIO_MODE_INPUT,
                   .pull            = GPIO_PULLUP,
                   .alternate       = GPIO_AF0,
-                  .security_domain = GPIO_NONSECURE,
                 },
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 6,
@@ -82,7 +78,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .gpio_cfg = { .mode            = GPIO_MODE_INPUT,
                   .pull            = GPIO_PULLUP,
                   .alternate       = GPIO_AF0,
-                  .security_domain = GPIO_NONSECURE,
                 },
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 7,
@@ -98,7 +93,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .gpio_cfg = { .mode            = GPIO_MODE_INPUT,
                   .pull            = GPIO_PULLUP,
                   .alternate       = GPIO_AF0,
-                  .security_domain = GPIO_NONSECURE,
                 },
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 8,
@@ -114,7 +108,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .gpio_cfg = { .mode            = GPIO_MODE_INPUT,
                   .pull            = GPIO_PULLUP,
                   .alternate       = GPIO_AF0,
-                  .security_domain = GPIO_NONSECURE,
                 },
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 10,
@@ -145,6 +138,7 @@ void breadboard_init() {
     for(int i = 0; i < BREADBOARD_NUM_BUTTONS; i++) {
         breadboard_button_t *bb = &buttons[i];
         gpio_init(&bb->gpio, &bb->gpio_cfg);
+        gpio_set_security(&bb->gpio, GPIO_NONSECURE);
         exti_init(&bb->exti, &bb->exti_cfg);
     }
 #endif

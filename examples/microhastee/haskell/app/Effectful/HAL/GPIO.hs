@@ -15,8 +15,8 @@ module Effectful.HAL.GPIO (
     G,
     H,
     get_gpio,
-    gpio_init_secure,
-    gpio_init_nonsecure,
+    gpio_init,
+    gpio_release,
     GPIOActions(..)
 ) where
 
@@ -89,26 +89,19 @@ data GPIOConfig = GPIOConfig
   , alternate :: HAL.GPIOAF
   }
 
-gpio_init_secure :: (Member (GPIO pin port) s) => GPIO pin port -> GPIOConfig -> Setup ns s ns s ()
-gpio_init_secure (GPIO g) cfg =
+gpio_init :: (Member (GPIO pin port) s) => GPIO pin port -> GPIOConfig -> Setup ns s ns s ()
+gpio_init (GPIO g) cfg =
     let cfg' = HAL.GPIOConfig { HAL.mode = mode cfg
                               , HAL.pull = pull cfg
                               , HAL.alternate = alternate cfg
-                              , HAL.security_domain = HAL.GPIOSecure
                               }
     in liftSetupIO $ HAL.gpio_init g cfg'
 
-gpio_init_nonsecure :: forall s' pin port ns s .
-                       ( Member (GPIO pin port) s
-                       , Delete (GPIO pin port) s s')
-                    => GPIO pin port -> GPIOConfig -> Setup ns s (Cons (GPIO pin port) ns) s' ()
-gpio_init_nonsecure (GPIO g) cfg =
-    let cfg' = HAL.GPIOConfig { HAL.mode = mode cfg
-                              , HAL.pull = pull cfg
-                              , HAL.alternate = alternate cfg
-                              , HAL.security_domain = HAL.GPIONonsecure
-                              }
-    in liftSetupIO $ HAL.gpio_init g cfg'
+gpio_release :: forall s' pin port ns s .
+                ( Member (GPIO pin port) s
+                , Delete (GPIO pin port) s s')
+             => GPIO pin port -> Setup ns s (Cons (GPIO pin port) ns) s' ()
+gpio_release (GPIO g) = liftSetupIO $ HAL.gpio_set_security g HAL.GPIONonsecure
 
 class GPIOActions m where
     gpio_toggle :: (Member (GPIO pin port) effects) => GPIO pin port -> m effects ()

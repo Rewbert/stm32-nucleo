@@ -32,20 +32,19 @@ void stm32_init() {
     rcc_enable(board_rcc(), RCC_GPIOC);
 
     gpio_config_t red_cfg = {
-        .mode            = GPIO_MODE_OUTPUT,
-        .pull            = GPIO_NOPULL,
-        .alternate       = GPIO_AF0,
-        .security_domain = GPIO_SECURE,
+        .mode      = GPIO_MODE_OUTPUT,
+        .pull      = GPIO_NOPULL,
+        .alternate = GPIO_AF0,
     };
     gpio_init(board_led(BOARD_LED_RED), &red_cfg);
 
     gpio_config_t green_cfg = {
-        .mode            = GPIO_MODE_OUTPUT,
-        .pull            = GPIO_NOPULL,
-        .alternate       = GPIO_AF0,
-        .security_domain = GPIO_NONSECURE,
+        .mode      = GPIO_MODE_OUTPUT,
+        .pull      = GPIO_NOPULL,
+        .alternate = GPIO_AF0,
     };
     gpio_init(board_led(BOARD_LED_GREEN), &green_cfg);
+    gpio_set_security(board_led(BOARD_LED_GREEN), GPIO_NONSECURE);
 
     irq_enable();
 }

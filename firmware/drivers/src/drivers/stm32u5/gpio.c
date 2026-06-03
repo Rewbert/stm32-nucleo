@@ -58,7 +58,14 @@ static void stm32u5_gpio_init(struct gpio_dev *dev, gpio_config_t *config) {
     stm32u5_gpio_set_af(backend, config->mode, config->alternate);
     stm32u5_gpio_set_mode(backend, config->mode);
     stm32u5_gpio_set_pupdr(backend, config->pull);
-    stm32u5_gpio_set_seccfgr(backend, config->security_domain);
+#endif
+}
+
+static void stm32u5_gpio_set_security(struct gpio_dev *dev, gpio_security_t security) {
+#if HAL_SECURE
+    stm32u5_gpio_backend_t *backend = (stm32u5_gpio_backend_t*) dev->backend;
+
+    stm32u5_gpio_set_seccfgr(backend, security);
 #endif
 }
 
@@ -93,10 +100,11 @@ static void stm32u5_gpio_toggle(struct gpio_dev *dev) {
 /* Wrapping up */
 
 static const gpio_driver_api_t stm32u5_gpio_api = {
-    .init   = stm32u5_gpio_init,
-    .write  = stm32u5_gpio_write,
-    .read   = stm32u5_gpio_read,
-    .toggle = stm32u5_gpio_toggle,
+    .init         = stm32u5_gpio_init,
+    .set_security = stm32u5_gpio_set_security,
+    .write        = stm32u5_gpio_write,
+    .read         = stm32u5_gpio_read,
+    .toggle       = stm32u5_gpio_toggle,
 };
 
 void stm32u5_gpio_create(gpio_dev_t *dev,

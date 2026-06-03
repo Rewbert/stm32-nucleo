@@ -66,13 +66,13 @@ typedef struct {
     gpio_mode_t     mode;
     gpio_pull_t     pull;
     gpio_af_t       alternate;
-    gpio_security_t security_domain;
 } gpio_config_t;
 
 /* The API of the GPIO device driver */
 
 typedef struct {
     void (*init)(struct gpio_dev *dev, gpio_config_t *config);
+    void (*set_security)(struct gpio_dev *dev, gpio_security_t security);
 
     void (*write)(struct gpio_dev *dev, gpio_level_t level);
     gpio_level_t (*read)(struct gpio_dev *dev);
@@ -90,6 +90,10 @@ typedef struct gpio_dev {
 
 static inline void gpio_init(gpio_dev_t *dev, gpio_config_t *config) {
     dev->api->init(dev, config);
+}
+
+static inline void gpio_set_security(gpio_dev_t *dev, gpio_security_t security) {
+    dev->api->set_security(dev, security);
 }
 
 static inline void gpio_write(gpio_dev_t *dev, gpio_level_t level) {

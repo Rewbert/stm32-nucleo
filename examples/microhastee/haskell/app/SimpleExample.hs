@@ -79,12 +79,13 @@ app = Ix.do
     blue <- H.get_gpio @N7 @H.B
     red <- H.get_gpio @N2 @H.G
     let cfg = H.GPIOConfig { H.mode = OUTPUT, H.pull = NOPULL, H.alternate = AF0 }
-    H.gpio_init_secure red cfg
-    H.gpio_init_secure blue cfg
+    H.gpio_init red cfg
+    H.gpio_init blue cfg
 
     -- configure nonsecure LED
     green <- H.get_gpio @N7 @H.C
-    H.gpio_init_nonsecure @SecureEffects green cfg
+    H.gpio_init green cfg
+    H.gpio_release @SecureEffects green
 
     H.irq_enable
 

@@ -52,10 +52,9 @@ static void inline breadboard_button_init() {
     board_gpio_create(&bb_button, BOARD_GPIO_PORT_A, 2, &bb_button_backend);
 
     gpio_config_t bb_button_cfg = {
-        .mode            = GPIO_MODE_INPUT,
-        .pull            = GPIO_PULLUP,
-        .alternate       = GPIO_AF0,
-        .security_domain = GPIO_SECURE,
+        .mode      = GPIO_MODE_INPUT,
+        .pull      = GPIO_PULLUP,
+        .alternate = GPIO_AF0,
     };
     gpio_init(&bb_button, &bb_button_cfg);
 
@@ -83,11 +82,13 @@ void main(void) {
         .mode      = GPIO_MODE_OUTPUT,
         .pull      = GPIO_NOPULL,
         .alternate = GPIO_AF0,
-        .security_domain    = GPIO_NONSECURE,
     };
     gpio_init(board_led(BOARD_LED_RED),   &led_cfg);
     gpio_init(board_led(BOARD_LED_BLUE),  &led_cfg);
     gpio_init(board_led(BOARD_LED_GREEN), &led_cfg);
+    gpio_set_security(board_led(BOARD_LED_RED),   GPIO_NONSECURE);
+    gpio_set_security(board_led(BOARD_LED_BLUE),  GPIO_NONSECURE);
+    gpio_set_security(board_led(BOARD_LED_GREEN), GPIO_NONSECURE);
 
     board_button_init(board_button(BOARD_BUTTON_USER), GPIO_SECURE, EXTI_EDGE_FALLING, button_callback);
     breadboard_button_init();

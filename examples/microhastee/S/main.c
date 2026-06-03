@@ -39,7 +39,6 @@ void stm32_init() {
     //     .mode            = GPIO_MODE_OUTPUT,
     //     .pull            = GPIO_NOPULL,
     //     .alternate       = GPIO_AF0,
-    //     .security_domain = GPIO_SECURE,
     // };
     // gpio_init(board_led(BOARD_LED_RED), &red_cfg);
     // gpio_init(board_led(BOARD_LED_BLUE), &red_cfg);
@@ -48,9 +47,9 @@ void stm32_init() {
     //     .mode            = GPIO_MODE_OUTPUT,
     //     .pull            = GPIO_NOPULL,
     //     .alternate       = GPIO_AF0,
-    //     .security_domain = GPIO_NONSECURE,
     // };
     // gpio_init(board_led(BOARD_LED_GREEN), &green_cfg);
+    // gpio_set_security(board_led(BOARD_LED_GREEN), GPIO_NONSECURE);
 
     // irq_enable();
 }

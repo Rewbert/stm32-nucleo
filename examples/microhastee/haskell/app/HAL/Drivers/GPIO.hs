@@ -12,6 +12,7 @@ module HAL.Drivers.GPIO (
 
     -- * Operations on GPIO devices
     gpio_init,
+    gpio_set_security,
     gpio_write,
     gpio_read,
     gpio_toggle,
@@ -26,6 +27,7 @@ import Foreign.Storable
 
 -- gpio_config_t is passed as Ptr () (caller fills in C)
 foreign import ccall "drivers/gpio.h gpio_init" gpioInit :: GPIO -> Ptr () -> IO ()
+foreign import ccall "drivers/gpio.h gpio_set_security" gpioSetSecurity :: GPIO -> CInt -> IO ()
 foreign import ccall "drivers/gpio.h gpio_write" gpioWrite :: GPIO -> CInt -> IO ()
 foreign import ccall "drivers/gpio.h gpio_read" gpioRead :: GPIO -> IO CInt
 foreign import ccall "drivers/gpio.h gpio_toggle" gpioToggle :: GPIO -> IO ()
@@ -176,7 +178,6 @@ data GPIOConfig = GPIOConfig
     { mode :: GPIOMode
     , pull :: GPIOPull
     , alternate :: GPIOAF
-    , security_domain :: GPIOSecurity
     }
 
 instance Storable GPIOConfig where
@@ -185,7 +186,6 @@ instance Storable GPIOConfig where
         sizeOf (undefined :: GPIOMode)
             + sizeOf (undefined :: GPIOPull)
             + sizeOf (undefined :: GPIOAF)
-            + sizeOf (undefined :: GPIOSecurity)
 
     alignment :: GPIOConfig -> Int
     alignment _ = 4
@@ -196,14 +196,12 @@ instance Storable GPIOConfig where
             <$> peek (castPtr ptr)
             <*> peek (castPtr ptr `plusPtr` 4)
             <*> peek (castPtr ptr `plusPtr` 8)
-            <*> peek (castPtr ptr `plusPtr` 12)
 
     poke :: Ptr GPIOConfig -> GPIOConfig -> IO ()
-    poke ptr GPIOConfig{mode = m, pull = p, alternate = a, security_domain = s} = do
+    poke ptr GPIOConfig{mode = m, pull = p, alternate = a} = do
         poke (castPtr ptr) m
         poke (castPtr ptr `plusPtr` 4) p
         poke (castPtr ptr `plusPtr` 8) a
-        poke (castPtr ptr `plusPtr` 12) s
 
 -- GPIO port
 data GPIOPort = A | B | C | D | E | F | G | H
@@ -245,6 +243,9 @@ instance Storable GPIOPort where
 
 gpio_init :: GPIO -> GPIOConfig -> IO ()
 gpio_init gpio_dev_t gpio_cfg = with gpio_cfg $ \ptr -> gpioInit gpio_dev_t (castPtr ptr)
+
+gpio_set_security :: GPIO -> GPIOSecurity -> IO ()
+gpio_set_security gpio_dev_t security = gpioSetSecurity gpio_dev_t (toCInt security)
 
 gpio_write :: GPIO -> Bool -> IO ()
 gpio_write gpio_dev_t level = gpioWrite gpio_dev_t (toCInt level)

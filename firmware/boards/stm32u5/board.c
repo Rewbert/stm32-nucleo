@@ -109,10 +109,9 @@ static inline void console_init(void) {
     board_gpio_create(&pa9,  BOARD_GPIO_PORT_A, 9,  &pa9_backend);
     board_gpio_create(&pa10, BOARD_GPIO_PORT_A, 10, &pa10_backend);
     gpio_config_t uart_pin_cfg = {
-        .mode            = GPIO_MODE_AF,
-        .pull            = GPIO_PULLUP,
-        .alternate       = GPIO_AF7,
-        .security_domain = GPIO_SECURE,
+        .mode      = GPIO_MODE_AF,
+        .pull      = GPIO_PULLUP,
+        .alternate = GPIO_AF7,
     };
     gpio_init(&pa9,  &uart_pin_cfg);
     gpio_init(&pa10, &uart_pin_cfg);
@@ -120,12 +119,12 @@ static inline void console_init(void) {
 
 void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t edge, void (*button_callback)(exti_edge_t edge)) {
     gpio_config_t btn_cfg = {
-        .mode            = GPIO_MODE_INPUT,
-        .pull            = GPIO_PULLDOWN, /* Board has 100 kΩ pull-down + 100 nF filter; press = HIGH */
-        .alternate       = GPIO_AF0,
-        .security_domain = security,
+        .mode      = GPIO_MODE_INPUT,
+        .pull      = GPIO_PULLDOWN, /* Board has 100 kΩ pull-down + 100 nF filter; press = HIGH */
+        .alternate = GPIO_AF0,
     };
     gpio_init(button, &btn_cfg);
+    gpio_set_security(button, security);
 
     exti_config_t exti_cfg = {
         .port             = EXTI_PORT_C,
