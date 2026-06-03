@@ -1,4 +1,4 @@
-# MicroHasTEE
+# microhastee
 
 Larger research prototype: MicroHs programs run in both TrustZone worlds, with a secure callable path from non-secure Haskell into secure Haskell.
 

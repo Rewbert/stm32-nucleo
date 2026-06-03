@@ -27,7 +27,7 @@ void _exit(int n);
 #define STACKOVL 1
 
 #define HEAP_CELLS 24000
-#define STACK_SIZE 2500
+#define STACK_SIZE 5000
 
 // #define INITIALIZATION
 // void main_setup(void);
