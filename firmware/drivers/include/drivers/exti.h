@@ -2,7 +2,6 @@
 #define DRIVERS_EXTI_H                                                                                                                                                                      
                                                                                                                                                                                               
 #include <stdint.h>                                                                                                                                                                         
-#include <stdbool.h>
 
 struct exti_dev;
 
@@ -25,18 +24,22 @@ typedef enum {
 
 typedef void (*exti_callback_t)(exti_edge_t edge);
 
+typedef enum {
+    EXTI_SECURE = 0,
+    EXTI_NONSECURE,
+} exti_security_t;
+
 typedef struct {
     exti_port_t port;             // GPIO port
     uint8_t     pin;              // Pin 0 to 15
     exti_edge_t edge;             // edge
-    uint8_t     priority;         // IRQ priority for the NVIC
-    bool        secure;           // is it a secure line?
-    bool        target_nonsecure; // Route NVIC IRQ to non-secure world
 } exti_config_t;
 
 typedef struct {
     void (*init)(struct exti_dev *dev, exti_config_t *config);
     void (*register_callback)(struct exti_dev *dev, exti_callback_t cb);
+    void (*set_security)(struct exti_dev *dev, exti_security_t security);
+    int  (*irqn)(struct exti_dev *dev);
     void (*enable)(struct exti_dev *dev);
     void (*disable)(struct exti_dev *dev);
 } exti_driver_api_t;
@@ -52,6 +55,14 @@ static inline void exti_init(exti_dev_t *dev, exti_config_t *config) {
 
 static inline void exti_register_callback(exti_dev_t *dev, exti_callback_t cb) {
     dev->api->register_callback(dev, cb);
+}
+
+static inline void exti_set_security(exti_dev_t *dev, exti_security_t security) {
+    dev->api->set_security(dev, security);
+}
+
+static inline int exti_irqn(exti_dev_t *dev) {
+    return dev->api->irqn(dev);
 }
 
 static inline void exti_enable(exti_dev_t *dev) {

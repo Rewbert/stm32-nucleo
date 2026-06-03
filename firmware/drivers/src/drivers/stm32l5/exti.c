@@ -2,7 +2,6 @@
 #include "domain/cmsis_select.h"
 
 #include "backends/stm32l5/exti.h"
-#include "drivers/nvic.h"
 
 #include "stm32l5xx.h"
 
@@ -45,23 +44,32 @@ static void stm32l5_exti_init(struct exti_dev *dev, exti_config_t *config) {
     stm32l5_exti_set_edge(config->pin, config->edge);
 
     EXTIx->IMR1 |= (1U << config->pin);
+}
 
+static void stm32l5_exti_set_security(struct exti_dev *dev, exti_security_t security) {
 #if HAL_SECURE
-    if (config->secure) {
-        EXTIx->SECCFGR1  |= (1U << config->pin);
-        EXTIx->PRIVCFGR1 |= (1U << config->pin);
-    }
-#endif
+    stm32l5_exti_backend_t *backend = (stm32l5_exti_backend_t *) dev->backend;
+    uint32_t mask = 1U << backend->pin;
 
-    int irqn = config->pin + 11;
-    nvic_set_priority(irqn, config->priority);
-    nvic_enable_irq(irqn);
-
-#if HAL_SECURE
-    if (config->target_nonsecure) {
-        nvic_set_target_nonsecure(irqn);
+    switch (security) {
+        case EXTI_SECURE:
+            EXTIx->SECCFGR1  |= mask;
+            EXTIx->PRIVCFGR1 |= mask;
+            break;
+        case EXTI_NONSECURE:
+            EXTIx->SECCFGR1  &= ~mask;
+            EXTIx->PRIVCFGR1 &= ~mask;
+            break;
     }
+#else
+    (void)dev;
+    (void)security;
 #endif
+}
+
+static int stm32l5_exti_irqn(struct exti_dev *dev) {
+    stm32l5_exti_backend_t *backend = (stm32l5_exti_backend_t *) dev->backend;
+    return backend->pin + 11;
 }
 
 static void stm32l5_exti_register_callback(struct exti_dev *dev, exti_callback_t cb) {
@@ -121,6 +129,8 @@ EXTI_HANDLER(15)
 static const exti_driver_api_t stm32l5_exti_api = {
     .init              = stm32l5_exti_init,
     .register_callback = stm32l5_exti_register_callback,
+    .set_security      = stm32l5_exti_set_security,
+    .irqn              = stm32l5_exti_irqn,
     .enable            = stm32l5_exti_enable,
     .disable           = stm32l5_exti_disable,
 };

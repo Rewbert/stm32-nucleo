@@ -8,6 +8,7 @@ module HAL (
     module HAL.Drivers.PWR,
     module HAL.Drivers.FLASH,
     module HAL.Drivers.EXTI,
+    module HAL.Drivers.NVIC,
     module HAL.Drivers.TZSC,
     module HAL.Drivers.IRQ,
     module HAL.Board.Board,
@@ -22,6 +23,7 @@ import HAL.Drivers.RCC
 import HAL.Drivers.PWR
 import HAL.Drivers.FLASH
 import HAL.Drivers.EXTI
+import HAL.Drivers.NVIC
 import HAL.Drivers.TZSC
 import HAL.Drivers.IRQ
 import HAL.Board.Board

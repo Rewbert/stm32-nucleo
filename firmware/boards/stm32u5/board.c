@@ -25,6 +25,7 @@
 #include "backends/stm32u5/pwr.h"
 #include "backends/stm32u5/mpcbb.h"
 #include "backends/stm32u5/tzsc.h"
+#include "drivers/nvic.h"
 
 _Static_assert(sizeof(board_gpio_backend_t) >= sizeof(stm32u5_gpio_backend_t),
                "BOARD_GPIO_BACKEND_SIZE is too small for stm32u5_gpio_backend_t");
@@ -130,11 +131,14 @@ void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t
         .port             = EXTI_PORT_C,
         .pin              = 13,
         .edge             = EXTI_EDGE_RISING, /* Active-HIGH: press drives PC13 HIGH */
-        .priority         = 0,
-        .secure           = true,
-        .target_nonsecure = false,
     };
     exti_init(board_button_exti(BOARD_BUTTON_USER), &exti_cfg);
+    exti_set_security(board_button_exti(BOARD_BUTTON_USER), EXTI_SECURE);
+
+    int irqn = exti_irqn(board_button_exti(BOARD_BUTTON_USER));
+    nvic_set_priority(irqn, 0);
+    nvic_enable_irq(irqn);
+
     exti_register_callback(board_button_exti(BOARD_BUTTON_USER), button_callback);
 }
 

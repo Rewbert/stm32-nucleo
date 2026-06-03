@@ -11,6 +11,7 @@
 #include "drivers/pwr.h"
 #include "drivers/systick.h"
 #include "drivers/irq.h"
+#include "drivers/nvic.h"
 
 static void sys_init(void) {
     board_init();
@@ -67,11 +68,14 @@ static void inline breadboard_button_init() {
         .port             = EXTI_PORT_A,
         .pin              = 2,
         .edge             = EXTI_EDGE_FALLING,
-        .priority         = 0,
-        .secure           = true,
-        .target_nonsecure = false,
     };
     exti_init(&bb_exti, &bb_exti_cfg);
+    exti_set_security(&bb_exti, EXTI_SECURE);
+
+    int irqn = exti_irqn(&bb_exti);
+    nvic_set_priority(irqn, 0);
+    nvic_enable_irq(irqn);
+
     exti_register_callback(&bb_exti, button_callback);
 }
 

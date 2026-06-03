@@ -40,6 +40,7 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/Effectful/HAL/SysTick.hs \
   $(HASKELL_DIR)/app/Effectful/HAL/Board.hs \
   $(HASKELL_DIR)/app/Effectful/HAL/RCC.hs \
+  $(HASKELL_DIR)/app/Effectful/HAL/NVIC.hs \
   $(HASKELL_DIR)/app/Effectful/HAL.hs \
   $(HASKELL_DIR)/app/Effectful/NonSecure.hs \
   $(HASKELL_DIR)/app/Effectful/Secure.hs \
@@ -54,6 +55,7 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/HAL/Drivers/PWR.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/FLASH.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/EXTI.hs \
+  $(HASKELL_DIR)/app/HAL/Drivers/NVIC.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/TZSC.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/IRQ.hs \
   $(HASKELL_DIR)/app/HAL/Board/Board.hs \

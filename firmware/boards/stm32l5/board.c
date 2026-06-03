@@ -25,6 +25,7 @@
 #include "backends/stm32l5/pwr.h"
 #include "backends/stm32l5/mpcbb.h"
 #include "backends/stm32l5/tzsc.h"
+#include "drivers/nvic.h"
 
 /**
  * @brief I saw this online, a C11 macro to do compiletime checks. If the backend stm32l5 gpio type get's too large
@@ -128,11 +129,14 @@ void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t
         .port             = EXTI_PORT_C, // this stuff is duplicated. I already wrote this stuff in board_init. Need to
         .pin              = 13,          // think about how to remove the deplication
         .edge             = EXTI_EDGE_FALLING,
-        .priority         = 0,
-        .secure           = true,
-        .target_nonsecure = false,
     };
     exti_init(board_button_exti(BOARD_BUTTON_USER), &exti_cfg);
+    exti_set_security(board_button_exti(BOARD_BUTTON_USER), EXTI_SECURE);
+
+    int irqn = exti_irqn(board_button_exti(BOARD_BUTTON_USER));
+    nvic_set_priority(irqn, 0);
+    nvic_enable_irq(irqn);
+
     exti_register_callback(board_button_exti(BOARD_BUTTON_USER), button_callback);
 }
 

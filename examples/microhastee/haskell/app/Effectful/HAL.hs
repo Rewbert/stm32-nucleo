@@ -5,6 +5,7 @@ module Effectful.HAL (
     module Effectful.HAL.SysTick,
     module Effectful.HAL.Board,
     module Effectful.HAL.RCC,
+    module Effectful.HAL.NVIC,
     module Effectful.HAL.IRQ
 ) where
 
@@ -14,4 +15,5 @@ import Effectful.HAL.TZSC
 import Effectful.HAL.SysTick
 import Effectful.HAL.Board
 import Effectful.HAL.RCC
+import Effectful.HAL.NVIC
 import Effectful.HAL.IRQ

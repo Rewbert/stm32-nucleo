@@ -3,6 +3,7 @@
 
 #include "drivers/gpio.h"
 #include "drivers/exti.h"
+#include "drivers/nvic.h"
 #include "drivers/rcc.h"
 
 #include "firmware/boards/board.h"
@@ -22,9 +23,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
       .exti_cfg = { .port             = EXTI_PORT_A,
                     .pin              = 2,
                     .edge             = EXTI_EDGE_FALLING,
-                    .priority         = 0,
-                    .secure           = false,
-                    .target_nonsecure = true,
                   },
     },
 { .port = BOARD_GPIO_PORT_A,
@@ -37,9 +35,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 3,
                   .edge             = EXTI_EDGE_FALLING,
-                  .priority         = 0,
-                  .secure           = false,
-                  .target_nonsecure = true,
                 },
     },
     { .port = BOARD_GPIO_PORT_A,
@@ -52,9 +47,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 5,
                   .edge             = EXTI_EDGE_FALLING,
-                  .priority         = 0,
-                  .secure           = false,
-                  .target_nonsecure = true,
                 },
     },
     { .port = BOARD_GPIO_PORT_A,
@@ -67,9 +59,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 6,
                   .edge             = EXTI_EDGE_FALLING,
-                  .priority         = 0,
-                  .secure           = false,
-                  .target_nonsecure = true,
                 },
     },
     { .port = BOARD_GPIO_PORT_A,
@@ -82,9 +71,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 7,
                   .edge             = EXTI_EDGE_FALLING,
-                  .priority         = 0,
-                  .secure           = false,
-                  .target_nonsecure = true,
                 },
     },
     { .port = BOARD_GPIO_PORT_A,
@@ -97,9 +83,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 8,
                   .edge             = EXTI_EDGE_FALLING,
-                  .priority         = 0,
-                  .secure           = false,
-                  .target_nonsecure = true,
                 },
     },
     { .port = BOARD_GPIO_PORT_A,
@@ -112,9 +95,6 @@ breadboard_button_t buttons[BREADBOARD_NUM_BUTTONS] = {
     .exti_cfg = { .port             = EXTI_PORT_A,
                   .pin              = 10,
                   .edge             = EXTI_EDGE_FALLING,
-                  .priority         = 0,
-                  .secure           = false,
-                  .target_nonsecure = true,
                 },
     },
 };
@@ -140,6 +120,12 @@ void breadboard_init() {
         gpio_init(&bb->gpio, &bb->gpio_cfg);
         gpio_set_security(&bb->gpio, GPIO_NONSECURE);
         exti_init(&bb->exti, &bb->exti_cfg);
+        exti_set_security(&bb->exti, EXTI_NONSECURE);
+
+        int irqn = exti_irqn(&bb->exti);
+        nvic_set_priority(irqn, 0);
+        nvic_set_target_nonsecure(irqn);
+        nvic_enable_irq(irqn);
     }
 #endif
 }
