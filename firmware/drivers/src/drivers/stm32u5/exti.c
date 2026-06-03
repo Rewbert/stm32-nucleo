@@ -2,6 +2,7 @@
 #include "domain/cmsis_select.h"
 
 #include "backends/stm32u5/exti.h"
+#include "drivers/nvic.h"
 
 #include "stm32u5xx.h"
 
@@ -55,12 +56,12 @@ static void stm32u5_exti_init(struct exti_dev *dev, exti_config_t *config) {
 #endif
 
     int irqn = config->pin + 11;
-    NVIC_SetPriority(irqn, config->priority);
-    NVIC_EnableIRQ(irqn);
+    nvic_set_priority(irqn, config->priority);
+    nvic_enable_irq(irqn);
 
 #if HAL_SECURE
     if (config->target_nonsecure) {
-        NVIC_SetTargetState(irqn);
+        nvic_set_target_nonsecure(irqn);
     }
 #endif
 }
