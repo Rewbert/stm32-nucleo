@@ -39,6 +39,7 @@ executable MicroHasTEE.c
                       HAL.Drivers.NVIC
                       HAL.Drivers.TZSC
                       Effectful.HAL.NVIC
+                      Effectful.HAL.EXTI
                       HAL.Board.Board
                       HAL.Board.LED
                       HAL.Board.Button

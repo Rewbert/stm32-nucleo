@@ -41,6 +41,7 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/Effectful/HAL/Board.hs \
   $(HASKELL_DIR)/app/Effectful/HAL/RCC.hs \
   $(HASKELL_DIR)/app/Effectful/HAL/NVIC.hs \
+  $(HASKELL_DIR)/app/Effectful/HAL/EXTI.hs \
   $(HASKELL_DIR)/app/Effectful/HAL.hs \
   $(HASKELL_DIR)/app/Effectful/NonSecure.hs \
   $(HASKELL_DIR)/app/Effectful/Secure.hs \
@@ -79,6 +80,7 @@ SECURE_SRC :=            \
   $(APP)/shared/config.c \
   $(APP)/shared/stubs.c  \
   $(APP)/shared/extra.c  \
+  $(APP)/shared/exti_trampoline.c \
   $(MHS_DIR)/eval.c
 
 SECURE_O := $(patsubst %.c, build/s/%.o, $(SECURE_SRC))
@@ -99,6 +101,7 @@ NONSECURE_SRC := \
   $(APP)/shared/config.c \
   $(APP)/shared/stubs.c  \
   $(APP)/shared/extra.c  \
+  $(APP)/shared/exti_trampoline.c \
   $(MHS_DIR)/eval.c
 
 NONSECURE_O := $(patsubst %.c, build/ns/%.o, $(NONSECURE_SRC))

@@ -34,6 +34,7 @@ data EXTIEdge
     = RISING
     | FALLING
     | BOTH
+  deriving (Show, Eq)
 
 instance Enum EXTIEdge where
     fromEnum RISING = 0
@@ -81,24 +82,30 @@ instance Storable EXTISecurity where
     poke ptr v = poke (castPtr ptr) (CInt $ fromInteger $ toInteger $ fromEnum v)
 
 data EXTIConfig = EXTIConfig
-    { port :: GPIOPort -- 4
+    { port :: GPIOPort -- 1
     , pin :: Int -- 1
-    , edge :: EXTIEdge -- 4
+    , edge :: EXTIEdge -- 1
     }
 
 instance Storable EXTIConfig where
     sizeOf :: EXTIConfig -> Int
-    sizeOf _ = 12
+    sizeOf _ = 3
 
     alignment :: EXTIConfig -> Int
-    alignment _ = 4
+    alignment _ = 1
 
     peek :: Ptr EXTIConfig -> IO EXTIConfig
-    peek ptr =
-        EXTIConfig
-            <$> peek (castPtr ptr)
-            <*> (fromIntegral <$> (peek (castPtr ptr `plusPtr` 4) :: IO Word8))
-            <*> peek (castPtr ptr `plusPtr` 8)
+    peek ptr = do
+        po <- peekByte 0
+        pi <- peekByte 1
+        e <- peekByte 2
+        return EXTIConfig
+            { port = toEnum $ fromIntegral po
+            , pin = fromIntegral pi
+            , edge = toEnum $ fromIntegral e
+            }
+      where
+        peekByte offset = peek (castPtr ptr `plusPtr` offset) :: IO Word8
 
     poke :: Ptr EXTIConfig -> EXTIConfig -> IO ()
     poke
@@ -108,9 +115,12 @@ instance Storable EXTIConfig where
             , pin = pi
             , edge = e
             } = do
-            poke (castPtr ptr) po
-            poke (castPtr ptr `plusPtr` 4) (fromIntegral pi :: Word8)
-            poke (castPtr ptr `plusPtr` 8) e
+            pokeByte 0 $ fromEnum po
+            pokeByte 1 pi
+            pokeByte 2 $ fromEnum e
+      where
+        pokeByte offset value =
+            poke (castPtr ptr `plusPtr` offset) (fromIntegral value :: Word8)
 
 exti_dev_t_size :: Int
 exti_dev_t_size = 16

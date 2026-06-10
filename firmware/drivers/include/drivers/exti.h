@@ -30,9 +30,9 @@ typedef enum {
 } exti_security_t;
 
 typedef struct {
-    exti_port_t port;             // GPIO port
-    uint8_t     pin;              // Pin 0 to 15
-    exti_edge_t edge;             // edge
+    uint8_t port;                 // GPIO port; use exti_port_t values
+    uint8_t pin;                  // Pin 0 to 15
+    uint8_t edge;                 // use exti_edge_t values
 } exti_config_t;
 
 typedef struct {

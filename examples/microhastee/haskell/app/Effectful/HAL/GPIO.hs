@@ -14,6 +14,7 @@ module Effectful.HAL.GPIO (
     F,
     G,
     H,
+    ToGPIOPort(..),
     get_gpio,
     gpio_init,
     gpio_release,
