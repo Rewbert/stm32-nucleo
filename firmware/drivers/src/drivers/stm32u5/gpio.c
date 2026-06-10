@@ -55,9 +55,9 @@ static void stm32u5_gpio_init(struct gpio_dev *dev, gpio_config_t *config) {
     /* Set AFR before MODER: switching MODER to AF while AFR still holds the
      * reset value (AF0) briefly connects the pin to the wrong peripheral,
      * which can glitch the line and produce a spurious byte on the receiver. */
-    stm32u5_gpio_set_af(backend, config->mode, config->alternate);
-    stm32u5_gpio_set_mode(backend, config->mode);
-    stm32u5_gpio_set_pupdr(backend, config->pull);
+    stm32u5_gpio_set_af(backend, (gpio_mode_t) config->mode, (gpio_af_t) config->alternate);
+    stm32u5_gpio_set_mode(backend, (gpio_mode_t) config->mode);
+    stm32u5_gpio_set_pupdr(backend, (gpio_pull_t) config->pull);
 #endif
 }
 

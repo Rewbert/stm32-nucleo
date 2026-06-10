@@ -18,6 +18,8 @@ module HAL.Drivers.GPIO (
     gpio_toggle,
 ) where
 
+import Data.Word (Word8)
+
 import Foreign.C.Types (CInt (..))
 import Foreign.HAL.Utils
 import Foreign.Marshal.Alloc
@@ -182,26 +184,32 @@ data GPIOConfig = GPIOConfig
 
 instance Storable GPIOConfig where
     sizeOf :: GPIOConfig -> Int
-    sizeOf _ =
-        sizeOf (undefined :: GPIOMode)
-            + sizeOf (undefined :: GPIOPull)
-            + sizeOf (undefined :: GPIOAF)
+    sizeOf _ = 3
 
     alignment :: GPIOConfig -> Int
-    alignment _ = 4
+    alignment _ = 1
 
     peek :: Ptr GPIOConfig -> IO GPIOConfig
-    peek ptr =
-        GPIOConfig
-            <$> peek (castPtr ptr)
-            <*> peek (castPtr ptr `plusPtr` 4)
-            <*> peek (castPtr ptr `plusPtr` 8)
+    peek ptr = do
+        m <- peekByte 0
+        p <- peekByte 1
+        a <- peekByte 2
+        return GPIOConfig
+            { mode = toEnum $ fromIntegral m
+            , pull = toEnum $ fromIntegral p
+            , alternate = toEnum $ fromIntegral a
+            }
+      where
+        peekByte offset = peek (castPtr ptr `plusPtr` offset) :: IO Word8
 
     poke :: Ptr GPIOConfig -> GPIOConfig -> IO ()
     poke ptr GPIOConfig{mode = m, pull = p, alternate = a} = do
-        poke (castPtr ptr) m
-        poke (castPtr ptr `plusPtr` 4) p
-        poke (castPtr ptr `plusPtr` 8) a
+        pokeByte 0 $ fromEnum m
+        pokeByte 1 $ fromEnum p
+        pokeByte 2 $ fromEnum a
+      where
+        pokeByte offset value =
+            poke (castPtr ptr `plusPtr` offset) (fromIntegral value :: Word8)
 
 -- GPIO port
 data GPIOPort = A | B | C | D | E | F | G | H

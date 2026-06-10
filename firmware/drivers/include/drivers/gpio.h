@@ -1,6 +1,8 @@
 #ifndef DRIVERS_GPIO_H
 #define DRIVERS_GPIO_H
 
+#include <stdint.h>
+
 /**
  * @brief Please note that this GPIO driver is (as far as I understand it) STM32 specific. I mainly have
  * this low level experience with STM32 boards, where we configure stuff like MODE, PUPDR, etc. I
@@ -63,9 +65,9 @@ typedef enum {
    should hopefully make us not enter an interrupt while we are in the middle of configuring
    an GPIO pin. */
 typedef struct {
-    gpio_mode_t     mode;
-    gpio_pull_t     pull;
-    gpio_af_t       alternate;
+    uint8_t mode;         // use gpio_mode_t values
+    uint8_t pull;         // use gpio_pull_t values
+    uint8_t alternate;    // use gpio_af_t values
 } gpio_config_t;
 
 /* The API of the GPIO device driver */
