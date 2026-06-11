@@ -30,6 +30,16 @@ nonsecureLiftIO ioa = Nonsecure ioa
 secureLiftIO :: IO a -> Secure effects a
 secureLiftIO ioa = SecureDummy
 
+-- | In the nonsecure build 'Secure' is the typed placeholder, so there is no IO
+-- to run; this is a no-op. HAL-internal use only (dual of 'secureLiftIO').
+secureToIO :: Secure effects () -> IO ()
+secureToIO SecureDummy = return ()
+
+-- | In the nonsecure build 'Nonsecure' is the real monad, so we unwrap the
+-- wrapped IO. HAL-internal use only (e.g. storing interrupt callbacks).
+nonsecureToIO :: Nonsecure effects () -> IO ()
+nonsecureToIO (Nonsecure ioa) = ioa
+
 instance Functor (Secure effects) where
     fmap f SecureDummy = SecureDummy
 

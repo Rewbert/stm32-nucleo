@@ -39,6 +39,17 @@ data Secure effects a = Secure (IO a)
 secureLiftIO :: IO a -> Secure effects a
 secureLiftIO ioa = Secure ioa
 
+-- | Run a Secure callback as a raw IO action. This is the dual of 'secureLiftIO'
+-- and is intended for HAL-internal use only (e.g. storing interrupt callbacks).
+-- In the secure build 'Secure' is the real monad, so we unwrap the wrapped IO.
+secureToIO :: Secure effects () -> IO ()
+secureToIO (Secure ioa) = ioa
+
+-- | In the secure build 'Nonsecure' is the typed placeholder, so there is no IO
+-- to run; this is a no-op. HAL-internal use only.
+nonsecureToIO :: Nonsecure effects () -> IO ()
+nonsecureToIO NonSecure = return ()
+
 instance Functor (Secure effects) where
     fmap f (Secure ioa) = Secure $ fmap f ioa
 

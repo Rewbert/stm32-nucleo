@@ -82,23 +82,15 @@ exti_on_nonsecure :: (Member (EXTI pin port) ns)
                   -> (HAL.EXTIEdge -> Nonsecure ns ())
                   -> Setup ns s ns s ()
 
-#ifdef SECURE
 exti_on_secure (EXTI line exti) edge cb = Ix.do
     liftSetupIO $ c_h_exti_register_callback exti (fromIntegral line)
     registerExtiCallback line (fromEnum edge) $ \actualEdge ->
-        let Secure ioa = cb (toEnum actualEdge)
-         in ioa
-
-exti_on_nonsecure _ _ _ = Ix.return ()
-#else
-exti_on_secure _ _ _ = Ix.return ()
+        secureToIO (cb (toEnum actualEdge))
 
 exti_on_nonsecure (EXTI line exti) edge cb = Ix.do
     liftSetupIO $ c_h_exti_register_callback exti (fromIntegral line)
     registerExtiCallback line (fromEnum edge) $ \actualEdge ->
-        let Nonsecure ioa = cb (toEnum actualEdge)
-         in ioa
-#endif
+        nonsecureToIO (cb (toEnum actualEdge))
 
 extiLineIRQ :: Int -> Int
 extiLineIRQ line = line + 11
