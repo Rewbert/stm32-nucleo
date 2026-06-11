@@ -78,7 +78,7 @@ app = Ix.do
 
     -- release the UART to the nonsecure domain
     tzsc <- H.get_tzsc
-    H.tzsc_release_periph @Nil tzsc uart -- commenting out this should make the loop function not work, as the uart effect is not there. However, it still does. FIgure out why.
+    H.tzsc_release_periph @Nil tzsc uart
 
     -- enable GPIO ports
     rcc <- H.get_rcc

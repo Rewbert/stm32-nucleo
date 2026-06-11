@@ -5,6 +5,7 @@ module Effectful.HAL.TZSC (
     Periph,
     get_tzsc,
     tzsc_release_periph,
+    tzsc_share_periph,
     tzsc_lock
 ) where
 
@@ -41,6 +42,12 @@ tzsc_release_periph :: forall s' periph ns s .
                        , Delete periph s s'
                        , Periph periph) => TZSC -> periph -> Setup ns s (Cons periph ns) s' ()
 tzsc_release_periph (TZSC tzsc) p = Ix.do
+    tp <- liftSetupIO $ toTZSCPeriph p
+    liftSetupIO $ HAL.tzsc_set_periph tzsc tp HAL.TZSC_NONSECURE
+
+tzsc_share_periph :: ( Member periph s
+                     , Periph periph) => TZSC -> periph -> Setup ns s (Cons periph ns) s ()
+tzsc_share_periph (TZSC tzsc) p = Ix.do
     tp <- liftSetupIO $ toTZSCPeriph p
     liftSetupIO $ HAL.tzsc_set_periph tzsc tp HAL.TZSC_NONSECURE
 

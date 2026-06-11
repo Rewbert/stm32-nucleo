@@ -18,6 +18,7 @@ module Effectful.HAL.GPIO (
     get_gpio,
     gpio_init,
     gpio_release,
+    gpio_share,
     GPIOActions(..)
 ) where
 
@@ -103,6 +104,9 @@ gpio_release :: forall s' pin port ns s .
                 , Delete (GPIO pin port) s s')
              => GPIO pin port -> Setup ns s (Cons (GPIO pin port) ns) s' ()
 gpio_release (GPIO g) = liftSetupIO $ HAL.gpio_set_security g HAL.GPIONonsecure
+
+gpio_share :: Member (GPIO pin port) s => GPIO pin port -> Setup ns s (Cons (GPIO pin port) ns) s ()
+gpio_share (GPIO g) = liftSetupIO $ HAL.gpio_set_security g HAL.GPIONonsecure
 
 class GPIOActions m where
     gpio_toggle :: (Member (GPIO pin port) effects) => GPIO pin port -> m effects ()
