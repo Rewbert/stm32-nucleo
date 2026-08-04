@@ -13,8 +13,10 @@ MHS_BIN_ABS := $(abspath $(MHS_BIN))
 
 # Extra include paths on top of what board.mk provides.
 # Secure build prepends -I$(APP)/S so the shadow config.h there is found first.
-MHS_INC_S  := -I$(MHS_DIR) -I$(APP)/S -I$(APP)/shared
-MHS_INC_NS := -I$(MHS_DIR) -I$(APP)/shared
+# -Iudb is for the udb key-value store (examples/microhastee/shared/udb-drv.c,
+# HAL/Drivers/UDB.hs) -- STM32U5 only for now, see examples/microhastee/shared/udb-drv.c.
+MHS_INC_S  := -I$(MHS_DIR) -I$(APP)/S -I$(APP)/shared -Iudb
+MHS_INC_NS := -I$(MHS_DIR) -I$(APP)/shared -Iudb
 
 SECURE_CPPFLAGS    += $(MHS_INC_S)
 NONSECURE_CPPFLAGS += $(MHS_INC_NS)
@@ -59,6 +61,8 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/HAL/Drivers/NVIC.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/TZSC.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/IRQ.hs \
+  $(HASKELL_DIR)/app/HAL/Drivers/UDB/Internal.hs \
+  $(HASKELL_DIR)/app/HAL/Drivers/UDB.hs \
   $(HASKELL_DIR)/app/HAL/Board/Board.hs \
   $(HASKELL_DIR)/app/HAL/Board/LED.hs \
   $(HASKELL_DIR)/app/HAL/Board/Button.hs
@@ -81,6 +85,9 @@ SECURE_SRC :=            \
   $(APP)/shared/stubs.c  \
   $(APP)/shared/extra.c  \
   $(APP)/shared/exti_trampoline.c \
+  $(APP)/shared/flash-drv.c \
+  $(APP)/shared/udb-drv.c \
+  udb/udb.c \
   $(MHS_DIR)/eval.c
 
 SECURE_O := $(patsubst %.c, build/s/%.o, $(SECURE_SRC))
@@ -93,6 +100,10 @@ build/s/$(MHS_DIR)/%.o: $(MHS_DIR)/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
 
+build/s/udb/%.o: udb/%.c
+	mkdir -p $(dir $@)
+	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
+
 # --- Non-secure application ---
 
 NONSECURE_SRC := \
@@ -102,6 +113,9 @@ NONSECURE_SRC := \
   $(APP)/shared/stubs.c  \
   $(APP)/shared/extra.c  \
   $(APP)/shared/exti_trampoline.c \
+  $(APP)/shared/flash-drv.c \
+  $(APP)/shared/udb-drv.c \
+  udb/udb.c \
   $(MHS_DIR)/eval.c
 
 NONSECURE_O := $(patsubst %.c, build/ns/%.o, $(NONSECURE_SRC))
@@ -111,6 +125,10 @@ build/ns/$(APP)/%.o: $(APP)/%.c
 	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
 
 build/ns/$(MHS_DIR)/%.o: $(MHS_DIR)/%.c
+	mkdir -p $(dir $@)
+	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
+
+build/ns/udb/%.o: udb/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
 

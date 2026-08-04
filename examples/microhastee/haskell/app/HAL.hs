@@ -11,6 +11,7 @@ module HAL (
     module HAL.Drivers.NVIC,
     module HAL.Drivers.TZSC,
     module HAL.Drivers.IRQ,
+    module HAL.Drivers.UDB,
     module HAL.Board.Board,
     module HAL.Board.LED,
     module HAL.Board.Button
@@ -26,6 +27,7 @@ import HAL.Drivers.EXTI
 import HAL.Drivers.NVIC
 import HAL.Drivers.TZSC
 import HAL.Drivers.IRQ
+import HAL.Drivers.UDB
 import HAL.Board.Board
 import HAL.Board.LED
 import HAL.Board.Button
