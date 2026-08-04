@@ -16,13 +16,14 @@ import Effectful.Internal.NonSecure
 #endif
 
 import Effectful.TypeLevel.List
+import Effectful.TypeLevel.Lock
 
 import qualified HAL as HAL
 
-systick_configure :: Int -> Setup ns s ns s ()
+systick_configure :: Member Unlocked s => Int -> Setup ns s ns s ()
 systick_configure i = liftSetupIO $ HAL.systick_configure i
 
-systick_get_ticks :: Setup ns s ns s Int
+systick_get_ticks :: Member Unlocked s => Setup ns s ns s Int
 systick_get_ticks = liftSetupIO $ HAL.systick_get_ticks
 
 class CanDelay m where

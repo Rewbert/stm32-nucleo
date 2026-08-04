@@ -33,6 +33,7 @@ import Foreign.Ptr
 import Foreign.C.Types
 
 import Effectful.TypeLevel.List
+import Effectful.TypeLevel.Lock
 import Effectful.Internal.Setup
 import qualified Control.Monad.IxMonad as Ix
 import Control.Monad.IO.Class
@@ -119,7 +120,7 @@ instance NonSecureCallable effects b => NonSecureCallable effects (a -> b) where
 
 data Callable a = CallableDummy
 
-callable :: (NonSecureCallable s a) => a -> Setup ns s ns s (Callable a)
+callable :: (Member Locked s, NonSecureCallable s a) => a -> Setup ns s ns s (Callable a)
 callable f = Ix.do
     let g inBf = mkNSC f inBf
     modify $ \st ->
@@ -241,10 +242,10 @@ lookupFun idx ((idx', f):xs)
 
 -- * Entry point
 
-nonsecure :: Nonsecure ns () -> Setup ns s ns s ()
+nonsecure :: Member Locked s => Nonsecure ns () -> Setup ns s ns s ()
 nonsecure NonSecure = liftSetupIO (return ())
 
-runSetup :: Setup Nil Nil ns s () -> IO ()
+runSetup :: Setup Nil (Cons Unlocked Nil) ns s () -> IO ()
 runSetup (Setup s) = do
     (a, (SetupState { nonSecureCallable = vTable })) <- ST.runStateT s initialSetupState
     storeVTable vTable

@@ -36,6 +36,7 @@ import Effectful.Internal.NonSecure
 
 import Effectful.TypeLevel.Number
 import Effectful.TypeLevel.List
+import Effectful.TypeLevel.Lock
 import qualified HAL as HAL
 
 data GPIO pin port = GPIO HAL.GPIO
@@ -78,7 +79,7 @@ instance ToGPIOPort H where
     toPort _ = HAL.H
 
 get_gpio :: forall pin port ns s .
-            (ToInt pin, ToGPIOPort port) => Setup ns s ns (Cons (GPIO pin port) s) (GPIO pin port)
+            (Member Unlocked s, ToInt pin, ToGPIOPort port) => Setup ns s ns (Cons (GPIO pin port) s) (GPIO pin port)
 get_gpio = Ix.do
     let pin' = toInt (undefined :: Proxy pin)
         port' = toPort (undefined :: Proxy port)
@@ -92,7 +93,7 @@ data GPIOConfig = GPIOConfig
   , alternate :: HAL.GPIOAF
   }
 
-gpio_init :: (Member (GPIO pin port) s) => GPIO pin port -> GPIOConfig -> Setup ns s ns s ()
+gpio_init :: (Member Unlocked s, Member (GPIO pin port) s) => GPIO pin port -> GPIOConfig -> Setup ns s ns s ()
 gpio_init (GPIO g) cfg =
     let cfg' = HAL.GPIOConfig { HAL.mode = mode cfg
                               , HAL.pull = pull cfg
@@ -101,12 +102,13 @@ gpio_init (GPIO g) cfg =
     in liftSetupIO $ HAL.gpio_init g cfg'
 
 gpio_release :: forall s' pin port ns s .
-                ( Member (GPIO pin port) s
+                ( Member Unlocked s
+                , Member (GPIO pin port) s
                 , Delete (GPIO pin port) s s')
              => GPIO pin port -> Setup ns s (Cons (GPIO pin port) ns) s' ()
 gpio_release (GPIO g) = liftSetupIO $ HAL.gpio_set_security g HAL.GPIONonsecure
 
-gpio_share :: Member (GPIO pin port) s => GPIO pin port -> Setup ns s (Cons (GPIO pin port) ns) s ()
+gpio_share :: (Member Unlocked s, Member (GPIO pin port) s) => GPIO pin port -> Setup ns s (Cons (GPIO pin port) ns) s ()
 gpio_share (GPIO g) = liftSetupIO $ HAL.gpio_set_security g HAL.GPIONonsecure
 
 class GPIOActions m where

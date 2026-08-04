@@ -31,6 +31,7 @@ import qualified Control.Monad.IxMonad as Ix
 import qualified Control.Monad.State as ST
 
 import Effectful.TypeLevel.List
+import Effectful.TypeLevel.Lock
 import Effectful.Internal.Setup
 
 foreign import ccall "sg.h sg"       c_sg           :: Ptr BFILE -> Ptr Word8 -> Ptr CInt -> IO ()
@@ -96,7 +97,7 @@ instance NonSecureCallable effects b => NonSecureCallable effects (a -> b) where
 -- argument to a given BFILE
 data Callable a = Callable Int [Ptr BFILE -> IO ()]
 
-callable :: (NonSecureCallable s a) => a -> Setup ns s ns s (Callable a)
+callable :: (Member Locked s, NonSecureCallable s a) => a -> Setup ns s ns s (Callable a)
 callable _ = Ix.do
     setupst <- get
     put $ setupst { counter = counter setupst + 1 }
@@ -168,12 +169,12 @@ writeSRef _ _ = SecureDummy
 modifySRef :: SRef a -> (a -> a) -> Secure effects ()
 modifySRef _ _ = SecureDummy
 
-nonsecure :: Nonsecure ns () -> Setup ns s ns s ()
+nonsecure :: Member Locked s => Nonsecure ns () -> Setup ns s ns s ()
 nonsecure (Nonsecure ioa) = liftSetupIO ioa
 
 -- * Entry point
 
-runSetup :: Setup Nil Nil ns s () -> IO ()
+runSetup :: Setup Nil (Cons Unlocked Nil) ns s () -> IO ()
 runSetup (Setup s) = do
     () <- ST.evalStateT s initialSetupState
     return ()

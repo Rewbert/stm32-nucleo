@@ -9,6 +9,7 @@ module Effectful.Internal.Setup (
     put,
     modify,
     registerExtiCallback,
+    lock_configuration,
     BFILE,
     primHSerialize,
     primHDeserialize,
@@ -24,6 +25,9 @@ import qualified Control.Monad.State as ST
 import Control.Monad.State.Class
 import Control.Monad.IO.Class
 import qualified Control.Monad.IxMonad as Ix
+
+import Effectful.TypeLevel.List
+import Effectful.TypeLevel.Lock
 
 {-
 I define these BFILE things here, because they are required by both the secure and nonsecure application.
@@ -94,6 +98,14 @@ registerExtiCallback line edge cb = Setup $ do
     ST.put st { extiCallbacks = callbacks }
     _ <- liftIO $ storeExtiCallbacks callbacks
     return ()
+
+-- | Ends the configuration phase of a 'Setup' computation. Every configuration
+-- function requires 'Member' 'Unlocked' @s@; every finalization function (installing
+-- a callback, registering a 'callable', invoking 'nonsecure') requires 'Member'
+-- 'Locked' @s@ instead. There is no function that goes the other way, so once called,
+-- a 'Setup' computation can never again call a configuration function.
+lock_configuration :: (Member Unlocked s, Delete Unlocked s s') => Setup ns s ns (Cons Locked s') ()
+lock_configuration = liftSetupIO (return ())
 
 h_exti_dispatch :: CInt -> CInt -> IO ()
 h_exti_dispatch line edge = do

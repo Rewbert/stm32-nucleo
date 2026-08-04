@@ -19,11 +19,12 @@ import Effectful.Internal.NonSecure
 #endif
 
 import Effectful.TypeLevel.List
+import Effectful.TypeLevel.Lock
 import qualified HAL as HAL
 
 data UART = UART HAL.UART
 
-get_console :: Setup ns s ns (Cons UART s) UART
+get_console :: Member Unlocked s => Setup ns s ns (Cons UART s) UART
 get_console = Ix.do
     uart <- liftSetupIO $ HAL.board_console
     Ix.return $ UART uart
@@ -42,5 +43,5 @@ instance UARTActions Nonsecure where
 
     uart_read (UART uart) = nonsecureLiftIO $ HAL.uart_read uart
 
-uart_init :: Member UART s => UART -> HAL.UARTConfig -> Setup ns s ns s ()
+uart_init :: (Member Unlocked s, Member UART s) => UART -> HAL.UARTConfig -> Setup ns s ns s ()
 uart_init (UART uart) cfg = liftSetupIO $ HAL.uart_init uart cfg

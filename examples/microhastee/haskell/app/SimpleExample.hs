@@ -15,6 +15,7 @@ import Effectful.NonSecure
 
 import Effectful.TypeLevel.List
 import Effectful.TypeLevel.Number
+import Effectful.TypeLevel.Lock
 import Effectful.HAL
 
 #ifdef SECURE
@@ -35,8 +36,16 @@ type USER_BUTTON_EXTI = EXTI N13 C
 
 -- [EXTI 13 C, GPIO 13 C, GPIO 7 C, UART]
 type NonsecureEffects = Cons USER_BUTTON_EXTI (Cons USER_BUTTON_GPIO (Cons GREENLED (Cons UART Nil)))
--- [GPIO 2 G, GPIO 7 B]
-type SecureEffects    = Cons REDLED (Cons BLUELED Nil)
+
+-- every Setup computation starts holding Unlocked; lock_configuration is the only
+-- thing that ever removes it, so this is the ledger state before any peripheral is acquired
+type InitialSecure = Cons Unlocked Nil
+-- [GPIO 2 G, GPIO 7 B, Unlocked] -- s right before lock_configuration is called
+type PreLockSecure = Cons REDLED (Cons BLUELED InitialSecure)
+-- [GPIO 2 G, GPIO 7 B] -- the peripherals still held securely once configuration is complete
+type ConfiguredSecure = Cons REDLED (Cons BLUELED Nil)
+-- app's final state: locked, holding exactly the configured peripherals
+type SecureEffects    = Cons Locked ConfiguredSecure
 
 secureBlink :: (Member (GPIO pin port) effects)
             => GPIO pin port -> Int -> Int -> Secure effects Int
@@ -60,7 +69,7 @@ nonsecure_button_callback edge uart gpio = do
     gpio_toggle gpio
     uart_write uart $ "button was pressed, and the edge was " ++ show edge ++ "\r\n"
 
-app :: Setup Nil Nil NonsecureEffects SecureEffects ()
+app :: Setup Nil InitialSecure NonsecureEffects SecureEffects ()
 app = Ix.do
     -- init board and configure frequency
     board_init
@@ -76,7 +85,7 @@ app = Ix.do
 
     -- release the UART to the nonsecure domain
     tzsc <- get_tzsc
-    tzsc_release_periph @Nil tzsc uart
+    tzsc_release_periph @InitialSecure tzsc uart
 
     -- enable GPIO ports
     rcc <- get_rcc
@@ -94,26 +103,31 @@ app = Ix.do
     -- configure nonsecure LED
     green <- get_gpio @N7 @C
     gpio_init green cfg
-    gpio_release @SecureEffects green
+    gpio_release @PreLockSecure green
 
     -- configure button GPIO and release to the nonsecure domain
     buttonGpio <- get_gpio @N13 @C
     gpio_init buttonGpio $ GPIOConfig { mode = INPUT, pull = PULLDOWN, alternate = AF0 }
-    gpio_release @SecureEffects buttonGpio
+    gpio_release @PreLockSecure buttonGpio
 
     -- configure user button EXTI for the nonsecure domain
     button <- get_button_exti
     exti_init button $ EXTIConfig { port = C, pin = 13, edge = BOTH }
     irqn <- exti_irqn button
     nvic_set_priority irqn 0
-    exti_release @SecureEffects button
+    exti_release @PreLockSecure button
+
+    -- configuration is complete: no further security/policy-changing call can type-check
+    -- after this point, only callback/callable installation and launching the nonsecure world
+    lock_configuration
+
+    -- register the button callback before arming the interrupt that could fire it
     exti_on_nonsecure button BOTH $ \e -> nonsecure_button_callback e uart green
     nvic_enable_irq irqn
-
     irq_enable
 
     -- mark secureBlink as callable from the nonsecure domain
-    f <- callable $ secureBlink blue -- Setup Nil Nil ns effects (Callable (Int -> Int -> Secure effects ()))
+    f <- callable $ secureBlink blue -- Setup Nil s ns effects (Callable (Int -> Int -> Secure effects ()))
     -- sg :: Callable (Secure effects a) -> NonSecure a
 
     -- run the nonsecure application

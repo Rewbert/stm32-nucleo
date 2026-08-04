@@ -31,6 +31,7 @@ import Effectful.Internal.NonSecure
 import Effectful.HAL.GPIO
 import Effectful.TypeLevel.Number
 import Effectful.TypeLevel.List
+import Effectful.TypeLevel.Lock
 import qualified HAL as HAL
 
 foreign import ccall "exti_trampoline.h h_exti_register_callback" c_h_exti_register_callback :: HAL.EXTI -> CInt -> IO ()
@@ -38,22 +39,23 @@ foreign import ccall "exti_trampoline.h h_exti_register_callback" c_h_exti_regis
 data EXTI pin port = EXTI Int HAL.EXTI
 
 get_exti :: forall pin port ns s .
-            (ToInt pin, ToGPIOPort port) => Setup ns s ns (Cons (EXTI pin port) s) (EXTI pin port)
+            (Member Unlocked s, ToInt pin, ToGPIOPort port) => Setup ns s ns (Cons (EXTI pin port) s) (EXTI pin port)
 get_exti = Ix.do
     let line = toInt (undefined :: Proxy pin)
     exti <- liftSetupIO $ HAL.board_exti_create line
     Ix.return $ EXTI line exti
 
-get_button_exti :: Setup ns s ns (Cons (EXTI N13 C) s) (EXTI N13 C)
+get_button_exti :: Member Unlocked s => Setup ns s ns (Cons (EXTI N13 C) s) (EXTI N13 C)
 get_button_exti = Ix.do
     exti <- liftSetupIO $ HAL.board_button_exti HAL.BLUE_BUTTON
     Ix.return $ EXTI 13 exti
 
-exti_init :: (Member (EXTI pin port) s) => EXTI pin port -> HAL.EXTIConfig -> Setup ns s ns s ()
+exti_init :: (Member Unlocked s, Member (EXTI pin port) s) => EXTI pin port -> HAL.EXTIConfig -> Setup ns s ns s ()
 exti_init (EXTI _ exti) cfg = liftSetupIO $ HAL.exti_init exti cfg
 
 exti_release :: forall s' pin port ns s .
-                ( Member (EXTI pin port) s
+                ( Member Unlocked s
+                , Member (EXTI pin port) s
                 , Delete (EXTI pin port) s s'
                 )
              => EXTI pin port -> Setup ns s (Cons (EXTI pin port) ns) s' ()
@@ -61,22 +63,22 @@ exti_release (EXTI line exti) = Ix.do
     liftSetupIO $ HAL.exti_set_security exti HAL.EXTINonsecure
     liftSetupIO $ HAL.nvic_set_target_nonsecure (extiLineIRQ line)
 
-exti_irqn :: EXTI pin port -> Setup ns s ns s Int
+exti_irqn :: Member Unlocked s => EXTI pin port -> Setup ns s ns s Int
 exti_irqn (EXTI line _) = Ix.return $ extiLineIRQ line
 
-exti_enable :: EXTI pin port -> Setup ns s ns s ()
+exti_enable :: Member Unlocked s => EXTI pin port -> Setup ns s ns s ()
 exti_enable (EXTI _ exti) = liftSetupIO $ HAL.exti_enable exti
 
-exti_disable :: EXTI pin port -> Setup ns s ns s ()
+exti_disable :: Member Unlocked s => EXTI pin port -> Setup ns s ns s ()
 exti_disable (EXTI _ exti) = liftSetupIO $ HAL.exti_disable exti
 
-exti_on_secure :: (Member (EXTI pin port) s)
+exti_on_secure :: (Member Locked s, Member (EXTI pin port) s)
                => EXTI pin port
                -> HAL.EXTIEdge
                -> (HAL.EXTIEdge -> Secure s ())
                -> Setup ns s ns s ()
 
-exti_on_nonsecure :: (Member (EXTI pin port) ns)
+exti_on_nonsecure :: (Member Locked s, Member (EXTI pin port) ns)
                   => EXTI pin port
                   -> HAL.EXTIEdge
                   -> (HAL.EXTIEdge -> Nonsecure ns ())
