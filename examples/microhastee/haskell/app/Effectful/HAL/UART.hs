@@ -42,5 +42,5 @@ instance UARTActions Nonsecure where
 
     uart_read (UART uart) = nonsecureLiftIO $ HAL.uart_read uart
 
-uart_init :: UART -> HAL.UARTConfig -> Setup ns s ns s ()
+uart_init :: Member UART s => UART -> HAL.UARTConfig -> Setup ns s ns s ()
 uart_init (UART uart) cfg = liftSetupIO $ HAL.uart_init uart cfg
