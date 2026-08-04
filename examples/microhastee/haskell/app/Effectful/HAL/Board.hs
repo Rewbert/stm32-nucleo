@@ -7,7 +7,7 @@ module Effectful.HAL.Board (
 ) where
 
 import qualified Control.Monad.IxMonad as Ix
-import Effectful.Setup
+import Effectful.Internal.Setup
 
 import Effectful.TypeLevel.List
 

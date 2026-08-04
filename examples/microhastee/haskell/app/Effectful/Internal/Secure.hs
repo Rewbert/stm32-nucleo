@@ -2,7 +2,25 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE QualifiedDo #-}
-module Effectful.Internal.Secure where
+module Effectful.Internal.Secure (
+    Secure,
+    secureLiftIO,
+    secureToIO,
+    Nonsecure,
+    nonsecureLiftIO,
+    nonsecureToIO,
+    Callable,
+    callable,
+    (<.>),
+    sg,
+    SRef,
+    initialSRef,
+    readSRef,
+    writeSRef,
+    modifySRef,
+    nonsecure,
+    runSetup,
+) where
 
 import Data.Word
 import Data.IORef

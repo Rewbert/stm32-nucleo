@@ -1,4 +1,13 @@
-module HAL.Drivers.RCC where
+module HAL.Drivers.RCC (
+    RCC,
+    RCCPeriph (..),
+    RCCPeriphClockSource (..),
+    rcc_enable,
+    rcc_disable,
+    rcc_is_enabled,
+    rcc_set_peripheral_clock,
+    rcc_configure_pll,
+) where
 
 import Data.Word (Word32)
 import Foreign.C.Types

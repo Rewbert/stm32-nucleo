@@ -1,7 +1,10 @@
-module Effectful.HAL.IRQ where
+module Effectful.HAL.IRQ (
+    irq_enable,
+    irq_disable
+) where
 
 import qualified Control.Monad.IxMonad as Ix
-import Effectful.Setup
+import Effectful.Internal.Setup
 
 import Effectful.TypeLevel.List
 

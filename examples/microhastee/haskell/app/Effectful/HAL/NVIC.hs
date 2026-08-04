@@ -4,7 +4,7 @@ module Effectful.HAL.NVIC (
     nvic_set_target_nonsecure,
 ) where
 
-import Effectful.Setup
+import Effectful.Internal.Setup
 
 import qualified HAL as HAL
 

@@ -1,5 +1,18 @@
 {-# LANGUAGE QualifiedDo #-}
-module Effectful.Internal.Setup where
+module Effectful.Internal.Setup (
+    Setup (..),
+    liftSetupIO,
+    ExtiCallback,
+    SetupState (..),
+    initialSetupState,
+    get,
+    put,
+    modify,
+    registerExtiCallback,
+    BFILE,
+    primHSerialize,
+    primHDeserialize,
+) where
 
 import Data.Word
 
@@ -7,7 +20,7 @@ import Foreign.C.Types
 import Foreign.Ptr
 import Foreign.StablePtr
 
-import Control.Monad.State as ST
+import qualified Control.Monad.State as ST
 import Control.Monad.State.Class
 import Control.Monad.IO.Class
 import qualified Control.Monad.IxMonad as Ix
@@ -24,7 +37,7 @@ primHSerialize    = _primitive "IO.serialize"
 primHDeserialize :: Ptr BFILE -> IO a
 primHDeserialize  = _primitive "IO.deserialize"
 
-data Setup nsEffects sEffects nsEffectsPost sEffectsPost a = Setup (StateT SetupState IO a)
+data Setup nsEffects sEffects nsEffectsPost sEffectsPost a = Setup (ST.StateT SetupState IO a)
 
 liftSetupIO :: IO a -> Setup n1 n2 n3 n4 a
 liftSetupIO ioa = Setup (liftIO ioa)

@@ -5,6 +5,7 @@ module Effectful.HAL.GPIO (
     HAL.GPIOMode(..),
     HAL.GPIOPull(..),
     HAL.GPIOAF(..),
+    HAL.GPIOPort(..),
     GPIOConfig(..),
     A,
     B,
@@ -25,12 +26,12 @@ module Effectful.HAL.GPIO (
 import Data.Proxy
 
 import qualified Control.Monad.IxMonad as Ix
-import Effectful.Setup
+import Effectful.Internal.Setup
 
 #ifdef SECURE
-import Effectful.Secure
+import Effectful.Internal.Secure
 #else
-import Effectful.NonSecure
+import Effectful.Internal.NonSecure
 #endif
 
 import Effectful.TypeLevel.Number
