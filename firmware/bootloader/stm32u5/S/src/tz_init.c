@@ -43,8 +43,10 @@
  *
  * FLASH starts as 0x0C000000/0x08000000
  * Secure FLASH runs from 0x0C000000 to 0x0C1FFFFF, with the nonsecure callable region going into the
- * last 4 KB. The nonsecure callable region starts at 0x0C1FF000 and ends at 0x0C1FFFFF. Directly
- * after the nonsecure callable region, nonsecure FLASH starts. It runs from 0x08200000 to 0x083FFFFF.
+ * last 8 KB page. The nonsecure callable region starts at 0x0C1FE000 and ends at 0x0C1FFFFF. The two
+ * 8 KB pages just below it (0x0C1FA000..0x0C1FDFFF) are reserved for the udb database (the PERSIST
+ * region in ls-s.ld). Directly after the nonsecure callable region, nonsecure FLASH starts. It runs
+ * from 0x08200000 to 0x083FFFFF.
  * 
  *
  * NOTE: For FLASH, you configure it as secure/nonsecure in two different ways. You can configure
@@ -58,7 +60,7 @@
 #define NUM_SAU_REGIONS 8
 
 static const sau_region_t regions[NUM_SAU_REGIONS] = {
-    SAU_REGION("Non-secure callable region",    0x0C1FF000, 0x0C1FFFFF, SAU_S_NSC),
+    SAU_REGION("Non-secure callable region",    0x0C1FE000, 0x0C1FFFFF, SAU_S_NSC),
     SAU_REGION("Non-secure FLASH",              0x08200000, 0x083FFFFF, SAU_NS),
     SAU_REGION("Non-secure SRAM",               0x20138000, 0x2026FFFF, SAU_NS),  /* 1248 KB: SRAM3[26-51] + SRAM5 */
     SAU_REGION("Non-secure peripherals",        0x40000000, 0x4FFFFFFF, SAU_NS),

@@ -8,9 +8,9 @@ ENTRY(reset_handler)
 MEMORY
 {
     ISR       (rw):  ORIGIN = 0x0C000000, LENGTH = 2K    /* ISR vector table (512 words) */
-    FLASH     (rx):  ORIGIN = 0x0C000800, LENGTH = 2040K /* 2 MB − 2K ISR − 2K PERSIST − 4K NSC */
-    PERSIST   (rw):  ORIGIN = 0x0C1FE800, LENGTH = 2K    /* Persistent mutable data in flash */
-    FLASH_NSC (rx):  ORIGIN = 0x0C1FF000, LENGTH = 4K    /* Non-secure callable veneers */
+    FLASH     (rx):  ORIGIN = 0x0C000800, LENGTH = 2022K /* 2 MB − 2K ISR − 16K PERSIST − 8K NSC */
+    PERSIST   (rw):  ORIGIN = 0x0C1FA000, LENGTH = 16K   /* two 8 KB pages of persistent flash storage (udb) */
+    FLASH_NSC (rx):  ORIGIN = 0x0C1FE000, LENGTH = 8K    /* Non-secure callable veneers (one full 8 KB page) */
     SRAM      (rwx): ORIGIN = 0x30000000, LENGTH = 1248K /* SRAM1+SRAM2+SRAM3[SB 0-25] */
 }
 
@@ -86,6 +86,11 @@ SECTIONS
     _end = .;
     PROVIDE(end = .);
 
+    /* PERSIST is the two 8 KB pages the udb database lives in (segments at
+     * 0x0C1FA000 and 0x0C1FC000). It is NOLOAD, so the linker never emits image
+     * bytes here and a flash-and-reset leaves the database intact. The udb
+     * driver addresses it directly; keep examples/udb-test/shared/stm32u5-drv.c
+     * (UDB_FLASH_END = 0x0C1FE000) in sync with this region. */
     .persist (NOLOAD) :
     {
         . = ALIGN(8);

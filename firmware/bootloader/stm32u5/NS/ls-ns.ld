@@ -6,9 +6,10 @@ ENTRY(reset_handler)
 
 MEMORY
 {
-    ISR   (rw):  ORIGIN = 0x08200000, LENGTH = 2K    /* ISR vector table (512 words) */
-    FLASH (rx):  ORIGIN = 0x08200800, LENGTH = 2046K /* 2 MB − 2K ISR */
-    SRAM  (rwx): ORIGIN = 0x20138000, LENGTH = 1248K /* SRAM3[SB 26-51] + SRAM5 */
+    ISR     (rw):  ORIGIN = 0x08200000, LENGTH = 2K    /* ISR vector table (512 words) */
+    FLASH   (rx):  ORIGIN = 0x08200800, LENGTH = 2030K /* 2 MB − 2K ISR − 16K PERSIST */
+    PERSIST (rw):  ORIGIN = 0x083FC000, LENGTH = 16K   /* two 8 KB pages of persistent flash storage (udb) */
+    SRAM    (rwx): ORIGIN = 0x20138000, LENGTH = 1248K /* SRAM3[SB 26-51] + SRAM5 */
 }
 
 PROVIDE(_estack = ORIGIN(SRAM) + LENGTH(SRAM) - 4);
@@ -70,4 +71,19 @@ SECTIONS
     . = ALIGN(8);
     _end = .;
     PROVIDE(end = .);
+
+    /* PERSIST is the two 8 KB pages the non-secure udb database lives in
+     * (segments at 0x083FC000 and 0x083FE000). It is NOLOAD, so the linker
+     * never emits image bytes here and a flash-and-reset leaves the database
+     * intact. Keep examples/udb-test/shared/stm32u5-drv.c (non-secure
+     * UDB_FLASH_END = 0x08400000) in sync with this region. */
+    .persist (NOLOAD) :
+    {
+        . = ALIGN(8);
+        __persist_start__ = .;
+        KEEP(*(.persist))
+        KEEP(*(.persist.*))
+        . = ALIGN(8);
+        __persist_end__ = .;
+    } > PERSIST
 }
