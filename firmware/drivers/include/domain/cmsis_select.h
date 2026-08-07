@@ -24,6 +24,7 @@
 #define USART1x            USART1_S
 #define FLASHx             FLASH_S
 #define GTZC_TZSCx         GTZC_TZSC_S
+#define TIM6x              TIM6_S
 
 #else
 
@@ -35,6 +36,7 @@
 #define USART1x            USART1_NS
 #define FLASHx             FLASH_NS
 #define GTZC_TZSCx         GTZC_TZSC_NS
+#define TIM6x              TIM6_NS
 
 #endif // HAL_SECURE
 

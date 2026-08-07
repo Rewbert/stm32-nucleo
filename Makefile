@@ -9,8 +9,14 @@ BOARD ?= stm32l5
 OPENOCD         = $(HOME)/OpenOCD/src/openocd
 OPENOCD_SCRIPTS = $(HOME)/OpenOCD/tcl
 
-OPENOCD_FLAGS_stm32l5 = -s $(OPENOCD_SCRIPTS) -f interface/stlink.cfg -f target/stm32l5x.cfg
-# stlink-dap + dapdirect_swd needed for stm32u5; srst_nogate avoids TZ flash-probe issues
+# stlink-dap + dapdirect_swd needed for TrustZone secure-mode debug on both boards
+# (the older HLA interface/stlink.cfg either refuses secure-mode debug outright on U5,
+# or segfaults OpenOCD outright on L5 — see flash_issue.md); srst_nogate avoids TZ flash-probe issues
+OPENOCD_FLAGS_stm32l5 = -s $(OPENOCD_SCRIPTS) \
+    -f interface/stlink-dap.cfg \
+    -c "transport select dapdirect_swd" \
+    -f target/stm32l5x.cfg \
+    -c "reset_config srst_nogate connect_assert_srst"
 OPENOCD_FLAGS_stm32u5 = -s $(OPENOCD_SCRIPTS) \
     -f interface/stlink-dap.cfg \
     -c "transport select dapdirect_swd" \

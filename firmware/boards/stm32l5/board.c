@@ -25,6 +25,7 @@
 #include "backends/stm32l5/pwr.h"
 #include "backends/stm32l5/mpcbb.h"
 #include "backends/stm32l5/tzsc.h"
+#include "backends/stm32l5/timer.h"
 #include "drivers/nvic.h"
 
 /**
@@ -73,6 +74,9 @@ static flash_dev_t             flash;
 static stm32l5_tzsc_backend_t tzsc_backend;
 static tzsc_dev_t             tzsc;
 
+static stm32l5_timer_backend_t timer_backend;
+static timer_dev_t             app_timer;
+
 static inline void console_init();
 
 void board_init(void) {
@@ -89,6 +93,7 @@ void board_init(void) {
     stm32l5_pwr_create(&pwr);
     stm32l5_flash_create(&flash, FLASHx, &flash_backend);
     stm32l5_tzsc_create(&tzsc, &tzsc_backend);
+    stm32l5_timer_create(&app_timer, TIM6x, &timer_backend);
 
     console_init();
 }
@@ -185,6 +190,10 @@ pwr_dev_t *board_pwr(void) {
 
 tzsc_dev_t *board_tzsc(void) {
     return &tzsc;
+}
+
+timer_dev_t *board_timer(void) {
+    return &app_timer;
 }
 
 static stm32l5_mpcbb_backend_t mpcbb1_backend;

@@ -25,6 +25,7 @@
 #include "backends/stm32u5/pwr.h"
 #include "backends/stm32u5/mpcbb.h"
 #include "backends/stm32u5/tzsc.h"
+#include "backends/stm32u5/timer.h"
 #include "drivers/nvic.h"
 
 _Static_assert(sizeof(board_gpio_backend_t) >= sizeof(stm32u5_gpio_backend_t),
@@ -72,6 +73,9 @@ static flash_dev_t             flash;
 static stm32u5_tzsc_backend_t tzsc_backend;
 static tzsc_dev_t             tzsc;
 
+static stm32u5_timer_backend_t timer_backend;
+static timer_dev_t             app_timer;
+
 static inline void console_init(void);
 
 void board_init(void) {
@@ -94,6 +98,7 @@ void board_init(void) {
 
     stm32u5_flash_create(&flash, FLASHx, &flash_backend);
     stm32u5_tzsc_create(&tzsc, &tzsc_backend);
+    stm32u5_timer_create(&app_timer, TIM6x, &timer_backend);
 
     console_init();
 }
@@ -188,6 +193,10 @@ pwr_dev_t *board_pwr(void) {
 
 tzsc_dev_t *board_tzsc(void) {
     return &tzsc;
+}
+
+timer_dev_t *board_timer(void) {
+    return &app_timer;
 }
 
 /* STM32U5A5ZJQ SRAM layout (GTZC1 controls MPCBB1-3/5, GTZC2 controls MPCBB4):

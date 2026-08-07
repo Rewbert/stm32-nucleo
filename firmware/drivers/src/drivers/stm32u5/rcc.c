@@ -38,6 +38,7 @@ static const rcc_desc_t rcc_table[RCC_PERIPH_COUNT] = {
     [RCC_PWR]     = { &RCCx->AHB3ENR, RCC_AHB3ENR_PWREN     },
     [RCC_GTZC]    = { &RCCx->AHB1ENR, RCC_AHB1ENR_GTZC1EN   },
     [RCC_GTZC2]   = { &RCCx->AHB3ENR, RCC_AHB3ENR_GTZC2EN   },
+    [RCC_TIM6]    = { &RCCx->APB1ENR1, RCC_APB1ENR1_TIM6EN  },
 };
 
 static void stm32u5_rcc_enable(struct rcc_dev *dev, rcc_periph_t periph) {

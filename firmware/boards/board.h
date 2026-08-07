@@ -15,6 +15,7 @@
 #include "drivers/pwr.h"
 #include "drivers/mpcbb.h"
 #include "drivers/tzsc.h"
+#include "drivers/timer.h"
 
 typedef enum {
     BOARD_LED_GREEN = 0,
@@ -86,6 +87,7 @@ rcc_dev_t    *board_rcc(void);
 flash_dev_t  *board_flash(void);
 pwr_dev_t    *board_pwr(void);
 tzsc_dev_t   *board_tzsc(void);
+timer_dev_t  *board_timer(void);
 
 void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t edge, void (*button_callback)(exti_edge_t edge));
 

@@ -25,6 +25,7 @@ void sv_handler(void) __attribute__((weak, alias("default_handler")));
 void debug_handler(void) __attribute__((weak, alias("default_handler")));
 void pend_handler(void) __attribute__((weak, alias("default_handler")));
 void systick_handler(void) __attribute__((weak, alias("default_handler")));
+void tim6_handler(void) __attribute__((weak, alias("default_handler")));
 
 void exti0_handler(void) __attribute__((weak, alias("exti_default_handler")));
 void exti1_handler(void) __attribute__((weak, alias("exti_default_handler")));
@@ -89,6 +90,8 @@ uint32_t isr_vector[VECTOR_SIZE_WORDS] __attribute__((section(".isr_vector"))) =
     (uint32_t)&exti14_handler,
     (uint32_t)&exti15_handler,
     // add more handlers as wanted, I believe we can also add IRQs here, which we can use for fun features
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* IRQ27-48 */
+    (uint32_t)&tim6_handler, /* IRQ49 = TIM6 */
 };
 
 extern uint32_t _etext, _sdata, _sidata, _edata, _sbss, _ebss; // symbols defined by the linker

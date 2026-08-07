@@ -21,6 +21,7 @@ void sv_handler(void);
 void debug_handler(void);
 void pend_handler(void);
 void systick_handler(void) __attribute__((weak, alias("default_handler")));
+void tim6_handler(void) __attribute__((weak, alias("default_handler")));
 
 void exti_default_handler(void);
 
@@ -80,6 +81,8 @@ uint32_t isr_vector[VECTOR_SIZE_WORDS] __attribute__((section(".isr_vector"))) =
     (uint32_t)&exti13_handler,
     (uint32_t)&exti14_handler,
     (uint32_t)&exti15_handler,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* IRQ27-48 */
+    (uint32_t)&tim6_handler, /* IRQ49 = TIM6 */
 };
 
 void default_handler(void) {
