@@ -1,5 +1,22 @@
 {
   "nodes": {
+    "mhs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1781822774,
+        "narHash": "sha256-5JRn2Gg+ZgoeuI0ITOlmr6LJYFV/KasN1ej76npoktc=",
+        "owner": "Rewbert",
+        "repo": "MicroHs",
+        "rev": "cf793b46c22328bff7e2a5f94f6c53f1d1ef8b88",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Rewbert",
+        "repo": "MicroHs",
+        "rev": "cf793b46c22328bff7e2a5f94f6c53f1d1ef8b88",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1766651565,
@@ -16,9 +33,46 @@
         "type": "github"
       }
     },
+    "nor-udb": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1781427006,
+        "narHash": "sha256-dzIkkXNZZtbYM1DgHjHxxJZx4GxCwgj8JsyVUnRtWYU=",
+        "owner": "Rewbert",
+        "repo": "nor-udb",
+        "rev": "825b3a19977788045526b3e4e49050bb7f82586b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Rewbert",
+        "repo": "nor-udb",
+        "rev": "825b3a19977788045526b3e4e49050bb7f82586b",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "mhs": "mhs",
+        "nixpkgs": "nixpkgs",
+        "nor-udb": "nor-udb",
+        "ssm-runtime": "ssm-runtime"
+      }
+    },
+    "ssm-runtime": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1786180672,
+        "narHash": "sha256-3g9BpQg+G/XP8dbAbt4Y91ujltpzCmJAyy/S2WDyJPc=",
+        "owner": "Rewbert",
+        "repo": "ssm-runtime",
+        "rev": "b7781c610797c069e066f4e8836db4d9e1f4911a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Rewbert",
+        "repo": "ssm-runtime",
+        "rev": "b7781c610797c069e066f4e8836db4d9e1f4911a",
+        "type": "github"
       }
     }
   },
