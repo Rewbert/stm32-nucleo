@@ -10,3 +10,7 @@ tmp_libc/
 TODO
 .mhscache
 MicroHs/
+
+*.md
+planning/
+agent-docs/
