@@ -1,4 +1,5 @@
 include mk-drivers/board.mk
+include mk-drivers/mhs.mk
 
 ###
 # Build the microhs-hello-tz example: MicroHaskell running in both the
@@ -6,9 +7,6 @@ include mk-drivers/board.mk
 ###
 
 APP       := examples/microhs-hello-tz
-MHS       := MicroHs
-MHS_DIR   := $(MHS)/src/runtime
-MHS_BIN   := $(MHS)/bin/mhs
 
 # Extra include paths on top of what board.mk provides.
 MHS_INC := -I$(MHS_DIR) -I$(APP)/shared
@@ -22,10 +20,10 @@ SECURE_IMPLIB_FLAGS := -Wl,--cmse-implib,--out-implib=$(SECURE_LIB)
 # --- Haskell compilation rules ---
 
 $(APP)/S/gen2.c: $(APP)/S/Secure.hs
-	$(MHS_BIN) -i$(MHS)/lib -o$@ $<
+	$(MHS_BIN) -i$(MHS_ROOT)/lib -o$@ $<
 
 $(APP)/NS/gen2.c: $(APP)/NS/Nonsecure.hs
-	$(MHS_BIN) -i$(MHS)/lib -o$@ $<
+	$(MHS_BIN) -i$(MHS_ROOT)/lib -o$@ $<
 
 # --- Secure application ---
 

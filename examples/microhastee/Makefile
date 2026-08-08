@@ -1,5 +1,6 @@
 include mk-drivers/board.mk
 include mk-drivers/udb.mk
+include mk-drivers/mhs.mk
 
 ###
 # Build the MicroHasTEE example: MicroHaskell running in both the secure and
@@ -7,9 +8,6 @@ include mk-drivers/udb.mk
 ###
 
 APP       := examples/microhastee
-MHS       := MicroHs
-MHS_DIR   := $(MHS)/src/runtime
-MHS_BIN   := $(MHS)/bin/mhs
 MHS_BIN_ABS := $(abspath $(MHS_BIN))
 
 # Extra include paths on top of what board.mk provides.
