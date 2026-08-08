@@ -1,8 +1,10 @@
 include mk-drivers/board.mk
+include mk-drivers/udb.mk
 
 ###
 # Build the udb-test example: a secure/non-secure pair where each world runs its
-# own udb (udb/udb.h) database, backed by the last erase pages of its own flash.
+# own udb (udb.h, out-of-tree -- see NOR_UDB_DIR in mk-drivers/udb.mk) database,
+# backed by the last erase pages of its own flash.
 # The shared/ driver files are compiled into both worlds; $(BOARD) selects the
 # stm32l5-drv.c / stm32u5-drv.c backend.
 #
@@ -14,7 +16,7 @@ include mk-drivers/board.mk
 
 APP := examples/udb-test
 
-EXAMPLE_INC := -I$(APP)/shared -Iudb
+EXAMPLE_INC := -I$(APP)/shared $(NOR_UDB_INC)
 
 SECURE_CPPFLAGS    += $(EXAMPLE_INC)
 NONSECURE_CPPFLAGS += $(EXAMPLE_INC)
@@ -28,16 +30,11 @@ NONSECURE_CPPFLAGS += $(EXAMPLE_INC)
 SECURE_SRC := \
   $(APP)/S/main.c \
   $(APP)/shared/flash-drv.c \
-  $(APP)/shared/$(BOARD)-drv.c \
-  udb/udb.c
+  $(APP)/shared/$(BOARD)-drv.c
 
 SECURE_O := $(patsubst %.c, build/s/%.o, $(SECURE_SRC))
 
 build/s/$(APP)/%.o: $(APP)/%.c
-	mkdir -p $(dir $@)
-	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
-
-build/s/udb/%.o: udb/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
 
@@ -46,16 +43,11 @@ build/s/udb/%.o: udb/%.c
 NONSECURE_SRC := \
   $(APP)/NS/main.c \
   $(APP)/shared/flash-drv.c \
-  $(APP)/shared/$(BOARD)-drv.c \
-  udb/udb.c
+  $(APP)/shared/$(BOARD)-drv.c
 
 NONSECURE_O := $(patsubst %.c, build/ns/%.o, $(NONSECURE_SRC))
 
 build/ns/$(APP)/%.o: $(APP)/%.c
-	mkdir -p $(dir $@)
-	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
-
-build/ns/udb/%.o: udb/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
 
@@ -64,8 +56,8 @@ build/ns/udb/%.o: udb/%.c
 .PHONY: all
 all: secure.elf nonsecure.elf
 
-secure.elf: $(SECURE_BOOT_O) $(BOARD_O) $(SECURE_O) $(TZ_LIB_DRV_SECURE_A)
+secure.elf: $(SECURE_BOOT_O) $(BOARD_O) $(SECURE_O) $(TZ_LIB_DRV_SECURE_A) $(NOR_UDB_A)
 	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) $(SECURE_LDFLAGS) -o $@ $^
 
-nonsecure.elf: $(NONSECURE_BOOT_O) $(BOARD_NS_O) $(NONSECURE_O) $(TZ_LIB_DRV_NONSECURE_A)
+nonsecure.elf: $(NONSECURE_BOOT_O) $(BOARD_NS_O) $(NONSECURE_O) $(TZ_LIB_DRV_NONSECURE_A) $(NOR_UDB_A)
 	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) $(NONSECURE_LDFLAGS) -o $@ $^

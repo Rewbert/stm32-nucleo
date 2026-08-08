@@ -1,4 +1,5 @@
 include mk-drivers/board.mk
+include mk-drivers/udb.mk
 
 ###
 # Build the MicroHasTEE example: MicroHaskell running in both the secure and
@@ -13,10 +14,11 @@ MHS_BIN_ABS := $(abspath $(MHS_BIN))
 
 # Extra include paths on top of what board.mk provides.
 # Secure build prepends -I$(APP)/S so the shadow config.h there is found first.
-# -Iudb is for the udb key-value store (examples/microhastee/shared/udb-drv.c,
-# HAL/Drivers/UDB.hs) -- STM32U5 only for now, see examples/microhastee/shared/udb-drv.c.
-MHS_INC_S  := -I$(MHS_DIR) -I$(APP)/S -I$(APP)/shared -Iudb
-MHS_INC_NS := -I$(MHS_DIR) -I$(APP)/shared -Iudb
+# $(NOR_UDB_INC) is for the udb key-value store (out-of-tree -- see
+# mk-drivers/udb.mk), consumed via examples/microhastee/shared/udb-drv.c and
+# HAL/Drivers/UDB.hs -- STM32U5 only for now, see examples/microhastee/shared/udb-drv.c.
+MHS_INC_S  := -I$(MHS_DIR) -I$(APP)/S -I$(APP)/shared $(NOR_UDB_INC)
+MHS_INC_NS := -I$(MHS_DIR) -I$(APP)/shared $(NOR_UDB_INC)
 
 SECURE_CPPFLAGS    += $(MHS_INC_S)
 NONSECURE_CPPFLAGS += $(MHS_INC_NS)
@@ -87,7 +89,6 @@ SECURE_SRC :=            \
   $(APP)/shared/exti_trampoline.c \
   $(APP)/shared/flash-drv.c \
   $(APP)/shared/udb-drv.c \
-  udb/udb.c \
   $(MHS_DIR)/eval.c
 
 SECURE_O := $(patsubst %.c, build/s/%.o, $(SECURE_SRC))
@@ -97,10 +98,6 @@ build/s/$(APP)/%.o: $(APP)/%.c
 	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
 
 build/s/$(MHS_DIR)/%.o: $(MHS_DIR)/%.c
-	mkdir -p $(dir $@)
-	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
-
-build/s/udb/%.o: udb/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) -c $< -o $@
 
@@ -115,7 +112,6 @@ NONSECURE_SRC := \
   $(APP)/shared/exti_trampoline.c \
   $(APP)/shared/flash-drv.c \
   $(APP)/shared/udb-drv.c \
-  udb/udb.c \
   $(MHS_DIR)/eval.c
 
 NONSECURE_O := $(patsubst %.c, build/ns/%.o, $(NONSECURE_SRC))
@@ -128,10 +124,6 @@ build/ns/$(MHS_DIR)/%.o: $(MHS_DIR)/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
 
-build/ns/udb/%.o: udb/%.c
-	mkdir -p $(dir $@)
-	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) -c $< -o $@
-
 # --- Link targets ---
 
 .PHONY: all
@@ -140,9 +132,9 @@ all: secure.elf nonsecure.elf
 $(dir $(SECURE_LIB)):
 	mkdir -p $@
 
-secure.elf: $(SECURE_BOOT_O) $(BOARD_O) $(SECURE_O) $(TZ_LIB_DRV_SECURE_A) | $(dir $(SECURE_LIB))
+secure.elf: $(SECURE_BOOT_O) $(BOARD_O) $(SECURE_O) $(TZ_LIB_DRV_SECURE_A) $(NOR_UDB_A) | $(dir $(SECURE_LIB))
 	$(CC) $(TZ_CFLAGS) $(SECURE_CPPFLAGS) $(SECURE_LDFLAGS) -o $@ $^ $(SECURE_IMPLIB_FLAGS)
 
-nonsecure.elf: secure.elf $(NONSECURE_BOOT_O) $(BOARD_NS_O) $(NONSECURE_O) $(TZ_LIB_DRV_NONSECURE_A)
+nonsecure.elf: secure.elf $(NONSECURE_BOOT_O) $(BOARD_NS_O) $(NONSECURE_O) $(TZ_LIB_DRV_NONSECURE_A) $(NOR_UDB_A)
 	$(CC) $(TZ_CFLAGS) $(NONSECURE_CPPFLAGS) $(NONSECURE_LDFLAGS) -o $@ \
-		$(NONSECURE_BOOT_O) $(BOARD_NS_O) $(NONSECURE_O) $(TZ_LIB_DRV_NONSECURE_A) $(SECURE_LIB)
+		$(NONSECURE_BOOT_O) $(BOARD_NS_O) $(NONSECURE_O) $(TZ_LIB_DRV_NONSECURE_A) $(NOR_UDB_A) $(SECURE_LIB)
