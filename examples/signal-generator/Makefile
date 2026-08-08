@@ -3,8 +3,8 @@ include mk-drivers/ssm.mk
 
 ###
 # Build the signal-generator example: a single secure-only application using the
-# firmware/drivers and firmware/boards framework, plus the vendored SSM runtime
-# (vendor/ssm).
+# firmware/drivers and firmware/boards framework, plus the SSM runtime (out-of-tree,
+# see SSM_DIR in mk-drivers/ssm.mk).
 ###
 
 APP := examples/signal-generator
