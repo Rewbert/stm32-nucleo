@@ -3,11 +3,14 @@ MK_DRIVERS_SSM := 1
 
 include mk-drivers/toolchain.mk
 
-SSM_DIR ?= ../ssm-runtime
+ifeq ($(origin SSM_DIR),undefined)
+$(error SSM_DIR is not set -- clone https://github.com/Rewbert/ssm-runtime and export SSM_DIR to point at it, e.g. export SSM_DIR=$$HOME/Projects/ssm-runtime)
+endif
+
 SSM_SRC := $(wildcard $(SSM_DIR)/src/*.c)
 
 ifeq ($(SSM_SRC),)
-$(error SSM sources not found under SSM_DIR=$(SSM_DIR) -- clone https://github.com/Rewbert/ssm-runtime and export SSM_DIR to point at it, e.g. export SSM_DIR=$$HOME/Projects/ssm-runtime)
+$(error No SSM sources found under SSM_DIR=$(SSM_DIR) -- check that it points at a valid ssm-runtime checkout)
 endif
 
 SSM_INC      := -I$(SSM_DIR)/include
