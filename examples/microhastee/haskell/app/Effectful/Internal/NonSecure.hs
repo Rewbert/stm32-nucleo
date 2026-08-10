@@ -18,11 +18,17 @@ module Effectful.Internal.NonSecure (
     readSRef,
     writeSRef,
     modifySRef,
+    NSRef,
+    initialNSRef,
+    readNSRef,
+    writeNSRef,
+    modifyNSRef,
     nonsecure,
     runSetup,
 ) where
 
 import Data.Word
+import Data.IORef
 import Foreign.Ptr
 import Foreign.Marshal.Alloc
 import Foreign.Storable
@@ -168,6 +174,30 @@ writeSRef _ _ = SecureDummy
 
 modifySRef :: SRef a -> (a -> a) -> Secure effects ()
 modifySRef _ _ = SecureDummy
+
+-- * Nonsecure state
+--
+-- Dual of 'SRef' above, for state that lives in the nonsecure world instead. In
+-- this (nonsecure) build 'Nonsecure' is the real monad, so this is a genuine
+-- 'IORef' -- the erased twin lives in "Effectful.Internal.Secure".
+
+type NSRef a = IORef a
+
+initialNSRef :: forall a ns s effects . a -> Setup ns s ns s (Nonsecure effects (NSRef a))
+initialNSRef a = Ix.do
+    r <- Ix.ilift $ newIORef a
+    Ix.return $ return r
+
+readNSRef :: NSRef a -> Nonsecure effects a
+readNSRef ref = Nonsecure $ readIORef ref
+
+writeNSRef :: NSRef a -> a -> Nonsecure effects ()
+writeNSRef ref a = Nonsecure $ writeIORef ref a
+
+modifyNSRef :: NSRef a -> (a -> a) -> Nonsecure effects ()
+modifyNSRef ref f = do
+    v <- readNSRef ref
+    writeNSRef ref (f v)
 
 nonsecure :: Member Locked s => Nonsecure ns () -> Setup ns s ns s ()
 nonsecure (Nonsecure ioa) = liftSetupIO ioa

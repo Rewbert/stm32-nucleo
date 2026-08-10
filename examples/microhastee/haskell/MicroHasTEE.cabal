@@ -21,7 +21,7 @@ common warnings
 
 executable MicroHasTEE.c
     import:           warnings
-    main-is:          SimpleExample.hs
+    main-is:          DoorLock.hs
     other-modules:    Control.Monad.State.Class
                       Control.Monad.State
                       Control.Monad.IO.Class

@@ -9,6 +9,7 @@ tmp_libc/
 *_stub.h
 TODO
 .mhscache
+examples/microhastee/*/gen2.c
 
 *.md
 planning/

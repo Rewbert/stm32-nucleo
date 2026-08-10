@@ -15,6 +15,11 @@ module Effectful.NonSecure (
     readSRef,
     writeSRef,
     modifySRef,
+    NSRef,
+    initialNSRef,
+    readNSRef,
+    writeNSRef,
+    modifyNSRef,
 ) where
 
 import Effectful.Internal.NonSecure

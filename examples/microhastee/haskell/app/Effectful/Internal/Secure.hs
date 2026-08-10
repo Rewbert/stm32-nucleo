@@ -18,6 +18,11 @@ module Effectful.Internal.Secure (
     readSRef,
     writeSRef,
     modifySRef,
+    NSRef,
+    initialNSRef,
+    readNSRef,
+    writeNSRef,
+    modifyNSRef,
     nonsecure,
     runSetup,
 ) where
@@ -154,6 +159,27 @@ modifySRef :: SRef a -> (a -> a) -> Secure effects ()
 modifySRef ref f = do
     v <- readSRef ref
     writeSRef ref (f v)
+
+-- * Nonsecure state
+--
+-- Dual of 'SRef' above, for state that lives in the nonsecure world instead. In
+-- this (secure) build 'Nonsecure' is the typed placeholder, so there is nothing
+-- real to store here -- this is the erased twin of the real implementation in
+-- "Effectful.Internal.NonSecure".
+
+data NSRef a = NSRefDummy
+
+initialNSRef :: forall a ns s effects . a -> Setup ns s ns s (Nonsecure effects (NSRef a))
+initialNSRef _ = Ix.return NonSecure
+
+readNSRef :: NSRef a -> Nonsecure effects a
+readNSRef _ = NonSecure
+
+writeNSRef :: NSRef a -> a -> Nonsecure effects ()
+writeNSRef _ _ = NonSecure
+
+modifyNSRef :: NSRef a -> (a -> a) -> Nonsecure effects ()
+modifyNSRef _ _ = NonSecure
 
 -- * Internal communications functions
 

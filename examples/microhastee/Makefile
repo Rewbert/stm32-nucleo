@@ -44,12 +44,13 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/Effectful/HAL/RCC.hs \
   $(HASKELL_DIR)/app/Effectful/HAL/NVIC.hs \
   $(HASKELL_DIR)/app/Effectful/HAL/EXTI.hs \
+  $(HASKELL_DIR)/app/Effectful/HAL/UDB.hs \
   $(HASKELL_DIR)/app/Effectful/HAL.hs \
   $(HASKELL_DIR)/app/Effectful/NonSecure.hs \
   $(HASKELL_DIR)/app/Effectful/Secure.hs \
   $(HASKELL_DIR)/app/Effectful/Setup.hs \
   $(HASKELL_DIR)/app/HW.hs \
-  $(HASKELL_DIR)/app/SimpleExample.hs \
+  $(HASKELL_DIR)/app/DoorLock.hs \
   $(HASKELL_DIR)/app/HAL.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/SysTick.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/GPIO.hs \
@@ -70,10 +71,10 @@ HASKELL_SRC = \
 CABAL=mcabal
 
 $(APP)/S/gen2.c: $(HASKELL_SRC)
-	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -DSECURE -ilib -iapp -c -ogen.c app/SimpleExample.hs && cp gen.c ../S/gen2.c && rm gen.c
+	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -DSECURE -ilib -iapp -c -ogen.c app/DoorLock.hs && cp gen.c ../S/gen2.c && rm gen.c
 
 $(APP)/NS/gen2.c: $(HASKELL_SRC)
-	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -ilib -iapp -ogen.c app/SimpleExample.hs && cp gen.c ../NS/gen2.c && rm gen.c
+	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -ilib -iapp -ogen.c app/DoorLock.hs && cp gen.c ../NS/gen2.c && rm gen.c
 
 # --- Secure application ---
 

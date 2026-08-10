@@ -7,7 +7,8 @@ module Effectful.HAL (
     module Effectful.HAL.RCC,
     module Effectful.HAL.NVIC,
     module Effectful.HAL.IRQ,
-    module Effectful.HAL.EXTI
+    module Effectful.HAL.EXTI,
+    module Effectful.HAL.UDB
 ) where
 
 import Effectful.HAL.GPIO
@@ -19,3 +20,4 @@ import Effectful.HAL.RCC
 import Effectful.HAL.NVIC
 import Effectful.HAL.IRQ
 import Effectful.HAL.EXTI
+import Effectful.HAL.UDB
