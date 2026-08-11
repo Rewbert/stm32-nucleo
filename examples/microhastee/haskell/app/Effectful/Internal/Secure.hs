@@ -54,7 +54,7 @@ foreign import ccall "closeb_rd_mem" c_closeb       :: Ptr BFILE -> IO ()
 foreign import ccall "getb"          c_getb         :: Ptr BFILE -> IO Int
 
 foreign export ccall "c_handle_nsc_call" handle_nsc_call
-    :: Ptr Word8 -> CInt -> Ptr Word8 -> Ptr CInt -> IO ()
+    :: Ptr Word8 -> CInt -> Ptr Word8 -> CInt -> Ptr CInt -> IO ()
 
 -- * Secure
 
@@ -230,8 +230,8 @@ NOTE: serialise appends a newline after each value. We must consume it with
 c_getb before each subsequent IO.deserialize call, or the version check will fail.
 
 -}
-handle_nsc_call :: Ptr Word8 -> CInt -> Ptr Word8 -> Ptr CInt -> IO ()
-handle_nsc_call inBuf inLen outBuf outLenPtr = do
+handle_nsc_call :: Ptr Word8 -> CInt -> Ptr Word8 -> CInt -> Ptr CInt -> IO ()
+handle_nsc_call inBuf inLen outBuf outCapacity outLenPtr = do
     -- wrap the input bytes in a read-BFILE
     inBf   <- c_openb_rd_mem inBuf (fromIntegral inLen)
 
@@ -253,8 +253,11 @@ handle_nsc_call inBuf inLen outBuf outLenPtr = do
         c_get_mem outBf bufPtrPtr lenPtr
         bufPtr <- peek bufPtrPtr
         bufLen <- peek lenPtr
-        copyBytes outBuf bufPtr (fromIntegral bufLen)
-        poke outLenPtr (fromIntegral bufLen)
+        -- outBuf's real capacity is the caller's, not ours -- never write past it,
+        -- even though outBuf itself was already range-checked by sg() in S/main.c.
+        if bufLen > fromIntegral outCapacity
+          then poke outLenPtr (-1)
+          else copyBytes outBuf bufPtr (fromIntegral bufLen) >> poke outLenPtr (fromIntegral bufLen)
 
         -- free resources related to the result
         free bufPtr

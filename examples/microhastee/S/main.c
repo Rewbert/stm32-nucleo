@@ -10,6 +10,7 @@
 #include "firmware/boards/board.h"
 
 #include <string.h>
+#include <arm_cmse.h>
 #include "config.h"
 
 int mhs_main(int argc, char **argv);
@@ -61,25 +62,47 @@ void stm32_exit(int n) {
 /*** These come from Haskell ***/
 
 extern void c_handle_nsc_call(const uint8_t *in_buf, int in_len,
-                               uint8_t *out_buf, int *out_len);
+                               uint8_t *out_buf, int out_capacity, int *out_len);
 extern void app_main();
 
 /*******************************/
 
 NONSECURE_CALLABLE void sg(struct BFILE *input_bfile,
-                           uint8_t *output_buf, int *output_len) {
+                           uint8_t *output_buf, int output_capacity, int *output_len) {
     /*
     We manually fetch the buffer in this hacky way (Please don't change the layout of BFILE, Lennart),
     because CHECKBFILE asserts that a certain function pointer points to a specific function (get_mem()). We
     do use the right one, but we have allocated the BFILE in the NS world, and the check is done by
     the S world, which has its own copy of get_mem(). These function pointers are not equal, and we would thus
     throw an error.
-    
+
     I bet there is some flag to turn off that disables this check (SANITY?), but the specific flag seems to have
     helped me catch several bugs before, so I'd prefer to leave it 'on'.
     */
+
+    /* output_len is the one out-param we might need before we've validated anything
+       else, so it comes first: if NS didn't even give us a writable slot for it, there
+       is nothing safe left to do but return. */
+    if (!cmse_check_address_range(output_len, sizeof(*output_len), CMSE_NONSECURE | CMSE_MPU_READWRITE)) {
+        return;
+    }
+
     struct { void *fn[7]; size_t size; size_t pos; uint8_t *buf; } *p = (void*)input_bfile;
-    c_handle_nsc_call(p->buf, (int)p->pos, output_buf, output_len);
+
+    /* Every pointer below is NS-supplied and must be proven to actually lie in
+       non-secure memory before we dereference it -- a malicious or buggy NS caller
+       could otherwise point us at secure memory (arbitrary secure-side read via
+       p->buf, or arbitrary secure-side write via output_buf). cmse_check_address_range
+       is the Armv8-M-mandated way to do that check (TT-instruction based, not a
+       software convention). */
+    if (!cmse_check_address_range(p, sizeof(*p), CMSE_NONSECURE | CMSE_MPU_READ) ||
+        !cmse_check_address_range(p->buf, p->pos, CMSE_NONSECURE | CMSE_MPU_READ) ||
+        !cmse_check_address_range(output_buf, output_capacity, CMSE_NONSECURE | CMSE_MPU_READWRITE)) {
+        *output_len = -1;
+        return;
+    }
+
+    c_handle_nsc_call(p->buf, (int)p->pos, output_buf, output_capacity, output_len);
 }
 
 void main(void) {

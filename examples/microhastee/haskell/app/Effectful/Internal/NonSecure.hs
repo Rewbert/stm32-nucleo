@@ -40,7 +40,7 @@ import Effectful.TypeLevel.List
 import Effectful.TypeLevel.Lock
 import Effectful.Internal.Setup
 
-foreign import ccall "sg.h sg"       c_sg           :: Ptr BFILE -> Ptr Word8 -> Ptr CInt -> IO ()
+foreign import ccall "sg.h sg"       c_sg           :: Ptr BFILE -> Ptr Word8 -> CInt -> Ptr CInt -> IO ()
 foreign import ccall "openb_wr_mem"  c_openb_wr_mem :: IO (Ptr BFILE)
 foreign import ccall "openb_rd_mem"  c_openb_rd_mem :: Ptr Word8 -> Int -> IO (Ptr BFILE)
 foreign import ccall "get_mem"       c_get_mem      :: Ptr BFILE -> Ptr (Ptr Word8) -> Ptr Int -> IO ()
@@ -136,7 +136,7 @@ sg (Callable fun writes) = nonsecureLiftIO $
         mapM_ (\serialiseAction -> serialiseAction wbf) writes
 
         -- actually invoke the NSC function
-        c_sg wbf outBuf outLenPtr
+        c_sg wbf outBuf (fromIntegral nscOutputBufSize) outLenPtr
 
         -- free the allocated resources related to the closure
         alloca $ \bufPtrPtr ->
@@ -145,16 +145,21 @@ sg (Callable fun writes) = nonsecureLiftIO $
             peek bufPtrPtr >>= free
         c_closeb wbf
 
-        -- construct the result BFILE from the memory buffer
+        -- outLen is -1 if the secure side rejected the call (a bad pointer, or a
+        -- result too large for nscOutputBufSize) -- outBuf holds nothing valid then.
         outLen <- peek outLenPtr
-        rbf    <- c_openb_rd_mem outBuf (fromIntegral outLen)
+        if outLen < 0
+          then error "sg: secure gateway rejected the call"
+          else do
+            -- construct the result BFILE from the memory buffer
+            rbf    <- c_openb_rd_mem outBuf (fromIntegral outLen)
 
-        -- deserilise the result
-        result <- primHDeserialize rbf
+            -- deserilise the result
+            result <- primHDeserialize rbf
 
-        -- free resources related to the result
-        c_closeb rbf
-        return result
+            -- free resources related to the result
+            c_closeb rbf
+            return result
 
 -- * Secure state
 
