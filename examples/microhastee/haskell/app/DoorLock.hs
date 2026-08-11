@@ -3,6 +3,7 @@
 module DoorLock where
 
 import Data.Proxy
+import Control.DeepSeq (NFData (..))
 
 import qualified Control.Monad.IxMonad as Ix
 import Effectful.Setup
@@ -78,6 +79,15 @@ data UnlockResult
     | Denied Int       -- attempts remaining
     | LockedOut
     deriving (Show, Eq)
+
+-- crosses the sg boundary as the result of door_unlock_attempt, so it needs an
+-- NFData instance (this library has no generic/derived NFData) -- see (<.>)
+-- and the NonSecureCallable (Secure effects a) instance in Effectful.Internal.*
+instance NFData UnlockResult where
+    rnf (Collecting n) = rnf n
+    rnf Granted        = ()
+    rnf (Denied n)      = rnf n
+    rnf LockedOut       = ()
 
 readPin :: UDB -> Secure effects [Int]
 readPin db = do

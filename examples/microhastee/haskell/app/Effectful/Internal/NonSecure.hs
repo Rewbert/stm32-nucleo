@@ -35,6 +35,7 @@ import Foreign.Storable
 import Foreign.C.Types
 import qualified Control.Monad.IxMonad as Ix
 import qualified Control.Monad.State as ST
+import Control.DeepSeq (NFData, deepseq)
 
 import Effectful.TypeLevel.List
 import Effectful.TypeLevel.Lock
@@ -93,7 +94,7 @@ instance Monad (Nonsecure effects) where
 class NonSecureCallable effects a | a -> effects where
     mkNSC :: a -> (Ptr BFILE -> IO (Ptr BFILE))
 
-instance NonSecureCallable effects (Secure effects a) where
+instance NFData a => NonSecureCallable effects (Secure effects a) where
     mkNSC _ = \_ -> error "NS world cannot invoke mkNSC"
 
 instance NonSecureCallable effects b => NonSecureCallable effects (a -> b) where
@@ -109,8 +110,12 @@ callable _ = Ix.do
     put $ setupst { counter = counter setupst + 1 }
     Ix.return $ Callable (counter setupst) []
 
-(<.>) :: Callable (a -> b) -> a -> Callable b
-Callable fun writes <.> x = Callable fun (writes ++ [\bf -> primHSerialize bf x]) -- perhaps I should not use ++ (inefficient), but our functions are of such low arity that maybe I don't care enough
+-- | 'x' is fully forced ('deepseq') before 'primHSerialize' is even called, so
+-- forcing does not depend on 'primHSerialize' itself being strict enough to
+-- trigger it -- a lazy argument never sends its unevaluated computation graph
+-- across the gate.
+(<.>) :: NFData a => Callable (a -> b) -> a -> Callable b
+Callable fun writes <.> x = Callable fun (writes ++ [\bf -> x `deepseq` primHSerialize bf x]) -- perhaps I should not use ++ (inefficient), but our functions are of such low arity that maybe I don't care enough
 
 -- Upper bound for the serialised result from the secure world.
 -- It is quite large, but my new board has a butt-load of memory

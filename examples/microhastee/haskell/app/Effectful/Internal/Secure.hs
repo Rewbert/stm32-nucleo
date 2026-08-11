@@ -43,6 +43,7 @@ import Effectful.Internal.Setup
 import qualified Control.Monad.IxMonad as Ix
 import Control.Monad.IO.Class
 import qualified Control.Monad.State as ST
+import Control.DeepSeq (NFData, deepseq)
 
 foreign import ccall "set_vtable_ptr" c_set_vtable_ptr :: Word32 -> IO ()
 foreign import ccall "get_vtable_ptr" c_get_vtable_ptr :: IO Word32
@@ -110,11 +111,15 @@ instance Monad (Nonsecure effects) where
 class NonSecureCallable effects a | a -> effects where
     mkNSC :: a -> (Ptr BFILE -> IO (Ptr BFILE))
 
-instance NonSecureCallable effects (Secure effects a) where
+-- | 'a' is fully forced ('deepseq') before 'primHSerialize' is even called, so
+-- forcing does not depend on 'primHSerialize' itself being strict enough to
+-- trigger it -- a lazy result never sends its unevaluated computation graph
+-- across the gate.
+instance NFData a => NonSecureCallable effects (Secure effects a) where
     mkNSC (Secure ioa) = \_ -> do
         a   <- ioa
         wbf <- c_openb_wr_mem
-        primHSerialize wbf a
+        a `deepseq` primHSerialize wbf a
         return wbf
 
 instance NonSecureCallable effects b => NonSecureCallable effects (a -> b) where
@@ -134,7 +139,7 @@ callable f = Ix.do
            }
     Ix.return CallableDummy
 
-(<.>) :: Callable (a -> b) -> a -> Callable b
+(<.>) :: NFData a => Callable (a -> b) -> a -> Callable b
 (<.>) = error "the secure world cannot call the non secure world"
 
 sg :: Callable (Secure seffects a) -> Nonsecure nseffects a
