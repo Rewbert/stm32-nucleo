@@ -39,13 +39,17 @@ foreign import ccall "exti_trampoline.h h_exti_register_callback" c_h_exti_regis
 data EXTI pin port = EXTI Int HAL.EXTI
 
 get_exti :: forall pin port ns s .
-            (Member Unlocked s, ToInt pin, ToGPIOPort port) => Setup ns s ns (Cons (EXTI pin port) s) (EXTI pin port)
+            ( Member Unlocked s
+            , Fresh (EXTI pin port) s
+            , Fresh (EXTI pin port) ns
+            , ToInt pin, ToGPIOPort port
+            ) => Setup ns s ns (Cons (EXTI pin port) s) (EXTI pin port)
 get_exti = Ix.do
     let line = toInt (undefined :: Proxy pin)
     exti <- liftSetupIO $ HAL.board_exti_create line
     Ix.return $ EXTI line exti
 
-get_button_exti :: Member Unlocked s => Setup ns s ns (Cons (EXTI N13 C) s) (EXTI N13 C)
+get_button_exti :: (Member Unlocked s, Fresh (EXTI N13 C) s, Fresh (EXTI N13 C) ns) => Setup ns s ns (Cons (EXTI N13 C) s) (EXTI N13 C)
 get_button_exti = Ix.do
     exti <- liftSetupIO $ HAL.board_button_exti HAL.BLUE_BUTTON
     Ix.return $ EXTI 13 exti

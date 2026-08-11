@@ -79,7 +79,11 @@ instance ToGPIOPort H where
     toPort _ = HAL.H
 
 get_gpio :: forall pin port ns s .
-            (Member Unlocked s, ToInt pin, ToGPIOPort port) => Setup ns s ns (Cons (GPIO pin port) s) (GPIO pin port)
+            ( Member Unlocked s
+            , Fresh (GPIO pin port) s
+            , Fresh (GPIO pin port) ns
+            , ToInt pin, ToGPIOPort port
+            ) => Setup ns s ns (Cons (GPIO pin port) s) (GPIO pin port)
 get_gpio = Ix.do
     let pin' = toInt (undefined :: Proxy pin)
         port' = toPort (undefined :: Proxy port)

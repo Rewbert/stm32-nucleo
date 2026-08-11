@@ -162,7 +162,10 @@ idleLoop = systick_delay_ms 1000 >> idleLoop
 -- * Setup --------------------------------------------------------------------
 
 setupKeypadButton :: forall pin port ns s .
-                      (ToInt pin, ToGPIOPort port, Member Unlocked s)
+                      ( ToInt pin, ToGPIOPort port, Member Unlocked s
+                      , Fresh (GPIO pin port) s, Fresh (GPIO pin port) ns
+                      , Fresh (EXTI pin port) s, Fresh (EXTI pin port) ns
+                      )
                    => GPIOConfig -> EXTIEdge -> Int
                    -> Setup ns s (Cons (EXTI pin port) (Cons (GPIO pin port) ns)) s (EXTI pin port, Int)
 setupKeypadButton inCfg edge priority = Ix.do

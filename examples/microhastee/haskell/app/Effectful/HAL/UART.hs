@@ -24,7 +24,7 @@ import qualified HAL as HAL
 
 data UART = UART HAL.UART
 
-get_console :: Member Unlocked s => Setup ns s ns (Cons UART s) UART
+get_console :: (Member Unlocked s, Fresh UART s, Fresh UART ns) => Setup ns s ns (Cons UART s) UART
 get_console = Ix.do
     uart <- liftSetupIO $ HAL.board_console
     Ix.return $ UART uart
