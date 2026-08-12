@@ -6,20 +6,8 @@ import Data.Proxy
 import Control.DeepSeq (NFData (..))
 
 import qualified Control.Monad.IxMonad as Ix
-import Effectful.Setup
 import Control.Monad.IO.Class
-
--- Conditional compilation to include one of two implementations of the same API
-#ifdef SECURE
-import Effectful.Secure
-#else
-import Effectful.NonSecure
-#endif
-
-import Effectful.TypeLevel.List
-import Effectful.TypeLevel.Number
-import Effectful.TypeLevel.Lock
-import Effectful.HAL
+import MicroHasTEE
 
 #ifdef SECURE
 foreign export ccall "app_main" main :: IO ()

@@ -49,6 +49,7 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/Effectful/NonSecure.hs \
   $(HASKELL_DIR)/app/Effectful/Secure.hs \
   $(HASKELL_DIR)/app/Effectful/Setup.hs \
+  $(HASKELL_DIR)/app/MicroHasTEE.hs \
   $(HASKELL_DIR)/app/HW.hs \
   $(HASKELL_DIR)/app/DoorLock.hs \
   $(HASKELL_DIR)/app/HAL.hs \

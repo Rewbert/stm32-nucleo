@@ -29,6 +29,7 @@ executable MicroHasTEE.c
                       NonSecure
                       Setup
                       Hardware
+                      MicroHasTEE
                       HAL.Drivers.SysTick
                       HAL.Drivers.GPIO
                       HAL.Drivers.UART
