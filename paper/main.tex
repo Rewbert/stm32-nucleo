@@ -828,6 +828,8 @@ MicroHs generates one C source file for each firmware image.}
   \label{fig:program-partition}
 \end{figure}
 
+\subsection{Secure Function Registration and Invocation}
+
 Although the participant computations have different runtime meanings in the two builds, both builds execute the same sequence of \inlinehaskell{Setup} operations.
 The setup state contains the counter used to assign corresponding identifiers to callable functions.
 
@@ -880,6 +882,10 @@ It returns a handle containing the current numeric identifier and an initially e
 The correspondence between this identifier and the Secure dispatch table depends on both firmware images executing registrations in the same order.
 MicroHasTEE therefore assumes that matching Secure and Non-secure images are built and deployed together.
 
+After the Secure execution of setup completes, \inlinehaskell{runSetup} extracts the dispatch table from \inlinehaskell{SetupState}.
+Gateway calls may occur after the setup computation has returned, so the implementation creates a \inlinehaskell{StablePtr} that keeps the table reachable by the Haskell runtime.
+It stores the resulting opaque token in a Secure C global and retains it for the lifetime of the firmware.
+
 Applying an argument to a callable function appends a writer action to the handle.
 Given a pointer to a memory-backed \inlinehaskell{BFILE}, this action forces the argument to normal form and serializes it into the buffer.
 Forcing the argument ensures that its evaluation occurs in the Non-secure state before serialization.
@@ -892,37 +898,152 @@ Callable fun writes <.> x =
 \end{lstlisting}
 
 The MicroHs runtime provides serialization and deserialization primitives for supported Haskell values, so applications do not require hand-written serializers for each callable function.
-When the Non-secure participant invokes \inlinehaskell{sg}, it serializes the function identifier followed by its accumulated arguments into a memory-backed \inlinehaskell{BFILE}.
-It passes this buffer and a result buffer through the C Non-secure Callable gateway.
-The gateway validates the caller-provided memory ranges before forwarding their contents to the Secure Haskell dispatcher.
-The dispatcher deserializes the identifier, finds the corresponding handler, deserializes its arguments, and executes the Secure computation.
-It serializes the result into a Secure-side buffer and copies the resulting bytes to the validated Non-secure result buffer.
-The Non-secure implementation then deserializes those bytes into the result of \inlinehaskell{sg}.
+MicroHasTEE uses these primitives to encode a call as a function identifier followed by its arguments.
+Conceptually, the request and response that passes between the two domains have this format (with \texttt{||} denoting concatenation of byte strings).
 
-\subsection{Peripheral Drivers}
+\begin{lstlisting}[basicstyle=\small\ttfamily]
+  request = serialize(identifier)
+          || serialize(arg1)
+          || ...
+          || serialize(argN)
 
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=\columnwidth]{graphics/microhastee-firmware-stack.drawio.pdf}
-  \caption{\todo{Caption: the Secure and Non-secure firmware images, each built from its generated MicroHasTEE C file and the MicroHs runtime on top of that domain's peripheral drivers, running on the shared hardware.}}
-  \Description{Two firmware images, Secure and Non-secure, each composed of a generated C file and the MicroHs runtime on top of that domain's peripheral drivers, both placed above a shared Hardware layer.}
-  \label{fig:firmware-stack}
-\end{figure}
+  response = serialize(result)
+\end{lstlisting}
 
-The design of the driver library is similar to MicroHasTEE, where the same peripheral driver is compiled twice, once for the Secure domain and once for the Non-secure domain.
+The MicroHs runtime format is a combinator graph, and serialised values can be quite large.
+That is the chief reason for ensuring their evaluation before serialization, through the \inlinehaskell{NFData} type class.
+
+The Non-secure implementation of the function \inlinehaskell{sg} produces this serialized package.
+The code below shows the general operation of this function, but omits details concerning resource cleanup and error handling.
+Additionally, it is using an internal function \inlinehaskell{nonsecureLiftIO} to lift this underlying \inlinehaskell{IO} action to the \inlinehaskell{Nonsecure} monad, but this function (or any \inlinehaskell{MonadIO} instance) is not exposed to the end user.
+
+\begin{lstlisting}[style=haskell]
+  sg :: Callable (Secure s a) -> Nonsecure ns a
+  sg (Callable fun writeArgs) = nonsecureLiftIO $
+    alloca $ \outLen ->
+    allocaBytes resultBufferSize $ \outBuf -> do
+      request <- c_openb_wr_mem -- fresh, Ptr BFILE
+  
+      -- create serialized package
+      primHSerialize request fun
+      mapM_ ($ request) writeArgs
+  
+      -- invoke the underlying NSC function
+      c_sg request outBuf resultBufferSize outLen
+  
+      -- fetch the result
+      len      <- peek outLen
+      response <- c_openb_rd_mem outBuf len
+      primHDeserialize response
+\end{lstlisting}
+
+The function \inlinehaskell{c_sg} is a Haskell FFI binding to the C function \inlinec{sg}, which the Secure image exposes through a gateway veneer in the Non-secure Callable region.
+This is the prototype's only NSC entry point and the only direct cross-domain call path exposed by MicroHasTEE.
+
+The Secure application performs the necessary validation checks, using \inlinec{cmse_check_address_range} to validate the request metadata and bytes as readable Non-secure memory and the result buffer and length field as writable Non-secure memory.
+If all checks succeed, it immediately invokes the Secure Haskell runtime by calling a foreign exported Haskell function.
+The below example shows this Haskell function, but omits details concerning error handling and resource management.
+
+\begin{lstlisting}[style=haskell]
+  handle_nsc_call :: Ptr Word8 -> CInt -> Ptr Word8 -> CInt -> Ptr CInt -> IO ()
+  handle_nsc_call inBuf inLen outBuf outCapacity outLenPtr = do
+    -- wrap the input bytes in a read-BFILE
+    input   <- c_openb_rd_mem inBuf (fromIntegral inLen)
+
+    -- deserialise the function index and look it up in the vtable
+    funId <- primHDeserialize input :: IO Int
+
+    table <- getVTable
+    let fun = lookupFun funId table
+    result <- fun input
+
+    (resultBuf, resultLen) <- bfileBytes result
+    if resultLen > fromIntegral outCapacity
+      then poke outLenPtr (-1)
+      else do
+        copyBytes outBuf resultBuf resultLen
+        poke outLenPtr (fromIntegral resultLen)
+\end{lstlisting}
+
+The \inlinehaskell{getVTable} operation reads the token from the Secure C global, reconstructs the \inlinehaskell{StablePtr}, and dereferences it to recover the dispatch table.
+The receiver then uses the deserialized function identifier to select a handler from this table.
+
+Every entry in the dispatch table has the uniform handler type
+\inlinehaskell{Ptr BFILE -> IO (Ptr BFILE)}, although registered Secure functions may have different arities.
+The \inlinehaskell{NonSecureCallable} instances construct this handler recursively from the function's type.
+For a function of type \inlinehaskell{a -> b}, \inlinehaskell{mkNSC} deserializes one value of type \inlinehaskell{a}, applies the function to it, and continues with the resulting value of type \inlinehaskell{b}.
+When the recursion reaches a \inlinehaskell{Secure effects r} computation, it executes the computation and serializes its result.
+The type-class constraints determine the argument and result types during compilation, while the resulting dispatch table has a uniform runtime representation.
+
+\subsection{Peripheral Drivers \& Building the Firmware}
+
+The prototype MicroHasTEE implementation doesn't use an RTOS, and runs bare-metal.
+The authors of this paper have hand-written a library of peripheral drivers.
+The design of the driver library is similar to that of MicroHasTEE, in that they are compiled twice, once for each domain, with the APIs being identical.
+Some operations are guarded by CPP macros to only be included in the Secure build, such as operations for configuring Security attribution.
+The compilation mechanism for the peripheral drivers is illustrated in ~\cref{fig:driver-partition}.
+
+MicroHasTEE's typed HAL operations invoke this C driver library through the Haskell foreign-function interface.
+Both builds type-check the same setup operations, but only the Secure driver implementation performs privileged attribution writes to mechanisms such as the TZSC, GPIO security registers, EXTI, and the NVIC.
+The Non-secure archive retains the same function symbols while compiling privileged operations to no-ops.
+The shared API therefore supports both interpretations of the setup program without allowing the Non-secure firmware to perform Secure configuration.
+
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\columnwidth]{graphics/microhastee-driver-partition.drawio.pdf}
-  \caption{\todo{Caption: the peripheral driver library split into its Secure and Non-secure builds; some operations become no-ops in the Non-secure build but remain exported to keep a unified API.}}
+  \caption{The peripheral driver library split into its Secure and Non-secure builds; some operations become no-ops in the Non-secure build but remain exported to keep a unified API.}
   \Description{The peripheral driver library splits into a Secure and a Non-secure build. In the Secure build all operations are implemented; in the Non-secure build some operations become no-ops, shown as grey squares, while the rest remain implemented.}
   \label{fig:driver-partition}
 \end{figure}
 
-However, some functions become no-op's in the Non-secure domain, but are exported none the less to maintain a unified API regardless of the domain.
+Before the application can be flashed to the MCU, the compelte firmware must be built.
+First, the Secure image is built, producing a library file that the Non-secure image must link against to find the NSC entry points.
+The Non-secure image is them built.
+\Cref{fig:firmware-stack} show an overview of the components that goes into each of the firmware images, and how they are ordered.
 
-\todo{Compute how big the TCB actually is in this case.}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\columnwidth]{graphics/microhastee-firmware-stack.drawio.pdf}
+  \caption{The Secure and Non-secure firmware images, each built from its generated MicroHasTEE C file and the MicroHs runtime on top of that domain's peripheral drivers, running on the shared hardware.
+           The CMSE import library that the Secure build produces is omitted, as it is an artifact used by the linker, and is not present at runtime.}
+  \Description{Two firmware images, Secure and Non-secure, each composed of a generated C file and the MicroHs runtime on top of that domain's peripheral drivers, both placed above a shared Hardware layer.}
+  \label{fig:firmware-stack}
+\end{figure}
 
 \section{Evaluation}
+
+\subsection{Trusted Computing Base}
+
+The Trusted Computing Base (TCB) is the software that a programmer needs to trust to implement the Security guarantees(?).
+It is desirable that this be as small as possible, as more code typically means more bugs.
+The TCB of MicroHasTEE is made up of the peripheral drivers, startup code, linker scripts, the MicroHs compiler, the MicroHs runtime system, and the MicroHs base libraries.
+The size of the components is presented in ~\cref{table:tcb}.
+
+\begin{table}[ht]
+  \caption{Source-code size of the components in MicroHasTEE's trusted computing base.}
+  \label{table:tcb}
+  \centering
+  \begin{tabular}{lr}
+    \toprule
+    Component & SLoC \\
+    \midrule
+    Peripheral driver library & 1588 \\
+    Startup code & 360 \\
+    Linker scripts & 192 \\
+    \addlinespace
+    MicroHs compiler & 10137 \\
+    MicroHs runtime system & TBD \\
+    MicroHs base-library closure & 13258 \\
+    \addlinespace
+    MicroHasTEE Haskell Code & 2068 \\
+    MicroHasTEE C code & 340 \\
+    \midrule
+    Total & TBD \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\todo{Need to explicitly say something about GCC. Why do I include MicroHs above, but not GCC?}
 
 \section{Related Work}
 
