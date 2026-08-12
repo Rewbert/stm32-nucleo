@@ -780,6 +780,148 @@ Raw C, FFI, internal interfaces, and malformed gateway input remain outside the 
 \section{Implementation}
 \label{sec:implementation}
 
+This section describes how MicroHasTEE turns a source program into the two firmware images deployed on a microcontroller.
+Our prototype targets an STM32U5A5ZJQ microcontroller, which combines a Cortex-M33 processor implementing Armv8-M TrustZone with 4 MB of flash and 2.5 MB of SRAM.
+The firmware runs bare metal, without an operating system or RTOS.
+The prototype therefore includes the linker scripts, startup code, and board support needed to initialize the device and start the MicroHs runtimes.
+
+\subsection{Program Partitioning and Compilation}
+
+A MicroHasTEE source program contains computations for both the Secure and Non-secure participants, but the two participants execute in separate firmware images.
+The build system therefore invokes MicroHs twice on the same source program.
+
+In the Secure build, the preprocessor selects an implementation in which \inlinehaskell{Secure} computations contain executable \inlinehaskell{IO} actions and \inlinehaskell{Nonsecure} computations are represented by placeholders.
+The Non-secure build selects the complementary implementation: \inlinehaskell{Nonsecure} computations contain executable actions, while \inlinehaskell{Secure} computations become placeholders.
+The public types remain the same in both builds, so each build checks the same setup sequence and the same division of resources and computations.
+
+The two interpretations reside in separate implementation modules.
+The \texttt{SECURE} build flag determines which module the common MicroHasTEE interface re-exports.
+
+\begin{lstlisting}[style=haskell]
+-- Effectful/Internal/Secure.hs
+data Secure effects a = Secure (IO a)
+
+data Nonsecure effects a = NonSecure
+
+-- Effectful/Internal/NonSecure.hs
+data Secure effects a = SecureDummy
+
+data Nonsecure effects a = Nonsecure (IO a)
+\end{lstlisting}
+
+These definitions are alternatives and never coexist in one build.
+Both modules expose the same abstract types and operations, while giving runtime behavior only to computations belonging to the target domain.
+
+\Cref{fig:program-partition} illustrates this process.
+Each compilation retains the behavior associated with its target domain and erases the behavior of the other participant.
+MicroHs then generates one C source file from each build.
+The firmware build links each generated file with a separate MicroHs runtime, the startup code, the C gateway code, and the drivers compiled for that domain.
+The result is a Secure and a Non-secure firmware image that are flashed into their respective memory regions.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.24]{graphics/microhastee-microhastee-partition.drawio.pdf}
+  \caption{Compilation of one MicroHasTEE program into two domain-specific C programs.
+The Secure build gives runtime meaning to Secure computations and replaces Non-secure computations with placeholders, while the Non-secure build does the converse.
+MicroHs generates one C source file for each firmware image.}
+  \Description{An input program containing Secure and Nonsecure regions is compiled twice. The Secure compilation keeps the Secure region and substitutes a dummy for the Nonsecure region; the Nonsecure compilation does the reverse. Code generation then produces secure.c and nonsecure.c respectively.}
+  \label{fig:program-partition}
+\end{figure}
+
+Although the participant computations have different runtime meanings in the two builds, both builds execute the same sequence of \inlinehaskell{Setup} operations.
+The setup state contains the counter used to assign corresponding identifiers to callable functions.
+
+\begin{lstlisting}[style=haskell]
+  data Setup nsPre sPre nsPost sPost a =
+    Setup (StateT SetupState IO a)
+  
+  data SetupState = SetupState
+    { nonSecureCallable :: [(Int, Ptr BFILE -> IO (Ptr BFILE))]
+    , counter           :: Int
+    , extiCallbacks     :: [ExtiCallback]
+    }
+\end{lstlisting}
+
+Registration of a Secure callable function illustrates why the two executions of setup must remain synchronized.
+Both builds assign each registration the current counter value and then increment the counter.
+The Secure implementation uses \inlinehaskell{mkNSC} to convert the registered function into a dispatch handler, stores the identifier and handler in \inlinehaskell{nonSecureCallable}, and returns a placeholder handle.
+
+\begin{lstlisting}[style=haskell]
+  data Callable a = CallableDummy
+
+  callable :: (Member Locked s, NonSecureCallable s a)
+           => a -> Setup ns s ns s (Callable a)
+  callable f = do
+      let g inBf = mkNSC f inBf
+      modify $ \st ->
+          st { counter = counter st + 1
+             , nonSecureCallable = (counter st, g) : nonSecureCallable st
+             }
+      return CallableDummy
+\end{lstlisting}
+
+The returned \inlinehaskell{Callable} value is a placeholder because the Secure firmware does not use the client-side handle.
+In this build, the Non-secure computation that applies the handle and invokes \inlinehaskell{sg} is itself represented by a placeholder and is not executed.
+On the Non-secure side, however, these operations carry a different meaning.
+
+\begin{lstlisting}[style=haskell]
+  data Callable a = Callable Int [Ptr BFILE -> IO ()]
+
+  callable :: (Member Locked s, NonSecureCallable s a)
+           => a -> Setup ns s ns s (Callable a)
+  callable _ = do
+      setupst <- get
+      put $ setupst { counter = counter setupst + 1 }
+      return $ Callable (counter setupst) []
+\end{lstlisting}
+
+In the Non-secure build, \inlinehaskell{callable} discards the Secure function because Secure computations have no runtime representation in that build.
+It returns a handle containing the current numeric identifier and an initially empty list of argument serializers.
+The correspondence between this identifier and the Secure dispatch table depends on both firmware images executing registrations in the same order.
+MicroHasTEE therefore assumes that matching Secure and Non-secure images are built and deployed together.
+
+Applying an argument to a callable function appends a writer action to the handle.
+Given a pointer to a memory-backed \inlinehaskell{BFILE}, this action forces the argument to normal form and serializes it into the buffer.
+Forcing the argument ensures that its evaluation occurs in the Non-secure state before serialization.
+
+\begin{lstlisting}[style=haskell]
+  (<.>) :: NFData a => Callable (a -> b) -> a -> Callable b
+Callable fun writes <.> x =
+  Callable fun (writes ++ [\bf ->
+    x `deepseq` primHSerialize bf x])
+\end{lstlisting}
+
+The MicroHs runtime provides serialization and deserialization primitives for supported Haskell values, so applications do not require hand-written serializers for each callable function.
+When the Non-secure participant invokes \inlinehaskell{sg}, it serializes the function identifier followed by its accumulated arguments into a memory-backed \inlinehaskell{BFILE}.
+It passes this buffer and a result buffer through the C Non-secure Callable gateway.
+The gateway validates the caller-provided memory ranges before forwarding their contents to the Secure Haskell dispatcher.
+The dispatcher deserializes the identifier, finds the corresponding handler, deserializes its arguments, and executes the Secure computation.
+It serializes the result into a Secure-side buffer and copies the resulting bytes to the validated Non-secure result buffer.
+The Non-secure implementation then deserializes those bytes into the result of \inlinehaskell{sg}.
+
+\subsection{Peripheral Drivers}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\columnwidth]{graphics/microhastee-firmware-stack.drawio.pdf}
+  \caption{\todo{Caption: the Secure and Non-secure firmware images, each built from its generated MicroHasTEE C file and the MicroHs runtime on top of that domain's peripheral drivers, running on the shared hardware.}}
+  \Description{Two firmware images, Secure and Non-secure, each composed of a generated C file and the MicroHs runtime on top of that domain's peripheral drivers, both placed above a shared Hardware layer.}
+  \label{fig:firmware-stack}
+\end{figure}
+
+The design of the driver library is similar to MicroHasTEE, where the same peripheral driver is compiled twice, once for the Secure domain and once for the Non-secure domain.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\columnwidth]{graphics/microhastee-driver-partition.drawio.pdf}
+  \caption{\todo{Caption: the peripheral driver library split into its Secure and Non-secure builds; some operations become no-ops in the Non-secure build but remain exported to keep a unified API.}}
+  \Description{The peripheral driver library splits into a Secure and a Non-secure build. In the Secure build all operations are implemented; in the Non-secure build some operations become no-ops, shown as grey squares, while the rest remain implemented.}
+  \label{fig:driver-partition}
+\end{figure}
+
+However, some functions become no-op's in the Non-secure domain, but are exported none the less to maintain a unified API regardless of the domain.
+
+\todo{Compute how big the TCB actually is in this case.}
+
 \section{Evaluation}
 
 \section{Related Work}
