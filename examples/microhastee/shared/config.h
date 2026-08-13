@@ -14,6 +14,10 @@ void _exit(int n);
 
 #define WANT_MD5 0
 
+#define WANT_LZMA 0
+#define WANT_LZ77 0
+#define WANT_BASE64 0
+
 #define WANT_TICK 0
 
 #define WANT_TICK 0
