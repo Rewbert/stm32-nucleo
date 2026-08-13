@@ -323,7 +323,7 @@ A disagreement becomes a compile-time error instead of a fault observed after de
 These guarantees apply to operations expressed through MicroHasTEE.
 The framework cannot account for arbitrary C or FFI code that accesses a peripheral directly or modifies security registers outside its interface.
 The MicroHasTEE programming model is not specific to the STM32U5.
-It can target other TrustZone-M microcontrollers with sufficient flash and SRAM, provided that a backend realizes the required memory, peripheral, and interrupt attribution mechanisms.
+It can target other TrustZone-M microcontrollers with sufficient flash and SRAM, provided that the platform establishes the required memory partition and that a MicroHasTEE backend implements the supported peripheral and interrupt attribution operations.
 The implementation evaluated in this work uses the STM32U5-specific security hardware.
 
 This work makes three contributions:
@@ -373,6 +373,9 @@ The IDAU and SAU classify only transactions issued by the CPU, while other bus m
 ST therefore protects each SRAM bank at its memory interface with a block-based memory protection controller (MPCBB).
 Each MPCBB assigns Secure or Non-secure attributes to individual SRAM blocks.
 The SAU/IDAU and MPCBB configurations must assign compatible attributes to every SRAM region used by the firmware.
+In our prototype, this memory partition is fixed by the linker scripts and Secure startup code.
+MicroHasTEE does not represent flash or SRAM regions in its capability ledgers or reconfigure their attribution during application setup.
+Instead, it assumes that this platform configuration correctly isolates the two firmware images.
 
 \begin{figure*}[t]
   \centering
@@ -524,7 +527,8 @@ The program describes each participant's computations, the resources assigned to
 The build compiles this program twice, once for each TrustZone domain.
 In the Secure build, \inlinehaskell{Secure} computations execute while \inlinehaskell{Nonsecure} computations are represented by placeholders; the Non-secure build reverses these roles.
 The two builds select different implementations of the same MicroHasTEE interface, so they type-check the same setup sequence and derive corresponding views of the shared program.
-The program's setup phase assigns security attribution, configures peripherals, registers callbacks and Secure services, and starts the Non-secure application.
+The program's setup phase configures the attribution of tracked peripherals, GPIO pins, and interrupts, registers callbacks and Secure services, and starts the Non-secure application.
+The fixed flash and SRAM partition has already been established by the linker scripts and Secure startup code.
 
 MicroHasTEE represents resource ownership with a pair of type-level capability ledgers, one for each participant.
 The \inlinehaskell{Setup} monad describes a transition from one pair of ledgers to another.
@@ -805,6 +809,8 @@ This section describes how MicroHasTEE turns a source program into the two firmw
 Our prototype targets an STM32U5A5ZJQ microcontroller, which combines a Cortex-M33 processor implementing Armv8-M TrustZone with 4 MB of flash and 2.5 MB of SRAM.
 The firmware runs bare metal, without an operating system or RTOS.
 The prototype therefore includes the linker scripts, startup code, and board support needed to initialize the device and start the MicroHs runtimes.
+Before either MicroHasTEE participant starts, Secure startup code configures the SAU and MPCBBs to realize the fixed memory layout described in \cref{fig:memory-partition}.
+This configuration, together with the linker scripts and the IDAU mapping, forms part of the trusted platform backend rather than the typed MicroHasTEE setup.
 
 \subsection{Program Partitioning and Compilation}
 
