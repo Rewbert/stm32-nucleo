@@ -10,8 +10,15 @@
 #include "firmware/boards/board.h"
 
 #include <string.h>
+#include <stdlib.h>
 #include <arm_cmse.h>
 #include "config.h"
+
+/* Upper bound on a serialised closure/Callable message (function index + all
+   argument bytes) that we're willing to copy onto the Secure heap. We expect
+   these messages to stay small; this just needs to be comfortably above the
+   largest legitimate call while still bounding a NS-controlled allocation. */
+#define MAX_NSC_INPUT_LEN 8192
 
 int mhs_main(int argc, char **argv);
 
@@ -97,12 +104,28 @@ NONSECURE_CALLABLE void sg(struct BFILE *input_bfile,
        software convention). */
     if (!cmse_check_address_range(p, sizeof(*p), CMSE_NONSECURE | CMSE_MPU_READ) ||
         !cmse_check_address_range(p->buf, p->pos, CMSE_NONSECURE | CMSE_MPU_READ) ||
-        !cmse_check_address_range(output_buf, output_capacity, CMSE_NONSECURE | CMSE_MPU_READWRITE)) {
+        !cmse_check_address_range(output_buf, output_capacity, CMSE_NONSECURE | CMSE_MPU_READWRITE) ||
+        p->pos > MAX_NSC_INPUT_LEN) {
         *output_len = -1;
         return;
     }
 
-    c_handle_nsc_call(p->buf, (int)p->pos, output_buf, output_capacity, output_len);
+    /* p->buf is validated above, but it still lives in NS memory: nothing
+       stops the NS side (or NS-attributed DMA) from mutating it while we are
+       part-way through deserialising, since that happens over many separate
+       reads rather than all at once. Copy it into a Secure-owned buffer here
+       and deserialise from that copy instead, so the bytes we parse can't
+       change out from under us after this point. */
+    uint8_t *secure_copy = malloc(p->pos);
+    if (!secure_copy) {
+        *output_len = -1;
+        return;
+    }
+    memcpy(secure_copy, p->buf, p->pos);
+
+    c_handle_nsc_call(secure_copy, (int)p->pos, output_buf, output_capacity, output_len);
+
+    free(secure_copy);
 }
 
 void main(void) {
