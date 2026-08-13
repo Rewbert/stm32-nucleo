@@ -1012,12 +1012,21 @@ The Non-secure image is them built.
 
 \section{Evaluation}
 
+MicroHasTEE is a prototype implementation, and we evaluate it primarily through a case study.
+The purpose of the case study is to establish feasibility of the framework itself, and to illustrate how the security configuration is enforced\todo{rephrase}.
+After we have presented the case study, we establish the trusted computing base, analyse the case study's resource requirements (flash and SRAM), and \todo{present some initial performance evaluations}.
+
+\subsection{Case Study: \todo{A Secure Door Lock}}
+
+blabla describe the application
+
 \subsection{Trusted Computing Base}
 
 The Trusted Computing Base (TCB) is the software that a programmer needs to trust to implement the Security guarantees(?).
 It is desirable that this be as small as possible, as more code typically means more bugs.
-The TCB of MicroHasTEE is made up of the peripheral drivers, startup code, linker scripts, the MicroHs compiler, the MicroHs runtime system, and the MicroHs base libraries.
-The size of the components is presented in ~\cref{table:tcb}.
+The TCB of MicroHasTEE depends on not just the MicroHasTEE-specific software, but also on the arm-none-eabi-gcc compiler, libc, linker, and assembler.
+However, for the sake of presentation we omit them and report only the project-specific additions to the TCB that MicroHasTEE adds.
+The contents of the TCB are listed in~\cref{table:tcb}.
 
 \begin{table}[ht]
   \caption{Source-code size of the components in MicroHasTEE's trusted computing base.}
@@ -1032,18 +1041,87 @@ The size of the components is presented in ~\cref{table:tcb}.
     Linker scripts & 192 \\
     \addlinespace
     MicroHs compiler & 10137 \\
-    MicroHs runtime system & TBD \\
-    MicroHs base-library closure & 13258 \\
+    MicroHs runtime system & 8644 \\
+    MicroHs base-library source closure (conservative) & 13258 \\
     \addlinespace
     MicroHasTEE Haskell Code & 2068 \\
     MicroHasTEE C code & 340 \\
     \midrule
-    Total & TBD \\
+    Total & 36587 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\todo{Need to explicitly say something about GCC. Why do I include MicroHs above, but not GCC?}
+Of the peripheral drivers, just under 500 SLoC are header definitions whereas the remaining ~1k SLoC is actual source code.
+The MicroHs base-library source closure is quite large, at just over 13k SLoC.
+This is a conservative estimate, however, and the final dependency is most likely much lower.
+This is the sum of lines of code in the transitive closure of all base-library modules that are loaded during compilation of MicroHasTEE.
+However, even if we end up using just one or two definitions from a module, its entire content is counted in the reported number.
+The compiler performs pruning before generating code.
+
+We observe that the code produced \textit{for} MicroHasTEE consists of \(4548\) SLoC, while the MicroHs compiler and runtime it relies on contributes the rest.
+Out of the \(2068\) SLoC of Haskell code, roughly \(1500\) SLoC are bindings for the underlying peripheral drivers, and then the effect-tracking wrapper around them.
+The actual MicroHasTEE multiparty programming framework is surprisingly small, consisting of ~400 SLoc.
+
+\subsection{Memory Requirements}
+
+The MicroHs runtime use graph reduction to execute a program.
+WHen a program is executed the runtime system first constructs a graph in memory from a serialized representation emitted by the MicroHs compiler.
+This graph contains both the programs code and its data, and is modified repeatedly during execution by a byte code interpreter.
+The graph is updated in place to enable sharing.
+
+\begin{table}[ht]
+  \caption{Flash footprint of the Secure and Non-secure images of the MicroHasTEE door-lock example (STM32U5), attributed per component via the linker map.
+           The C library row is code pulled in transitively from the toolchain (\texttt{libc}/\texttt{libgcc}) rather than written for this project.}
+  \label{table:flash-requirement}
+  \centering
+  \begin{tabular}{lcr}
+    \toprule
+    Component & Secure (KiB) & Non-secure (KiB) \\
+    \midrule
+    MicroHs runtime & 75.9 & 75.9 \\
+    C library (\texttt{libc}/\texttt{libgcc}) & 72.3 & 72.0 \\
+    Example program & 67.9 & 67.0 \\
+    Peripheral drivers & 7.6 & 5.1 \\
+    udb (flash KV store) & 5.0 & 5.0 \\
+    Bootloader / TZ init & 2.6 & 2.2 \\
+    Board glue & 1.5 & 1.3 \\
+    \midrule
+    Total & 232.7 & 228.4 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+When the runtime is compiled for the MCU in this paper, it deliberately omits certain functionality.
+As an example, the runtime's support for accepting the initial serialized program in a compressed format is not included, as it is not a feature we need.
+The runtime system itself requires ~76 KiB of flash memory, and is roughly the same on both images, totalling 152 KiB.
+
+Additionally, the serialized version of the initial program exists in a \texttt{const} array and is similarly compiled and stored in flash.
+The example program used in the case study requires 67.9 KiB on the Secure image, and 67 KiB in the Non-secure image.
+
+The peripheral drivers occupy much less, but also show more of a difference.
+This is due to how they are designed, where a noticable amount of peripheral operations (configuration and security attribution) are only carried out by the Secure image.
+This has the effect of the Non-secure peripheral library occupying 2.5 KiB less flash.
+
+How much SRAM is required is more difficult to assess.
+This stems from the fact that memory usage is difficult to predict in a lazy functional language.
+
+The graph that MicroHs uses is built up of uniformly sized \textit{nodes}.
+On a 32-bit build that we use for MCUs, a node occupies \(8\) bytes.
+The runtime heap-allocates cells in which nodes live, as well as a stack of node pointers.
+Each stack entry occupies 4 bytes.
+
+While it is somewhat application specific how many heap cells your program will require, for the door-lock case study used in this paper, we allocate \(24000\) heap cells and a stack with room for \(5000\) node pointers.
+We allocate \(750\) words for the garbage collector (~3 KiB), and require an additional ~10 KiB for other static globals declared in the \texttt{.data} and \texttt{.bss} sections.
+
+In total, one firmware image will reliable require \textit{at least} ~220 KiB of SRAM at runtime.
+The MicroHs runtime will not try to allocate more heap cells if the program runs out of free cells, and crashes.
+The Secure and Non-secure images both require this amount of memory, so across both domains our application requires ~440 KiB of SRAM.
+The STM32U5A5ZJQ we use has 2.5 MiB of SRAM, well beneath our requirements.
+
+\subsection{NSC Latency}
+
+\todo{How long does a NSC call take? Compare with a native C call, to measure the cost.}
 
 \section{Related Work}
 
@@ -1065,6 +1143,17 @@ J\(_{E}\) implements a subset of Java, and comes with support for running in enc
 It uses Information-Flow Control to ensure that data does not flow through the program in undesireble ways.
 Compilation is advanced, with a program first undergoing partitioning before another pass ensures that the two programs interactions are not ill-formed.
 
+Concerning running functional languages on MCUs, but not necessarily in a trusted execution environment, a noteworthy priject is the \textit{lbm} interpreter.
+lbm is a Lisp interpreter that has been written solely with MCUs being the intended execution environment.
+It optimises for performance in a resource constrainted environment, and implements many features and extensions not usually rpesent in Lisp.
+It has seen great adoption by the VESC community, where it is used to program motorcontrollers and to implement UIs.
+
+\section{Discussion}
+
+The project HasTEE did not use MicroHs, and instead used the de-facto Haskell compiler, GHC.
+They targeted a more conventional platform than a MCU, such as a laptop.
+Its TCB was, in effect, significantly larger.
+The GHC runtime system alone exceeds 50000 SLoC.
 
 \section{Conclusions \& Future Work}
 
@@ -1075,6 +1164,16 @@ Evaluation\todo{yet to be done} shows that there is a significant performance co
 The prototype is compiled with a non-optimising compiler, and deployed to a runtime that uses a simple but small bytecode interpreter.
 For these reasons we are not surprised by the results.
 A more mature implementation of MicroHasTEE should strive to use a more efficient runtime, but none exists today.
+
+Trying to optimise a program for memory usage is a task not seldomly undertaken by embedded developers.
+We won't say too much about this, but point out one apple that hangs particularly low.
+The compiled program is written to flash in a buffer, in a serialized format.
+The program begins execution by parsing this format and building the program graph in SRAM.
+Once this initial graph is constructed, the buffer from which it was built is no longer needed.
+
+In our case study, this buffer accounted for almost a third of all the flash necessary.
+Rather than writing the serialized format to flash, we could instread send it to to the runtime system via UART.
+We would then not require an in-flash copy of the program, and would save almost 70 KiB.
 
 %%
 %% The acknowledgments section is defined using the "acks" environment
