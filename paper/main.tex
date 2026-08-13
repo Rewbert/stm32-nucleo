@@ -496,6 +496,27 @@ The difficulty arises when they need to be used together to agree on a security 
 The simple act of allowing a Non-secure button handler to call a Secure service involves peripheral and interrupt attribution, a Non-secure vector entry, matching declarations in two programs, a gateway veneer, and an ordered build in which the Secure link produces input to the Non-secure link.
 Each mechanism may by itself look correct, while some other part of the system disagrees with the policy.
 
+\section{Threat Model and Scope}
+
+MicroHasTEE addresses two distinct concerns.
+Its type system detects configuration inconsistencies introduced by a trusted but fallible developer, while TrustZone-M provides run-time isolation from compromised Non-secure firmware.
+
+We assume that matching firmware images are initially generated from the same MicroHasTEE program and deployed together.
+The adversary may then execute arbitrary Non-secure code, read and modify Non-secure memory, use Non-secure-attributed peripherals, and invoke NSC gateways with arbitrary pointers and messages.
+Any service registered as callable is available to the entire Non-secure domain, because callable handles are not authorization capabilities.
+We assume that the adversary cannot modify Secure firmware, change security attribution, directly access Secure resources, or enter Secure code except through designated NSC gateways.
+Our run-time objective is to preserve the confidentiality and integrity of Secure code, data, and peripherals, except for effects intentionally exposed by registered services.
+
+MicroHasTEE uses a separate fault model for the developer.
+For programs expressed through its public interface, the type system checks resource transfers, resource use, callback placement, and the registration of callable services.
+After \inlinehaskell{lock_configuration}, well-typed code cannot perform further attribution-changing operations through that interface.
+These guarantees do not apply to raw C, foreign-function calls, or internal modules, and the type-level ledgers express software authority rather than exclusive hardware access.
+
+The guarantees assume that both builds execute corresponding setup operations in the same order and that MicroHasTEE, its hardware backend, the Secure gateway, the MicroHs toolchain and runtime, and the underlying hardware are correct.
+Malformed gateway messages are not covered by the static types but remain within the run-time threat model.
+The gateway must validate and copy Non-secure input before trusted deserialization code processes it.
+We exclude physical attacks, fault injection, side channels, invasive debugging, firmware rollback, denial of service, and faults within the trusted computing base.
+
 \section{MicroHasTEE}
 
 MicroHasTEE is a multitier programming framework in which the Secure and Non-secure applications are participants in one source-level program.
