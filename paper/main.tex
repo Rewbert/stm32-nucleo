@@ -306,6 +306,14 @@ Secure code may continue to use a UART after the firmware has assigned it to the
 The hardware enforces the configured boundary at run time, but it cannot determine whether the two applications agree about that boundary.
 Developers therefore discover many configuration mismatches only when they execute the firmware on the target device.
 
+Trusted Firmware-M (TF-M) is the reference implementation of the Platform Security Architecture's Secure Processing Environment for Armv8-M and Armv8.1-M systems~\cite{trustedfirmwarem}.
+It provides secure boot, isolated Secure partitions, standardized communication with Non-secure software, and common services such as cryptography, protected storage, and attestation.
+TF-M Secure Partition manifests declare the services, memory-mapped peripherals, and interrupts required by each partition, while platform-specific code maps these declarations to the underlying security hardware.
+TF-M therefore provides the principal conventional framework for constructing portable TrustZone-M systems.
+
+MicroHasTEE addresses a complementary source-language problem.
+Rather than describing Secure partitions and their resources in separate manifests and programs, it derives both firmware images from one typed program and checks peripheral operations against a shared account of resource authority and transfer.
+
 MicroHasTEE instead treats TrustZone firmware as a multiparty Haskell program whose participants are the Secure and Non-secure applications.
 Although these participants execute as separate firmware images, the programmer implements them simultaneously in one source-level program.
 This program describes the computations performed by each participant, the resources available to them, the transfer of resources between them, and their permitted cross-boundary calls.
