@@ -1172,7 +1172,7 @@ We allocate \(750\) words for the garbage collector (~3 KiB), and require an add
 In total, one firmware image will reliable require \textit{at least} ~220 KiB of SRAM at runtime.
 The MicroHs runtime will not try to allocate more heap cells if the program runs out of free cells, and crashes.
 The Secure and Non-secure images both require this amount of memory, so across both domains our application requires ~440 KiB of SRAM.
-The STM32U5A5ZJQ we use has 2.5 MiB of SRAM, well beneath our requirements.
+The STM32U5A5ZJQ we use has 2.5 MiB of SRAM, well above our requirements.
 
 \subsection{NSC Latency}
 
@@ -1227,7 +1227,7 @@ The Rust programming language supports TrustZone-M natively.
 The Rust compiler, \texttt{rustc}, recognizes TrustZone-M and emits the special assembly instructions that switch between the two domains.
 It also emits veneers in the Non-secure callable region so that a Non-secure application can invoke Secure services.
 Rust does not, however, configure the security attribution.
-The developer must still write the register-manipulating code that configures the SAY \& IDAU and attributes peripherals.
+The developer must still write the register-manipulating code that configures the SAU \& IDAU and attributes peripherals.
 The developer must also link the two images together, either by exporting a Secure library for the Non-secure application to use or by banking registers between the two.
 Rust faithfully implements the CMSE toolchain contract as two calling conventions, much like arm-none-eabi-gcc does.
 
