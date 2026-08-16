@@ -1226,16 +1226,17 @@ Rust faithfully implements the CMSE toolchain contract as two calling convention
 HasTEE\cite{DBLP:conf/haskell/SarkarKRC23} is a Haskell framework for confidential computing on Intel SGX.
 Its multiparty programming model inspired MicroHasTEE's own design.
 HasTEE targeted SGX enclaves on conventional machines, such as laptops, whereas MicroHasTEE targets TrustZone-M on a microcontroller.
-HasTEE also relied on a patched GHC runtime system to run Haskell inside the enclave, whereas MicroHasTEE compiles and runs the upstream MicroHs runtime system on bare metal in both TrustZone-M states.
+HasTEE also relied on a patched GHC runtime system to run Haskell inside the enclave, whereas MicroHasTEE compiles and runs the upstream MicroHs runtime system on bare metal in both TrustZone-M states.\\
 
 There are relatively few projects where a high-level managed language like Haskell is used to run code in TrustZone-M.
 If we instead divert our eyes to TrustZone-A or Intel SGX, we find more projects.
 
-GoTEE\todo{cite} is a project where a Go compiler and runtime was heavily modified to suppoert \textit{secure routines}, which are executed inside enclaves.
+\paragraph{GoTEE}
+GoTEE\cite{DBLP:conf/usenix/GhosnLB19} is a project where a Go compiler and runtime was heavily modified to suppoert \textit{secure routines}, which are executed inside enclaves.
 Furthermore, GoTEE implements channels for communication between the enclave and the program running outside.
 The Go compiler was extended with support for automatically partitioning a program, but does otherwise not help the programmer control how sensitive data moves within a program.
 
-J\(_{E}\) implements a subset of Java, and comes with support for running in enclaves.
+J\(_{E}\)\cite{DBLP:conf/csfw/OakABS21} implements a subset of Java, and comes with support for running in enclaves.
 It uses Information-Flow Control to ensure that data does not flow through the program in undesireble ways.
 Compilation is advanced, with a program first undergoing partitioning before another pass ensures that the two programs interactions are not ill-formed.
 
