@@ -317,7 +317,7 @@ Secure code may continue to use a UART after the firmware has assigned it to the
 The hardware enforces the configured boundary at run time, but it cannot determine whether the two applications agree about that boundary.
 Developers therefore discover many configuration mismatches only when they execute the firmware on the target device.
 
-Trusted Firmware-M (TF-M) is the reference implementation of the Platform Security Architecture's Secure Processing Environment for Armv8-M and Armv8.1-M systems~\cite{trustedfirmwarem}.
+Trusted Firmware-M (TF-M)\cite{tfm} is the reference implementation of the Platform Security Architecture's Secure Processing Environment for Armv8-M and Armv8.1-M systems.
 It provides secure boot, isolated Secure partitions, standardized communication with Non-secure software, and common services such as cryptography, protected storage, and attestation.
 TF-M Secure Partition manifests declare the services, memory-mapped peripherals, and interrupts required by each partition, while platform-specific code maps these declarations to the underlying security hardware.
 TF-M therefore provides the principal conventional framework for constructing portable TrustZone-M systems.
@@ -1172,14 +1172,13 @@ The STM32U5A5ZJQ we use has 2.5 MiB of SRAM, well beneath our requirements.
 \section{Related Work}
 
 \paragraph{TF-M}
-To jusitfy MicroHasTEE at all, we need to describe precisely how MicroHasTEE relates to TF-M.
-While TrustZone-M by itself gives us ``nothing more'' than two address spaces and a fault if execution from one space reaches into the other, TF-M implements a full trusted execution environment.
-TrustZone-M gives us the mechanisms by which we can build these richer environments, but is by itself not a trusted execution environment.
-MicroHasTEE does not claim to be a trusted execution environment, instead adopts the more bare-bones model that TrustZone-M implements.
-We can model the two execution domains and ensure that they remain separated, save for the principled gateway.
-However, MicroHasTEE checks the separation statically at compile time.
-MicroHasTEE also ensures that the peripheral attribution that the program assumes is correctly configured, and rejects ill-formed programs at compile time.
-~\Cref{table:tfm-vs-microhastee} collects some of the differences between TF-M and MicroHasTEE.
+TrustZone-M by itself gives nothing more than two address spaces and a fault when execution in one space reaches into the other.
+TF-M uses these mechanisms to implement a full trusted execution environment.
+MicroHasTEE does not claim to be a trusted execution environment.
+Instead, it adopts the minimal model TrustZone-M provides on its own.
+MicroHasTEE models the two domains and ensures they remain separated, except through designated NSC gateways.
+MicroHasTEE checks this separation statically, at compile time, and checks that a program's assumed peripheral attribution matches its actual configuration, rejecting ill-formed programs before the firmware reaches the target device.
+\Cref{table:tfm-vs-microhastee} collects some of the differences between TF-M and MicroHasTEE.
 
 \begin{table}[ht]
   \caption{\todo{blabla, maybe mention that microhastee has one secure partition, whereas tf-m allows multiple?}}
