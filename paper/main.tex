@@ -1213,14 +1213,20 @@ This manifest describes only the Secure partition; it is oblivious to the Non-se
 A developer can therefore still write Non-secure code that assumes access to a peripheral, such as a UART, that a partition's manifest has already claimed as Secure, and the mismatch surfaces only when the firmware executes.
 MicroHasTEE closes this gap by checking both participants against one shared, compile-time account of attribution, turning such a disagreement into a compile-time error rather than a fault discovered on hardware.
 
+\paragraph{Rust}
+The Rust programming language supports TrustZone-M natively.
+The Rust compiler, \texttt{rustc}, recognizes TrustZone-M and emits the special assembly instructions that switch between the two domains.
+It also emits veneers in the Non-secure callable region so that a Non-secure application can invoke Secure services.
+Rust does not, however, configure the security attribution.
+The developer must still write the register-manipulating code that configures the SAY \& IDAU and attributes peripherals.
+The developer must also link the two images together, either by exporting a Secure library for the Non-secure application to use or by banking registers between the two.
+Rust faithfully implements the CMSE toolchain contract as two calling conventions, much like arm-none-eabi-gcc does.
+
 \paragraph{HasTEE}
 HasTEE\cite{DBLP:conf/haskell/SarkarKRC23} is a Haskell framework for confidential computing on Intel SGX.
 Its multiparty programming model inspired MicroHasTEE's own design.
 HasTEE targeted SGX enclaves on conventional machines, such as laptops, whereas MicroHasTEE targets TrustZone-M on a microcontroller.
 HasTEE also relied on a patched GHC runtime system to run Haskell inside the enclave, whereas MicroHasTEE compiles and runs the upstream MicroHs runtime system on bare metal in both TrustZone-M states.
-
-
-\todo{rust for TrustZone-M}.
 
 There are relatively few projects where a high-level managed language like Haskell is used to run code in TrustZone-M.
 If we instead divert our eyes to TrustZone-A or Intel SGX, we find more projects.
