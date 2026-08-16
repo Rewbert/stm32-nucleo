@@ -1242,10 +1242,10 @@ J\(_{E}\)\cite{DBLP:conf/csfw/OakABS21} implements a subset of Java and supports
 It uses Information-flow control to keep data from flowing through the program in undesirable ways.
 A program first undergoes partitioning, and a second compiler pass then checks that the interactions between the two resulting programs are not ill-formed.
 
-Concerning running functional languages on MCUs, but not necessarily in a trusted execution environment, a noteworthy priject is the \textit{lbm} interpreter.
-lbm is a Lisp interpreter that has been written solely with MCUs being the intended execution environment.
-It optimises for performance in a resource constrainted environment, and implements many features and extensions not usually rpesent in Lisp.
-It has seen great adoption by the VESC community, where it is used to program motorcontrollers and to implement UIs.
+\paragraph{LispBM}
+LispBM's interpreter is a noteworthy example of a Lisp interpreter writter specifically for MCUs, without necessarily targeting a trusted execution environment.
+It optimizes for performance in a resource-constrained environment and implements many features and extensions not commonly found in Lisp.
+The VESC community has widely adopted it, using it to program motor controllers and build UIs for physical displays.
 
 \section{Discussion}
 
