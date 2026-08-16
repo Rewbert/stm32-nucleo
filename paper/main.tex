@@ -135,13 +135,11 @@
     UART, Locked, Unlocked, Nil, Cons, N0, N1, N2, N3, N4, N7, N13,
     A, B, C, D, E, F, G, H, EXTIEdge, Member, Delete, Fresh, Periph,
     TZSC, RCC, GPIOActions, UARTActions, NonSecureCallable, Callable,
-    NFData
-  },
-  keywords=[5]{
-    True, False, Nothing, Just, Left, Right,
+    NFData, True, False, Nothing, Just, Left, Right,
     UARTConfig, GPIOConfig, EXTIConfig,
     NONE, OUTPUT, INPUT, NOPULL, PULLUP, PULLDOWN, AF0,
-    BOTH, FALLING, RISING, RCC_GPIOC, RCC_GPIOG
+    BOTH, FALLING, RISING, RCC_GPIOC, RCC_GPIOG, StateT, SetupState,
+    Ptr, BFILE, ExtiCallback, CallableDummy, Word8, CInt
   },
   morekeywords=[1]{
     do, if, then, else, case, of, class, data, newtype, instance,
@@ -619,7 +617,7 @@ After \inlinehaskell{tzsc_release_periph}, \inlinehaskell{UART} is absent from t
 The second \inlinehaskell{get_console} call is therefore rejected by the compiler.
 
 \begin{lstlisting}[style=haskell]
-  configure :: Setup '[] '[Unlocked] '[UART] '[UART, Unlocked] ()
+  configure :: Setup '[] '[Unlocked] '[UART] '[Unlocked] ()
   configure = do
     uart <- get_console
     tzsc_release_periph uart
@@ -687,8 +685,11 @@ When the underlying GPIO pin receives an edge transition, the installed callback
 Consider the function for installing a Non-secure callback below.
 
 \begin{lstlisting}[style=haskell]
-  exti_on_nonsecure :: (Member Locked s, Member (EXTI pin port) ns)
-                    => EXTI pin port -> EXTIEdge -> (EXTIEdge -> Nonsecure ns ())
+  exti_on_nonsecure :: ( Member Locked s
+                       , Member (EXTI pin port) ns)
+                    => EXTI pin port
+                    -> EXTIEdge
+                    -> (EXTIEdge -> Nonsecure ns ())
                     -> Setup ns s ns s ()
 \end{lstlisting}
 
@@ -847,10 +848,10 @@ The \texttt{SECURE} build flag determines which module the common MicroHasTEE in
 -- Effectful/Internal/Secure.hs
 data Secure effects a = Secure (IO a)
 
-data Nonsecure effects a = NonSecure
+data Nonsecure effects a = Nonsecure
 
 -- Effectful/Internal/NonSecure.hs
-data Secure effects a = SecureDummy
+data Secure effects a = Secure
 
 data Nonsecure effects a = Nonsecure (IO a)
 \end{lstlisting}
@@ -884,7 +885,10 @@ The setup state contains the counter used to assign corresponding identifiers to
     Setup (StateT SetupState IO a)
   
   data SetupState = SetupState
-    { nonSecureCallable :: [(Int, Ptr BFILE -> IO (Ptr BFILE))]
+    { nonSecureCallable :: [( Int
+                            , Ptr BFILE -> IO (Ptr BFILE)
+                            )
+                           ]
     , counter           :: Int
     , extiCallbacks     :: [ExtiCallback]
     }
@@ -902,8 +906,9 @@ The Secure implementation uses \inlinehaskell{mkNSC} to convert the registered f
   callable f = do
       let g inBf = mkNSC f inBf
       modify $ \st ->
-          st { counter = counter st + 1
-             , nonSecureCallable = (counter st, g) : nonSecureCallable st
+          st { counter           = counter st + 1
+             , nonSecureCallable =
+                 (counter st, g) : nonSecureCallable st
              }
       return CallableDummy
 \end{lstlisting}
@@ -938,9 +943,10 @@ Forcing the argument ensures that its evaluation occurs in the Non-secure state 
 
 \begin{lstlisting}[style=haskell]
   (<.>) :: NFData a => Callable (a -> b) -> a -> Callable b
-Callable fun writes <.> x =
-  Callable fun (writes ++ [\bf ->
-    x `deepseq` primHSerialize bf x])
+
+  Callable fun writes <.> x =
+      Callable fun (writes ++ [\bf ->
+        x `deepseq` primHSerialize bf x])
 \end{lstlisting}
 
 The MicroHs runtime provides serialization and deserialization primitives for supported Haskell values, so applications do not require hand-written serializers for each callable function.
@@ -991,24 +997,27 @@ If all checks succeed, it immediately invokes the Secure Haskell runtime by call
 The below example shows this Haskell function, but omits details concerning error handling and resource management.
 
 \begin{lstlisting}[style=haskell]
-  handle_nsc_call :: Ptr Word8 -> CInt -> Ptr Word8 -> CInt -> Ptr CInt -> IO ()
-  handle_nsc_call inBuf inLen outBuf outCapacity outLenPtr = do
-    -- wrap the input bytes in a read-BFILE
-    input   <- c_openb_rd_mem inBuf (fromIntegral inLen)
+  handle_nsc_call :: Ptr Word8 -> CInt -> Ptr Word8
+                  -> CInt -> Ptr CInt -> IO ()
+  handle_nsc_call inBuf inLen outBuf outCapacity outLenPtr =
+    do
+      -- wrap the input bytes in a read-BFILE
+      input   <- c_openb_rd_mem inBuf (fromIntegral inLen)
 
-    -- deserialise the function index and look it up in the vtable
-    funId <- primHDeserialize input :: IO Int
+      -- deserialise the function index and look it up
+      -- in the vtable
+      funId <- primHDeserialize input :: IO Int
 
-    table <- getVTable
-    let fun = lookupFun funId table
-    result <- fun input
+      table <- getVTable
+      let fun = lookupFun funId table
+      result <- fun input
 
-    (resultBuf, resultLen) <- bfileBytes result
-    if resultLen > fromIntegral outCapacity
-      then poke outLenPtr (-1)
-      else do
-        copyBytes outBuf resultBuf resultLen
-        poke outLenPtr (fromIntegral resultLen)
+      (resultBuf, resultLen) <- bfileBytes result
+      if resultLen > fromIntegral outCapacity
+        then poke outLenPtr (-1)
+        else do
+          copyBytes outBuf resultBuf resultLen
+          poke outLenPtr (fromIntegral resultLen)
 \end{lstlisting}
 
 The \inlinehaskell{getVTable} operation reads the token from the Secure C global, reconstructs the \inlinehaskell{StablePtr}, and dereferences it to recover the dispatch table.
