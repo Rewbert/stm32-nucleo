@@ -1214,10 +1214,12 @@ This manifest describes only the Secure partition; it is oblivious to the Non-se
 A developer can therefore still write Non-secure code that assumes access to a peripheral, such as a UART, that a partition's manifest has already claimed as Secure, and the mismatch surfaces only when the firmware executes.
 MicroHasTEE closes this gap by checking both participants against one shared, compile-time account of attribution, turning such a disagreement into a compile-time error rather than a fault discovered on hardware.
 
-MicroHasTEE is inspired by HasTEE, a Haskell framework for confidential computing on Intel SGX.
-The multiparty programming model and implementation is inspired by HasTEE, but whereas MicroHasTEE is executing in TrustZone-M on an MCU, HasTEE executed in Intel SGX enclaves on larger machines, such as laptops.
-Furthermore, to run Haskell in the enclave HasTEE used a patched version of the GHC runtime system.
-MicroHasTEE is compiling and running the upstream version of the MicroHs runtime system and deploys that in TrustZone-M.
+\paragraph{HasTEE}
+HasTEE\cite{DBLP:conf/haskell/SarkarKRC23} is a Haskell framework for confidential computing on Intel SGX.
+Its multiparty programming model inspired MicroHasTEE's own design.
+HasTEE targeted SGX enclaves on conventional machines, such as laptops, whereas MicroHasTEE targets TrustZone-M on a microcontroller.
+HasTEE also relied on a patched GHC runtime system to run Haskell inside the enclave, whereas MicroHasTEE compiles and runs the upstream MicroHs runtime system on bare metal in both TrustZone-M states.
+
 
 \todo{rust for TrustZone-M}.
 
