@@ -49,6 +49,7 @@
 \usepackage{xcolor}
 \usepackage{cleveref}
 \usepackage{listings}
+\usepackage{array}
 \lstdefinestyle{c}{
   frame=none,
   xleftmargin=2pt,
@@ -264,7 +265,17 @@
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-blabla
+Arm TrustZone for Armv8-M isolates Secure and Non-secure software, but developers must still coordinate peripheral attribution, interrupt routing, initialization, and gateway interfaces across separately built firmware images.
+Inconsistent assumptions between these images can compile successfully and emerge only as faults on the target device.
+  
+We present MicroHasTEE, a multiparty programming framework that expresses both firmware applications as participants in one typed Haskell program.
+MicroHasTEE represents peripheral authority with type-level capability ledgers and uses indexed setup computations to track resource acquisition, configuration, transfer, and finalization.
+Domain-specific effect types restrict peripheral operations and interrupt callbacks to the participant that holds the corresponding authority, while typed callable handles describe the Secure services available to Non-secure code.
+MicroHs compiles the shared program twice to produce separate bare-metal Secure and Non-secure firmware images.
+  
+We implement MicroHasTEE for an STM32U5 Nucleo board, including TrustZone configuration, peripheral drivers, and a serialized gateway for cross-domain Haskell calls.
+For programs expressed through its interface, MicroHasTEE rejects inconsistent resource use, attribution changes after configuration, callbacks in the wrong domain, and calls to unregistered Secure services.
+A door-lock case study demonstrates feasibility, with firmware images occupying 232.7 KiB and 228.4 KiB of flash and approximately 220 KiB of SRAM per domain.
 \end{abstract}
 
 %%
@@ -1159,6 +1170,49 @@ The STM32U5A5ZJQ we use has 2.5 MiB of SRAM, well beneath our requirements.
 \todo{How long does a NSC call take? Compare with a native C call, to measure the cost.}
 
 \section{Related Work}
+
+\paragraph{TF-M}
+To jusitfy MicroHasTEE at all, we need to describe precisely how MicroHasTEE relates to TF-M.
+While TrustZone-M by itself gives us ``nothing more'' than two address spaces and a fault if execution from one space reaches into the other, TF-M implements a full trusted execution environment.
+TrustZone-M gives us the mechanisms by which we can build these richer environments, but is by itself not a trusted execution environment.
+MicroHasTEE does not claim to be a trusted execution environment, instead adopts the more bare-bones model that TrustZone-M implements.
+We can model the two execution domains and ensure that they remain separated, save for the principled gateway.
+However, MicroHasTEE checks the separation statically at compile time.
+MicroHasTEE also ensures that the peripheral attribution that the program assumes is correctly configured, and rejects ill-formed programs at compile time.
+~\Cref{table:tfm-vs-microhastee} collects some of the differences between TF-M and MicroHasTEE.
+
+\begin{table}[ht]
+  \caption{\todo{blabla, maybe mention that microhastee has one secure partition, whereas tf-m allows multiple?}}
+  \label{table:tfm-vs-microhastee}
+  \centering
+  \small
+  \begin{tabular}{@{}p{0.42\linewidth} >{\centering\arraybackslash}p{0.24\linewidth} >{\centering\arraybackslash}p{0.24\linewidth}@{}}
+    \toprule
+    Property & TF-M & MicroHasTEE \\
+    \midrule
+    Secure boot and update & Yes & No \\
+    Standardized security services (crypto, protected storage, attestation, update) & Yes & No \\
+    Isolated secure partitions & Yes & No \\
+    Resource manifests & Yes & No \\
+    Joint Secure/Non-secure source & No & Yes \\
+    Cross-domain resource agreement checked & Runtime fault & Compile-time \\
+    Cross-boundary call checked against callee & Runtime (handle+iovec) & Compile-time (typed) \\
+    Application language & C & Haskell (type- and memory-safe) \\
+    Maturity & Production ready & Research prototype \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Two rows in \Cref{table:tfm-vs-microhastee} deserve further comment.
+
+TF-M's PSA Client API identifies a callee and a request through an integer, similar to how MicroHasTEE registers a callable service under a numeric identifier that a caller later supplies.
+However, \inlinec{psa_call} passes its arguments as an array of iovecs whose count and sizes are runtime values, so TF-M has no static means of checking that a caller supplies the number and size of arguments a service expects.
+MicroHasTEE instead makes the argument list part of a registered service's type, so the compiler rejects a call with the wrong arity or argument types before the firmware is built.
+
+TF-M partitions declare the peripherals, memory-mapped regions, and interrupts they require through a manifest, and the toolchain uses this manifest alone to derive the platform's secure attribution configuration, including the GTZC where present.
+This manifest describes only the Secure partition; it is oblivious to the Non-secure application, and nothing ties its claims to what the Non-secure build assumes.
+A developer can therefore still write Non-secure code that assumes access to a peripheral, such as a UART, that a partition's manifest has already claimed as Secure, and the mismatch surfaces only when the firmware executes.
+MicroHasTEE closes this gap by checking both participants against one shared, compile-time account of attribution, turning such a disagreement into a compile-time error rather than a fault discovered on hardware.
 
 MicroHasTEE is inspired by HasTEE, a Haskell framework for confidential computing on Intel SGX.
 The multiparty programming model and implementation is inspired by HasTEE, but whereas MicroHasTEE is executing in TrustZone-M on an MCU, HasTEE executed in Intel SGX enclaves on larger machines, such as laptops.
