@@ -1238,9 +1238,9 @@ GoTEE also implements channels that let the enclave communicate with the rest of
 The extended compiler partitions a program automatically, but does not help the programmer keep sensitive data from leaving the enclave.
 
 \paragraph{J\(_{E}\)}
-J\(_{E}\)\cite{DBLP:conf/csfw/OakABS21} implements a subset of Java, and comes with support for running in enclaves.
-It uses Information-Flow Control to ensure that data does not flow through the program in undesireble ways.
-Compilation is advanced, with a program first undergoing partitioning before another pass ensures that the two programs interactions are not ill-formed.
+J\(_{E}\)\cite{DBLP:conf/csfw/OakABS21} implements a subset of Java and supports running program inside enclaves.
+It uses Information-flow control to keep data from flowing through the program in undesirable ways.
+A program first undergoes partitioning, and a second compiler pass then checks that the interactions between the two resulting programs are not ill-formed.
 
 Concerning running functional languages on MCUs, but not necessarily in a trusted execution environment, a noteworthy priject is the \textit{lbm} interpreter.
 lbm is a Lisp interpreter that has been written solely with MCUs being the intended execution environment.
