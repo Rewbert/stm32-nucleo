@@ -24,7 +24,7 @@ void _exit(int n);
 
 #define WANT_ARGS 0
 #define WANT_GMP 0
-#define WANT_IMATH 0
+#define WANT_IMATH 1
 
 #define GCRED    0
 #define FASTTAGS 1

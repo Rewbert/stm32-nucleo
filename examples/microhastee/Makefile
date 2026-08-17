@@ -52,6 +52,7 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/MicroHasTEE.hs \
   $(HASKELL_DIR)/app/HW.hs \
   $(HASKELL_DIR)/app/DoorLock.hs \
+  $(HASKELL_DIR)/app/SimpleExample.hs \
   $(HASKELL_DIR)/app/HAL.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/SysTick.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/GPIO.hs \
@@ -71,11 +72,28 @@ HASKELL_SRC = \
 
 CABAL=mcabal
 
+# Which Haskell module under app/ to build as the application. Overridden by
+# the `simple` target below. gen2.c is gitignored and only regenerated when
+# $(HASKELL_SRC) changes, and that list doesn't encode MAIN_HS -- so switching
+# MAIN_HS alone (e.g. all <-> simple) wouldn't be noticed on its own.
+# check-main-hs (a prerequisite of all/simple, below) records which module was
+# last built and deletes gen2.c to force a regen whenever that changes.
+MAIN_HS ?= DoorLock
+MAIN_HS_RECORD := build/$(APP)/.main-hs
+
+.PHONY: check-main-hs
+check-main-hs:
+	mkdir -p $(dir $(MAIN_HS_RECORD))
+	if [ "$$(cat $(MAIN_HS_RECORD) 2>/dev/null)" != "$(MAIN_HS)" ]; then \
+		rm -f $(APP)/S/gen2.c $(APP)/NS/gen2.c; \
+		echo $(MAIN_HS) > $(MAIN_HS_RECORD); \
+	fi
+
 $(APP)/S/gen2.c: $(HASKELL_SRC)
-	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -DSECURE -ilib -iapp -c -ogen.c app/DoorLock.hs && cp gen.c ../S/gen2.c && rm gen.c
+	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -DSECURE -ilib -iapp -c -ogen.c app/$(MAIN_HS).hs && cp gen.c ../S/gen2.c && rm gen.c
 
 $(APP)/NS/gen2.c: $(HASKELL_SRC)
-	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -ilib -iapp -ogen.c app/DoorLock.hs && cp gen.c ../NS/gen2.c && rm gen.c
+	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -ilib -iapp -ogen.c app/$(MAIN_HS).hs && cp gen.c ../NS/gen2.c && rm gen.c
 
 # --- Secure application ---
 
@@ -126,8 +144,12 @@ build/ns/$(MHS_DIR)/%.o: $(MHS_DIR)/%.c
 
 # --- Link targets ---
 
-.PHONY: all
-all: secure.elf nonsecure.elf
+.PHONY: all simple
+all: check-main-hs secure.elf nonsecure.elf
+
+# Same as `all`, but builds app/SimpleExample.hs instead of app/DoorLock.hs.
+simple: MAIN_HS := SimpleExample
+simple: check-main-hs secure.elf nonsecure.elf
 
 $(dir $(SECURE_LIB)):
 	mkdir -p $@
