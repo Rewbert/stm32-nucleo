@@ -843,7 +843,7 @@ This configuration, together with the linker scripts and the IDAU mapping, forms
 A MicroHasTEE source program contains computations for both the Secure and Non-secure participants, but the two participants execute in separate firmware images.
 The build system therefore invokes MicroHs twice on the same source program.
 
-In the Secure build, the preprocessor selects an implementation in which \inlinehaskell{Secure} computations contain executable \inlinehaskell{IO} actions and \inlinehaskell{Nonsecure} computations are represented by placeholders.
+In the Secure build, the preprocessor selects an implementation in which \inlinehaskell{Secure} computations contain executable \inlinehaskell{IO} actions and \inlinehaskell{Nonsecure} computations become placeholders.
 The Non-secure build selects the complementary implementation: \inlinehaskell{Nonsecure} computations contain executable actions, while \inlinehaskell{Secure} computations become placeholders.
 The public types remain the same in both builds, so each build checks the same setup sequence and the same division of resources and computations.
 
@@ -869,7 +869,7 @@ Both modules expose the same abstract types and operations, while giving runtime
 Each compilation retains the behavior associated with its target domain and erases the behavior of the other participant.
 MicroHs then generates one C source file from each build.
 The firmware build links each generated file with a separate MicroHs runtime, the startup code, the C gateway code, and the drivers compiled for that domain.
-The result is a Secure and a Non-secure firmware image that are flashed into their respective memory regions.
+The result is a Secure firmware image and a Non-secure firmware image, flashed into their respective memory regions.
 
 \begin{figure}[ht]
   \centering
@@ -957,7 +957,7 @@ Forcing the argument ensures that its evaluation occurs in the Non-secure state 
 
 The MicroHs runtime provides serialization and deserialization primitives for supported Haskell values, so applications do not require hand-written serializers for each callable function.
 MicroHasTEE uses these primitives to encode a call as a function identifier followed by its arguments.
-Conceptually, the request and response that passes between the two domains have this format (with \texttt{||} denoting concatenation of byte strings).
+Conceptually, the request and response that pass between the two domains have this format (with \texttt{||} denoting concatenation of byte strings).
 
 \begin{lstlisting}[basicstyle=\small\ttfamily]
   request = serialize(identifier)
@@ -968,12 +968,12 @@ Conceptually, the request and response that passes between the two domains have 
   response = serialize(result)
 \end{lstlisting}
 
-The MicroHs runtime format is a combinator graph, and serialised values can be quite large.
+The MicroHs runtime format is a combinator graph, and serialized values can be quite large.
 That is the chief reason for ensuring their evaluation before serialization, through the \inlinehaskell{NFData} type class.
 
 The Non-secure implementation of the function \inlinehaskell{sg} produces this serialized package.
 The code below shows the general operation of this function, but omits details concerning resource cleanup and error handling.
-Additionally, it is using an internal function \inlinehaskell{nonsecureLiftIO} to lift this underlying \inlinehaskell{IO} action to the \inlinehaskell{Nonsecure} monad, but this function (or any \inlinehaskell{MonadIO} instance) is not exposed to the end user.
+Additionally, it uses an internal function \inlinehaskell{nonsecureLiftIO} to lift this underlying \inlinehaskell{IO} action to the \inlinehaskell{Nonsecure} monad, but this function (or any \inlinehaskell{MonadIO} instance) is not exposed to the end user.
 
 \begin{lstlisting}[style=haskell]
   sg :: Callable (Secure s a) -> Nonsecure ns a
@@ -1000,7 +1000,7 @@ This is the prototype's only NSC entry point and the only direct cross-domain ca
 
 The Secure application performs the necessary validation checks, using \inlinec{cmse_check_address_range} to validate the request metadata and bytes as readable Non-secure memory and the result buffer and length field as writable Non-secure memory.
 If all checks succeed, it immediately invokes the Secure Haskell runtime by calling a foreign exported Haskell function.
-The below example shows this Haskell function, but omits details concerning error handling and resource management.
+The example below shows this Haskell function, but omits details concerning error handling and resource management.
 
 \begin{lstlisting}[style=haskell]
   handle_nsc_call :: Ptr Word8 -> CInt -> Ptr Word8
@@ -1010,7 +1010,7 @@ The below example shows this Haskell function, but omits details concerning erro
       -- wrap the input bytes in a read-BFILE
       input   <- c_openb_rd_mem inBuf (fromIntegral inLen)
 
-      -- deserialise the function index and look it up
+      -- deserialize the function index and look it up
       -- in the vtable
       funId <- primHDeserialize input :: IO Int
 
@@ -1038,11 +1038,10 @@ The type-class constraints determine the argument and result types during compil
 
 \subsection{Peripheral Drivers \& Building the Firmware}
 
-The prototype MicroHasTEE implementation doesn't use an RTOS, and runs bare-metal.
-The authors of this paper have hand-written a library of peripheral drivers.
-The design of the driver library is similar to that of MicroHasTEE, in that they are compiled twice, once for each domain, with the APIs being identical.
-Some operations are guarded by CPP macros to only be included in the Secure build, such as operations for configuring Security attribution.
-The compilation mechanism for the peripheral drivers is illustrated in ~\cref{fig:driver-partition}.
+We have hand-written a library of peripheral drivers.
+Like MicroHasTEE, the driver library is compiled twice, once for each domain, with identical APIs in both builds.
+Some operations are guarded by CPP macros to only be included in the Secure build, such as operations for configuring security attribution.
+The compilation mechanism for the peripheral drivers is illustrated in~\cref{fig:driver-partition}.
 
 MicroHasTEE's typed HAL operations invoke this C driver library through the Haskell foreign-function interface.
 Both builds type-check the same setup operations, but only the Secure driver implementation performs privileged attribution writes to mechanisms such as the TZSC, GPIO security registers, EXTI, and the NVIC.
@@ -1052,15 +1051,15 @@ The shared API therefore supports both interpretations of the setup program with
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\columnwidth]{graphics/microhastee-driver-partition.drawio.pdf}
-  \caption{The peripheral driver library split into its Secure and Non-secure builds; some operations become no-ops in the Non-secure build but remain exported to keep a unified API.}
+  \caption{The peripheral driver library is split into its Secure and Non-secure builds; some operations become no-ops in the Non-secure build but remain exported to keep a unified API.}
   \Description{The peripheral driver library splits into a Secure and a Non-secure build. In the Secure build all operations are implemented; in the Non-secure build some operations become no-ops, shown as grey squares, while the rest remain implemented.}
   \label{fig:driver-partition}
 \end{figure}
 
-Before the application can be flashed to the MCU, the compelte firmware must be built.
+Before the application can be flashed to the MCU, the complete firmware must be built.
 First, the Secure image is built, producing a library file that the Non-secure image must link against to find the NSC entry points.
-The Non-secure image is them built.
-\Cref{fig:firmware-stack} show an overview of the components that goes into each of the firmware images, and how they are ordered.
+The Non-secure image is then built.
+\Cref{fig:firmware-stack} shows an overview of the components that go into each of the firmware images, and how they are ordered.
 
 \begin{figure}[ht]
   \centering
@@ -1295,7 +1294,7 @@ We would then not require an in-flash copy of the program, and would save almost
 %% identification of the section in the article metadata, and the
 %% consistent spelling of the heading.
 \begin{acks}
-  The authors thank Bo Joel Svensson for patiently answering our many questions about embedded systems, and Lennart Augustsson for many helpful discussions about MicroHs and for his generous assistance with the compiler and runtime.
+  We thank Bo Joel Svensson for patiently answering our many questions about embedded systems, and Lennart Augustsson for many helpful discussions about MicroHs and for his generous assistance with the compiler and runtime.
 \end{acks}
 
 %%
