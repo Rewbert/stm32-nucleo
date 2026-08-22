@@ -384,7 +384,7 @@ Such a mismatch typically triggers a fault only when firmware accesses the affec
 On the STM32U5, ST's \textit{Implementation Defined Attribution Unit} (IDAU) assigns fixed security attributes to address ranges.
 The Cortex-M33 supplements this fixed mapping with a programmable \textit{Security Attribution Unit} (SAU).
 For each CPU access, the processor combines the IDAU and SAU results and selects the more restrictive attribute.
-The processor orders these attributes as Secure \(>\) Secure, Non-secure Callable \(>\) Non-secure.
+The processor orders these attributes as Secure \(>\) Non-secure, Non-secure Callable \(>\) Non-secure.
 
 The IDAU and SAU classify only transactions issued by the CPU, while other bus masters can access SRAM without passing through them.
 ST therefore protects each SRAM bank at its memory interface with a block-based memory protection controller (MPCBB).
