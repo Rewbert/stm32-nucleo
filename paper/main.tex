@@ -832,7 +832,7 @@ Raw C, FFI, internal interfaces, and malformed gateway input remain outside the 
 \label{sec:implementation}
 
 This section describes how MicroHasTEE turns a source program into the two firmware images deployed on a microcontroller.
-Our prototype targets an STM32U5A5ZJQ microcontroller, which combines a Cortex-M33 processor implementing Armv8-M TrustZone with 4 MB of flash and 2.5 MB of SRAM.
+Our prototype targets an STM32U5A5ZJQ microcontroller, which combines a Cortex-M33 processor implementing Armv8-M TrustZone with 4 MiB of flash and 2.5 MiB of SRAM.
 The firmware runs bare metal, without an operating system or RTOS.
 The prototype therefore includes the linker scripts, startup code, and board support needed to initialize the device and start the MicroHs runtimes.
 Before either MicroHasTEE participant starts, Secure startup code configures the SAU and MPCBBs to realize the fixed memory layout described in \cref{fig:memory-partition}.
