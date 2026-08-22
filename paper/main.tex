@@ -359,8 +359,8 @@ This work makes three contributions:
 
 \section{Conventional Bare-Metal TrustZone-M Development}
 
-Constructing a conventional bare-metal TrustZone-M system requires the programmer to express one security partition through several independent hardware and software mechanisms.
-THis section first introduces the mechanisms defined by Armv8-M and then explains how STM32 microcontrollers supplement them with device-specific controls for memory, peripherals, and interrupts.
+To construct a conventional bare-metal TrustZone-M system, the programmer must express one security partition through several independent hardware and software mechanisms.
+This section first introduces the mechanisms defined by Armv8-M and then explains how STM32 microcontrollers supplement them with device-specific controls for memory, peripherals, and interrupts.
 Together, these mechanisms form the low-level programming model that MicroHasTEE seeks to make safer.
 
 \subsection{Memory Partitioning}
@@ -369,7 +369,7 @@ A microcontroller contains fixed amounts of flash memory and SRAM, each of which
 A linker script assigns a firmware image to address ranges and places its vector table, code, static data, and stack within them.
 \Cref{fig:memory-partition}(a) shows this layout for a conventional bare-metal application.
 Because Secure and Non-secure firmware are built as separate images, each image requires its own linker script.
-The Secure linker script must also reserve a Non-secure Callable region for the gateway veneers used to enter Secure code.
+The Secure linker script must also reserve a Non-secure Callable (NSC) region for the gateway veneers used to enter Secure code.
 
 TrustZone-M allows developers to partition memory into Secure and Non-secure regions.
 Our implementation assigns one primary flash range and one primary SRAM range to each security state and reserves a Non-secure Callable subregion within Secure flash.
@@ -437,7 +437,7 @@ Armv8-M assigns each external interrupt a target security state through the Inte
 Secure software configures this target, and the processor uses either the Secure or the Non-secure vector table when it takes the interrupt.
 
 STM32 devices may also attribute the interrupt source independently of its NVIC target.
-For example, moving a button input to the Non-secure application requires Secure firmware to make the GPIO pin Non-secure, configure the corresponding EXTI line and mark it Non-secure, and target its NVIC interrupt to the Non-secure state.
+For example, to move a button input to the Non-secure application, Secure firmware must make the GPIO pin Non-secure; configure the corresponding EXTI line and mark it Non-secure; and target its NVIC interrupt to the Non-secure state.
 The Non-secure image must also contain a handler in the corresponding slot of its vector table.
 These settings must agree before the interrupt is enabled.
 Releasing the GPIO pin alone is therefore insufficient: if the EXTI attribution, NVIC target, or vector entry disagrees, the event may be delivered to the wrong state or to a handler that cannot service it.
@@ -455,7 +455,7 @@ Non-secure code calls the exported gateway symbol as an ordinary function.
 When the processor executes \texttt{SG} at a valid gateway, it changes to the Secure state and continues to the entry function.
 The compiler-generated epilogue clears register state as required and executes \texttt{BXNS} to return directly to the Non-secure caller.
 
-Below is a simple function defined by the Secure application, with an attribute that marks it as a NSC function.
+Below is a simple function defined by the Secure application, with an attribute that marks it as an NSC function.
 
 \begin{lstlisting}[style=c]
 int __attribute__((cmse_nonsecure_entry))
@@ -465,7 +465,7 @@ add10(int value) {
 \end{lstlisting}
 
 The Non-secure application declares the function and calls it like an ordinary external function.
-THe linker will resolve it when the firmware is built.
+The linker will resolve it when the firmware is built.
 
 \begin{lstlisting}[style=c]
 extern int add10(int value);
@@ -512,7 +512,7 @@ Before dereferencing a pointer, it must verify that the entire referenced range 
 After validating an input range, Secure code copies its contents into Secure memory and performs subsequent checks and computations on that copy, preventing later modifications to the original buffer from changing the value being processed.
 
 This section describes several relatively small mechanisms.
-The difficulty arises when they need to be used together to agree on a security policy.
+The difficulty arises when these mechanisms must work together and agree on one security policy.
 The simple act of allowing a Non-secure button handler to call a Secure service involves peripheral and interrupt attribution, a Non-secure vector entry, matching declarations in two programs, a gateway veneer, and an ordered build in which the Secure link produces input to the Non-secure link.
 Each mechanism may by itself look correct, while some other part of the system disagrees with the policy.
 
