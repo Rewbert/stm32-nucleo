@@ -1190,7 +1190,7 @@ TF-M uses these mechanisms to implement a full trusted execution environment.
 MicroHasTEE does not claim to be a trusted execution environment.
 Instead, it adopts the minimal model TrustZone-M provides on its own.
 MicroHasTEE models the two domains and ensures they remain separated, except through designated NSC gateways.
-MicroHasTEE checks this separation statically, at compile time, and checks that a program's assumed peripheral attribution matches its actual configuration, rejecting ill-formed programs before the firmware reaches the target device.
+MicroHasTEE checks this separation at compile time, and checks that a program's assumed peripheral attribution matches its actual configuration, rejecting ill-formed programs before the firmware reaches the target device.
 \Cref{table:tfm-vs-microhastee} collects some of the differences between TF-M and MicroHasTEE.
 
 \begin{table}[ht]
@@ -1204,7 +1204,7 @@ MicroHasTEE checks this separation statically, at compile time, and checks that 
     \midrule
     Secure boot and update & Yes & No \\
     Standardized security services (crypto, protected storage, attestation, update) & Yes & No \\
-    Isolated secure partitions & Yes & No \\
+    Isolated Secure Partitions & Yes & No \\
     Resource manifests & Yes & No \\
     Joint Secure/Non-secure source & No & Yes \\
     Cross-domain resource agreement checked & Runtime fault & Compile-time \\
@@ -1229,10 +1229,10 @@ MicroHasTEE closes this gap by checking both participants against one shared, co
 \paragraph{Rust}
 The Rust programming language supports TrustZone-M natively.
 The Rust compiler, \texttt{rustc}, recognizes TrustZone-M and emits the special assembly instructions that switch between the two domains.
-It also emits veneers in the Non-secure callable region so that a Non-secure application can invoke Secure services.
+It also emits veneers in the Non-secure Callable region so that a Non-secure application can invoke Secure services.
 Rust does not, however, configure the security attribution.
-The developer must still write the register-manipulating code that configures the SAU \& IDAU and attributes peripherals.
-The developer must also link the two images together, either by exporting a Secure library for the Non-secure application to use or by banking registers between the two.
+The developer must still write the register-manipulating code that configures the SAU and IDAU and attributes peripherals.
+The developer must also link the two images together, by exporting a Secure library for the Non-secure application to use.
 Rust faithfully implements the CMSE toolchain contract as two calling conventions, much like arm-none-eabi-gcc does.
 
 \paragraph{HasTEE}
@@ -1242,7 +1242,7 @@ HasTEE targeted SGX enclaves on conventional machines, such as laptops, whereas 
 HasTEE also relied on a patched GHC runtime system to run Haskell inside the enclave, whereas MicroHasTEE compiles and runs the upstream MicroHs runtime system on bare metal in both TrustZone-M states.\\
 
 There are relatively few projects where a high-level managed language like Haskell is used to run code in TrustZone-M.
-If we instead divert our eyes to TrustZone-A or Intel SGX, we find more projects.
+If we instead look at TrustZone-A or Intel SGX, we find more such projects.
 
 \paragraph{GoTEE}
 GoTEE\cite{DBLP:conf/usenix/GhosnLB19} extends the Go compiler and runtime with support for \textit{secure routines}, in contrast to Go's ordinary goroutines.
@@ -1251,12 +1251,12 @@ GoTEE also implements channels that let the enclave communicate with the rest of
 The extended compiler partitions a program automatically, but does not help the programmer keep sensitive data from leaving the enclave.
 
 \paragraph{J\(_{E}\)}
-J\(_{E}\)\cite{DBLP:conf/csfw/OakABS21} implements a subset of Java and supports running program inside enclaves.
-It uses Information-flow control to keep data from flowing through the program in undesirable ways.
+J\(_{E}\)\cite{DBLP:conf/csfw/OakABS21} implements a subset of Java and supports running programs inside enclaves.
+It uses information-flow control to keep data from flowing through the program in undesirable ways.
 A program first undergoes partitioning, and a second compiler pass then checks that the interactions between the two resulting programs are not ill-formed.
 
 \paragraph{LispBM}
-LispBM's interpreter is a noteworthy example of a Lisp interpreter writter specifically for MCUs, without necessarily targeting a trusted execution environment.
+LismBM is a noteworthy example of a Lisp interpreter written specifically for MCUs, without necessarily targeting a trusted execution environment.
 It optimizes for performance in a resource-constrained environment and implements many features and extensions not commonly found in Lisp.
 The VESC community has widely adopted it, using it to program motor controllers and build UIs for physical displays.
 
