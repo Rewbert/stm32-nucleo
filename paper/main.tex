@@ -539,14 +539,14 @@ We exclude physical attacks, fault injection, side channels, invasive debugging,
 
 \section{MicroHasTEE}
 
-MicroHasTEE treats the Secure and Non-secure applications as participants in one multitier program.
+MicroHasTEE treats the Secure and Non-secure applications as participants in one multiparty program.
 This program describes the computations performed by each participant, the resources assigned to each participant, and the interactions allowed between them.
 The build system compiles the program twice, once for each TrustZone domain.
 The Secure build executes \inlinehaskell{Secure} computations and represents \inlinehaskell{Nonsecure} computations with placeholders.
 The Non-secure build executes \inlinehaskell{Nonsecure} computations and represents \inlinehaskell{Secure} computations with placeholders.
 Each build selects a different implementation of the same MicroHasTEE interface.
 Both builds therefore type-check the same setup sequence while deriving the view required by their respective domains.
-During setup, the program attributes tracked peripherals, GPIO pins, and interrupts, registers callbacks and Secure services, and starts the Non-secure application.
+During setup, the program attributes tracked peripherals, GPIO pins, and interrupts, registers callbacks\footnote{Throughout this paper, \textit{callback} refers specifically to a handler triggered by an attributed GPIO pin's EXTI line, such as a button press. MicroHasTEE does not currently use the term for other interrupt sources, such as SysTick.} and Secure services, and starts the Non-secure application.
 Before setup begins, the linker scripts and Secure startup code have already established the fixed flash and SRAM partition.
 
 MicroHasTEE represents resource ownership with a pair of type-level capability ledgers, one for each participant.
@@ -563,7 +563,7 @@ Each public attribution operation updates the hardware configuration and perform
 Assuming a correct hardware backend and no access through raw C, FFI, or internal interfaces, the final pair therefore describes the attribution established during setup.
 Subsequent MicroHasTEE operations require evidence that their resource occurs in the executing participant's ledger, so the compiler rejects operations for which that participant lacks authority.
 
-The configuration phase always begins with MicroHasTEE program being \textit{open to configuration}.\footnote{
+The configuration phase always begins with the MicroHasTEE program being \textit{open to configuration}.\footnote{
 For readability, the listings in this section abbreviate the type-level list representation with promoted-list syntax, such as \texttt{'[GPIO 7 C]}, rather than the \texttt{Cons (GPIO 7 C) Nil} representation used by the current MicroHs implementation.
 They also write \texttt{Setup} computations with ordinary \texttt{do} notation, whereas the implementation uses \texttt{QualifiedDo} and \texttt{Ix.do} because \texttt{Setup} is an indexed monad.}
 This is encoded by the capability ledger for the Secure domain carrying a \inlinehaskell{Unlocked} entry.
@@ -591,10 +591,10 @@ The following annotations show how each operation transforms the ledgers.
   lock_configuration       -- ns = [UART], s = [Locked]
 \end{lstlisting}
 
-The capability ledgers are used to enforce that certain things happens only when they are allowed.
+The capability ledgers enforce that operations happen only when the ledger permits them.
 For instance, MicroHasTEE requires that the UART is configured \textit{while it belongs to the Secure domain}.
-Between line 3 and 5 in the \inlinehaskell{configure} function MicroHasTEE allows the UART to be configured.
-The program below is rejected by the compiler as ill-formed, as the UART is configured \textit{after} it has been released to the Non-secure domain.
+Between lines 3 and 5 in the \inlinehaskell{configure} function, MicroHasTEE allows the UART to be configured.
+The compiler rejects the program below, as the UART is configured \textit{after} it has been released to the Non-secure domain.
 
 \begin{lstlisting}[style=haskell]
   configure :: Setup '[] '[Unlocked] '[UART] '[Locked] ()
@@ -617,7 +617,7 @@ Configuration remains open, but the UART is no longer available to Secure code, 
 
 Acquiring a resource requires it to be absent from both ledgers.
 After \inlinehaskell{tzsc_release_periph}, \inlinehaskell{UART} is absent from the Secure ledger but remains present in the Non-secure ledger.
-The second \inlinehaskell{get_console} call is therefore rejected by the compiler.
+The second \inlinehaskell{get_console} call is rejected by the compiler.
 
 \begin{lstlisting}[style=haskell]
   configure :: Setup '[] '[Unlocked] '[UART] '[Unlocked] ()
@@ -628,7 +628,7 @@ The second \inlinehaskell{get_console} call is therefore rejected by the compile
 \end{lstlisting}
 
 The restrictions demonstrated so far ensure that setup maintains a consistent account of what the security attribution on the hardware looks like.
-The ledger stops representing the attribution of the program if the user can change it \textit{after} we have install callbacks or invoked the application.
+The ledger stops representing the attribution of the program if the user can change it \textit{after} they have installed callbacks or invoked the application.
 MicroHasTEE therefore provides a one-way transition that finalizes the capability ledger, disallowing any future modification.
 
 \begin{lstlisting}[style=haskell]
@@ -685,7 +685,7 @@ Consider the two programs below
 The compiler accepts \inlinehaskell{goodNonsecure} because its Non-secure ledger contains \inlinehaskell{GPIO 7 C}.
 It rejects \inlinehaskell{badSecure} because its Secure ledger contains only \inlinehaskell{Locked} and \inlinehaskell{GPIO 2 G}, not \inlinehaskell{GPIO 7 C}.
 
-With the underlying mechanisms MicroHasTEE uses to enforce correct security attribution explained, we next give an example of how to install a callback.
+With these mechanisms explained, we next show how to install a callback.
 If the user has properly configured and attributed a GPIO device and its corresponding EXTI device, a callback can be installed against it.
 When the underlying GPIO pin receives an edge transition, the installed callback is invoked.
 Consider the function for installing a Non-secure callback below.
@@ -699,14 +699,14 @@ Consider the function for installing a Non-secure callback below.
                     -> Setup ns s ns s ()
 \end{lstlisting}
 
-The type requires that in order to call this function, attribution must have been finalised (as evident by the \inlinehaskell{Locked} being present in the Secure capability ledger), and the interrupt belongs to the Non-secure participant.
+The type requires attribution to have been finalised (as evident by the \inlinehaskell{Locked} being present in the Secure capability ledger), and requires the interrupt to belong to the Non-secure participant.
 Furthermore, the callback itself is a computation in the \inlinehaskell{Nonsecure} monad, whose list of effects unifies against the Non-secure capability ledger of the \inlinehaskell{Setup} monad.
 This is a good point to reiterate why we lock down the configuration.
 If unification is successfully done here against the capability ledger of the Non-secure domain, we don't want the program to proceed and make further configurations.
 This will alter the capability ledger, making the guarantees provided by the prior unification moot.
 
 So far we have described how security attribution is configured, and how callbacks are installed.
-Crucially, we have not yet shown how the Non-secure domain can invoke secure services from the Secure domain.
+Crucially, we have not yet shown how the Non-secure domain can invoke Secure services from the Secure domain.
 This is done by explicitly registering \inlinehaskell{Secure} functions as \textit{callable}, and then providing a carefully typed interface for invoking them.
 Consider the simple function below.
 
@@ -747,11 +747,11 @@ The type of \inlinehaskell{g} shows that both arguments have been supplied and t
 \end{lstlisting}
 
 Given a fully applied handle, \inlinehaskell{sg} invokes the corresponding Secure computation and returns its result in the \inlinehaskell{Nonsecure} monad.
-The function \inlinehaskell{sg} has quite a straight-forward type.
+The type of \inlinehaskell{sg} is straightforward.
 Within MicroHasTEE's public Haskell interface, \inlinehaskell{sg} is the only operation that transfers explicit argument and result values between the participants.
-When the call is made the parameters are passed from the Non-secure domain to the Secure domain, and when the result is returned it is passed from the Secure domain to the Non-secure domain.
+When the call is made, the parameters are passed from the Non-secure domain to the Secure domain, and when the result is returned it is passed from the Secure domain to the Non-secure domain.
 
-Finally, when te callbacks have been installed and the Secure services have been made callable, we invoke the Non-secure application.
+Finally, when the callbacks have been installed and the Secure services have been made callable, we invoke the Non-secure application.
 This is done through the \inlinehaskell{nonsecure} function.
 \todo{I should see if I cannot change the code to allow invokaton of nonsecure to happen only once...}
 
