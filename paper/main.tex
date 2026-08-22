@@ -307,7 +307,7 @@ It also lets Secure firmware expose explicitly declared entry points to Non-secu
 TrustZone-M does not, however, determine which state owns each peripheral, GPIO pin, or SRAM region.
 Vendors implement these assignments through device-specific security hardware.
 On the STM32U5 Nucleo board used in this work, memory-mapped security registers, including those of ST's Global TrustZone Controller (GTZC), encode the security attribution of peripherals and SRAM.
-Transferring a resource between states therefore requires developers to update this STM32-specific configuration and keep initialization, interrupt routing, and access permissions consistent with it.
+Developers must therefore update this STM32-specific configuration when transferring a resource between states, keeping initialization, interrupt routing, and access permissions consistent with it.
 
 Conventional STM32 development turns this configuration into a coordination problem between two separately built firmware images.
 Each image can type-check while relying on assumptions about resource ownership that conflict with those of the other image.
@@ -323,7 +323,7 @@ TF-M therefore provides the principal conventional framework for constructing po
 MicroHasTEE addresses a complementary source-language problem.
 Rather than describing Secure partitions and their resources in separate manifests and programs, it derives both firmware images from one typed program and checks peripheral operations against a shared account of resource authority and transfer.
 
-MicroHasTEE instead treats TrustZone firmware as a multiparty Haskell program whose participants are the Secure and Non-secure applications.
+MicroHasTEE treats TrustZone firmware as a multiparty Haskell program whose participants are the Secure and Non-secure applications.
 Although these participants execute as separate firmware images, the programmer implements them simultaneously in one source-level program.
 This program describes the computations performed by each participant, the resources available to them, the transfer of resources between them, and their permitted cross-boundary calls.
 MicroHs~\cite{augustsson2024microhs} compiles the shared program separately for each TrustZone state.
@@ -539,13 +539,15 @@ We exclude physical attacks, fault injection, side channels, invasive debugging,
 
 \section{MicroHasTEE}
 
-MicroHasTEE is a multitier programming framework in which the Secure and Non-secure applications are participants in one source-level program.
-The program describes each participant's computations, the resources assigned to it, and the interactions permitted between the participants.
-The build compiles this program twice, once for each TrustZone domain.
-In the Secure build, \inlinehaskell{Secure} computations execute while \inlinehaskell{Nonsecure} computations are represented by placeholders; the Non-secure build reverses these roles.
-The two builds select different implementations of the same MicroHasTEE interface, so they type-check the same setup sequence and derive corresponding views of the shared program.
-The program's setup phase configures the attribution of tracked peripherals, GPIO pins, and interrupts, registers callbacks and Secure services, and starts the Non-secure application.
-The fixed flash and SRAM partition has already been established by the linker scripts and Secure startup code.
+MicroHasTEE treats the Secure and Non-secure applications as participants in one multitier program.
+This program describes the computations performed by each participant, the resources assigned to each participant, and the interactions allowed between them.
+The build system compiles the program twice, once for each TrustZone domain.
+The Secure build executes \inlinehaskell{Secure} computations and represents \inlinehaskell{Nonsecure} computations with placeholders.
+The Non-secure build executes \inlinehaskell{Nonsecure} computations and represents \inlinehaskell{Secure} computations with placeholders.
+Each build selects a different implementation of the same MicroHasTEE interface.
+Both builds therefore type-check the same setup sequence while deriving the view required by their respective domains.
+During setup, the program attributes tracked peripherals, GPIO pins, and interrupts, registers callbacks and Secure services, and starts the Non-secure application.
+Before setup begins, the linker scripts and Secure startup code have already established the fixed flash and SRAM partition.
 
 MicroHasTEE represents resource ownership with a pair of type-level capability ledgers, one for each participant.
 The \inlinehaskell{Setup} monad describes a transition from one pair of ledgers to another.
@@ -576,10 +578,11 @@ Consider the program below
     lock_configuration
 \end{lstlisting}
 
-The type of \inlinehaskell{configure} says that initially, the Non-secure application have no capabilities and the Secure capabilities indicate that MicroHasTEE is open for configuration.
+The type of \inlinehaskell{configure} describes both the initial and final ledgers.
+Initially, the Non-secure ledger is empty and the Secure ledger contains \inlinehaskell{Unlocked}.
 The final ledgers assign the UART to the Non-secure participant and leave the Secure participant with no tracked peripheral capabilities.
-The \inlinehaskell{Locked} entry records that further configuration is prohibited.
-The intermediate types show the history of what happens with the type of the function
+The \inlinehaskell{Locked} entry records that the program may no longer change the configuration.
+The following annotations show how each operation transforms the ledgers.
 
 \begin{lstlisting}[style=haskell]
                  -- Initially ns = [],     s = [Unlocked]
@@ -634,11 +637,14 @@ MicroHasTEE therefore provides a one-way transition that finalizes the capabilit
                      => Setup ns s ns (Locked ': s') ()
 \end{lstlisting}
 
-The type of \inlinehaskell{lock_configuration} says that if the Secure ledger contained the element \inlinehaskell{Unlocked}, the Secure ledger is transformed to one that doesn't contain it, and instead contains \inlinehaskell{Locked}.
-All operations that configure the device and change the ledger are gated on the presence of the \inlinehaskell{Unlocked} element in the Secure capability ledger.
-Furthermore, the operations that install callbacks or denote Secure functions as callable from the Non-secure domain are similarly gated, and require a program where further configuration has been ruled out.
-This act of locking the configuration phase is purely a type-level transition, and not something represented by a corresponding hardware action.
-The program below is rejected by the compiler, as the red LED is requested after \inlinehaskell{lock_configuration} was invoked.
+The \inlinehaskell{Member Unlocked s} constraint requires the Secure ledger to contain \inlinehaskell{Unlocked}.
+The \inlinehaskell{Delete Unlocked s s'} constraint describes the ledger that remains after removing it.
+The output ledger adds \inlinehaskell{Locked} to those remaining capabilities.
+All operations that configure the device or change the ledgers require \inlinehaskell{Unlocked}.
+Operations that install callbacks or register callable Secure services instead require \inlinehaskell{Locked}.
+A program must therefore finish changing attribution before it performs operations whose types depend on the final ledgers.
+Calling \inlinehaskell{lock_configuration} changes only the type-level setup state and performs no corresponding hardware operation.
+The compiler rejects the following program because \inlinehaskell{get_gpio} attempts to acquire the red LED after configuration has been finalized.
 
 \begin{lstlisting}[style=haskell]
   bad = do
