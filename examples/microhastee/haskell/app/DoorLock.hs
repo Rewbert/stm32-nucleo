@@ -169,12 +169,12 @@ setupKeypadButton :: forall pin port ns s .
 setupKeypadButton inCfg edge priority = Ix.do
     gpio <- get_gpio @pin @port
     gpio_init gpio inCfg
-    gpio_release @s gpio
+    gpio_release gpio
     exti <- get_exti @pin @port
     exti_init exti $ EXTIConfig { port = toPort (Proxy :: Proxy port), pin = toInt (Proxy :: Proxy pin), edge = edge }
     irqn <- exti_irqn exti
     nvic_set_priority irqn priority
-    exti_release @s exti
+    exti_release exti
     Ix.return (exti, irqn)
 
 app :: Setup Nil InitialSecure NonsecureEffects SecureEffects ()
@@ -191,7 +191,7 @@ app = Ix.do
     uart <- get_console
     uart_init uart $ UARTConfig { baudrate = 115200, word_length = 8, stop_bits = 1, parity = NONE }
     tzsc <- get_tzsc
-    tzsc_release_periph @InitialSecure tzsc uart
+    tzsc_release_periph tzsc uart
 
     -- enable GPIO ports (A/C for UART/green, B for blue, G for red, D for the keypad)
     rcc <- get_rcc

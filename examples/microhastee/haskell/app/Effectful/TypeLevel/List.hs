@@ -1,5 +1,6 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverlappingInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 module Effectful.TypeLevel.List (
     Nil,
     Cons,
@@ -18,7 +19,7 @@ instance Member x (Cons x xs)
 instance (Member x xs) => Member x (Cons y xs)
 
 -- deleting x from xs yields ys
-class Delete (x :: Type) (xs :: Type) (ys :: Type)
+class Delete (x :: Type) (xs :: Type) (ys :: Type) | x xs -> ys
 -- if x is at the head, we can delete it
 instance Delete x (Cons x xs) xs
 -- if deleting x from xs yields ys, deleting x from (y:xs) yields (y:ys)
