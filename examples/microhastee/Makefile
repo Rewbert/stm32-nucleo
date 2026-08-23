@@ -89,11 +89,27 @@ check-main-hs:
 		echo $(MAIN_HS) > $(MAIN_HS_RECORD); \
 	fi
 
-$(APP)/S/gen2.c: $(HASKELL_SRC)
-	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -DSECURE -ilib -iapp -c -ogen.c app/$(MAIN_HS).hs && cp gen.c ../S/gen2.c && rm gen.c
+# mhs's compilation cache (.mhscache) is a single hardcoded filename, read/written
+# from whatever directory mhs is invoked in -- it has no notion of build variants
+#
+# One cache per variant, kept in build/, swapped into $(HASKELL_DIR)/.mhscache
+# around each compile.
+MHS_CACHE_S  := build/$(APP)/mhs-cache-s/.mhscache
+MHS_CACHE_NS := build/$(APP)/mhs-cache-ns/.mhscache
 
-$(APP)/NS/gen2.c: $(HASKELL_SRC)
-	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -ilib -iapp -ogen.c app/$(MAIN_HS).hs && cp gen.c ../NS/gen2.c && rm gen.c
+$(APP)/S/gen2.c: $(HASKELL_SRC)
+	mkdir -p $(dir $(MHS_CACHE_S))
+	if [ -f $(MHS_CACHE_S) ]; then cp -f $(MHS_CACHE_S) $(HASKELL_DIR)/.mhscache; else rm -f $(HASKELL_DIR)/.mhscache; fi
+	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -DSECURE -C -ilib -iapp -c -ogen.c app/$(MAIN_HS).hs && cp gen.c ../S/gen2.c && rm gen.c
+	cp -f $(HASKELL_DIR)/.mhscache $(MHS_CACHE_S)
+
+# Order-only on S/gen2.c: both variants swap the same $(HASKELL_DIR)/.mhscache
+# into place, so they must not build concurrently under `make -j`.
+$(APP)/NS/gen2.c: $(HASKELL_SRC) | $(APP)/S/gen2.c
+	mkdir -p $(dir $(MHS_CACHE_NS))
+	if [ -f $(MHS_CACHE_NS) ]; then cp -f $(MHS_CACHE_NS) $(HASKELL_DIR)/.mhscache; else rm -f $(HASKELL_DIR)/.mhscache; fi
+	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -C -ilib -iapp -ogen.c app/$(MAIN_HS).hs && cp gen.c ../NS/gen2.c && rm gen.c
+	cp -f $(HASKELL_DIR)/.mhscache $(MHS_CACHE_NS)
 
 # --- Secure application ---
 
