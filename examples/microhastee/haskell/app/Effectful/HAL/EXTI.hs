@@ -3,7 +3,7 @@
 module Effectful.HAL.EXTI (
     EXTI,
     HAL.EXTIEdge(..),
-    HAL.EXTIConfig(..),
+    EXTIConfig(..),
     get_exti,
     get_button_exti,
     exti_init,
@@ -54,8 +54,21 @@ get_button_exti = Ix.do
     exti <- liftSetupIO $ HAL.board_button_exti HAL.BLUE_BUTTON
     Ix.return $ EXTI 13 exti
 
-exti_init :: (Member Unlocked s, Member (EXTI pin port) s) => EXTI pin port -> HAL.EXTIConfig -> Setup ns s ns s ()
-exti_init (EXTI _ exti) cfg = liftSetupIO $ HAL.exti_init exti cfg
+data EXTIConfig = EXTIConfig
+  { edge :: HAL.EXTIEdge
+  }
+
+exti_init :: forall pin port ns s .
+             ( Member Unlocked s
+             , Member (EXTI pin port) s
+             , ToInt pin, ToGPIOPort port
+             ) => EXTI pin port -> EXTIConfig -> Setup ns s ns s ()
+exti_init (EXTI _ exti) cfg =
+    let cfg' = HAL.EXTIConfig { HAL.port = toPort (undefined :: Proxy port)
+                               , HAL.pin  = toInt  (undefined :: Proxy pin)
+                               , HAL.edge = edge cfg
+                               }
+    in liftSetupIO $ HAL.exti_init exti cfg'
 
 exti_release :: forall s' pin port ns s .
                 ( Member Unlocked s

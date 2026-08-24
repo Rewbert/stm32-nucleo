@@ -2,7 +2,6 @@
 {-# LANGUAGE CPP #-}
 module DoorLock where
 
-import Data.Proxy
 import Control.DeepSeq (NFData (..))
 
 import qualified Control.Monad.IxMonad as Ix
@@ -38,14 +37,10 @@ type NonsecureEffects =
     Cons UART Nil))))))))
 
 type InitialSecure = Cons Unlocked Nil
--- [LOCKOUT_LED, DOORUNLOCKED_LED, DOORLOCKED_LED, Unlocked] -- s while the keypad
--- GPIOs/EXTIs are acquired and immediately released, one pair at a time
-type PreLockSecure = Cons LOCKOUT_LED (Cons DOORUNLOCKED_LED (Cons DOORLOCKED_LED InitialSecure))
--- the three LEDs, still held securely once configuration is complete -- door_unlock_attempt
+
+-- app's final state: locked, holding exactly the three LEDs -- door_unlock_attempt
 -- is the only thing that will ever drive them
-type ConfiguredSecure = Cons LOCKOUT_LED (Cons DOORUNLOCKED_LED (Cons DOORLOCKED_LED Nil))
--- app's final state: locked, holding exactly the configured peripherals
-type SecureEffects = Cons Locked ConfiguredSecure
+type SecureEffects = Cons Locked (Cons LOCKOUT_LED (Cons DOORUNLOCKED_LED (Cons DOORLOCKED_LED Nil)))
 
 -- * Secure-side lock logic -------------------------------------------------
 
@@ -170,11 +165,13 @@ setupKeypadButton inCfg edge priority = Ix.do
     gpio <- get_gpio @pin @port
     gpio_init gpio inCfg
     gpio_release gpio
+
     exti <- get_exti @pin @port
-    exti_init exti $ EXTIConfig { port = toPort (Proxy :: Proxy port), pin = toInt (Proxy :: Proxy pin), edge = edge }
+    exti_init exti $ EXTIConfig { edge = edge }
     irqn <- exti_irqn exti
     nvic_set_priority irqn priority
     exti_release exti
+
     Ix.return (exti, irqn)
 
 app :: Setup Nil InitialSecure NonsecureEffects SecureEffects ()
@@ -233,6 +230,7 @@ app = Ix.do
     nvic_enable_irq irqn2
     nvic_enable_irq irqn3
     nvic_enable_irq irqn4
+
     irq_enable
 
     -- everything now happens in the EXTI callbacks above; just keep main() alive

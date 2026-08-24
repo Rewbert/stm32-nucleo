@@ -112,7 +112,7 @@ app = Ix.do
 
     -- configure user button EXTI for the nonsecure domain
     button <- get_button_exti
-    exti_init button $ EXTIConfig { port = C, pin = 13, edge = BOTH }
+    exti_init button $ EXTIConfig { edge = BOTH }
     irqn <- exti_irqn button
     nvic_set_priority irqn 0
     exti_release @PreLockSecure button
