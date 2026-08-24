@@ -1078,7 +1078,22 @@ After we have presented the case study, we establish the trusted computing base,
 
 \subsection{Case Study: \todo{A Secure Door Lock}}
 
-blabla describe the application
+% describe what the application is, without implementation details
+% how might a user interact with the application, physically?
+The implemented case study is a secure lock: the user enters a 4-digit PIN on the keypad, and a correct PIN unlocks a physical lock for a few seconds before it re-latches.
+A wrong PIN is recorded, but nothing else happens.
+After a predetermined number of consecutive wrong attempts, the lock locks itself so that even a correct PIN no longer opens it.
+To change the PIN, the user presses a specific key, then enters the old PIN followed by the new one; if the old PIN matches, the system accepts the new PIN as the secret.
+
+% here should come the security attribution
+The keypad and its callbacks are attributed to the Non-secure domain, as is the UART, so a display can show the keypad's current state.
+The GPIO pins that control the physical lock are attributed to the Secure domain and can only be used by the \inlinehaskell{Secure} MicroHasTEE-monad.
+
+% here comes the persistency detail
+The current PIN and the wrong-attempt counter are stored persistently in flash.
+This ensures their values survive a power cycle: without persistence, a power cycle would reset the wrong-attempt counter and let an attacker retry indefinitely.
+A page of flash, set aside in the linker script and marked as a persistent segment, implements this.
+
 
 \subsection{Trusted Computing Base}
 
@@ -1194,7 +1209,8 @@ MicroHasTEE checks this separation at compile time, and checks that a program's 
 \Cref{table:tfm-vs-microhastee} collects some of the differences between TF-M and MicroHasTEE.
 
 \begin{table}[ht]
-  \caption{\todo{blabla, maybe mention that microhastee has one secure partition, whereas tf-m allows multiple?}}
+  \caption{Comparison of TF-M and MicroHasTEE along several architectural and security properties.
+\textit{Isolated Secure Partitions} refers to TF-M's ability to host multiple mutually isolated partitions within the Secure state; MicroHasTEE currently supports only a single Secure application.}
   \label{table:tfm-vs-microhastee}
   \centering
   \small
