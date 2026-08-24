@@ -89,6 +89,55 @@ readLockoutCount db = do
 writeLockoutCount :: UDB -> Int -> Secure effects ()
 writeLockoutCount db c = udb_insert db lockoutKey c
 
+-- Stand-ins for actual lock hardware -- we don't have a real strike/latch, so
+-- these light the LEDs instead. Kept separate from door_unlock_attempt (which
+-- is NSC and should stay brief) so the mock actuation lives in ordinary
+-- secure functions.
+
+setLockoutIndicator :: Member LOCKOUT_LED effects => LOCKOUT_LED -> Bool -> Secure effects ()
+setLockoutIndicator lockoutLed = gpio_write lockoutLed
+
+grantAccess :: (Member DOORLOCKED_LED effects, Member DOORUNLOCKED_LED effects)
+            => DOORLOCKED_LED -> DOORUNLOCKED_LED -> Secure effects ()
+grantAccess lockedLed unlockedLed = do
+    gpio_write lockedLed False
+    gpio_write unlockedLed True
+    systick_delay_ms 2000   -- momentary unlock, like an electric strike
+    gpio_write unlockedLed False
+    gpio_write lockedLed True
+
+-- Records a failed attempt: bumps the persisted counter and, if that trips
+-- the threshold, engages the lockout indicator. Returns the new count.
+consumeAttempt :: Member LOCKOUT_LED effects => UDB -> LOCKOUT_LED -> Int -> Secure effects Int
+consumeAttempt db lockoutLed count = do
+    let count' = count + 1
+    writeLockoutCount db count'
+    if count' >= maxAttempts
+        then setLockoutIndicator lockoutLed True
+        else return ()
+    return count'
+
+-- The PIN comparison, counter update and actuation for a non-locked-out
+-- attempt. Ordinary secure code (not NSC). door_unlock_attempt below handles
+-- the lockout gate itself and only reaches here once it knows the attempt is
+-- allowed to proceed.
+verifyAttempt :: ( Member DOORLOCKED_LED effects
+                 , Member DOORUNLOCKED_LED effects
+                 , Member LOCKOUT_LED effects)
+              => UDB -> DOORLOCKED_LED -> DOORUNLOCKED_LED -> LOCKOUT_LED
+              -> Int -> [Int] -> Secure effects UnlockResult
+verifyAttempt db lockedLed unlockedLed lockoutLed count attempt = do
+    pin <- readPin db
+    if attempt == pin
+        then do
+            writeLockoutCount db 0
+            setLockoutIndicator lockoutLed False
+            grantAccess lockedLed unlockedLed
+            return Granted
+        else do
+            count' <- consumeAttempt db lockoutLed count
+            return (Denied (maxAttempts - count'))
+
 door_unlock_attempt :: ( Member DOORLOCKED_LED effects
                        , Member DOORUNLOCKED_LED effects
                        , Member LOCKOUT_LED effects)
@@ -98,27 +147,9 @@ door_unlock_attempt db lockedLed unlockedLed lockoutLed attempt = do
     count <- readLockoutCount db
     if count >= maxAttempts
         then do
-            gpio_write lockoutLed True
+            setLockoutIndicator lockoutLed True
             return LockedOut
-        else do
-            pin <- readPin db
-            if attempt == pin
-                then do
-                    writeLockoutCount db 0
-                    gpio_write lockoutLed False
-                    gpio_write lockedLed False
-                    gpio_write unlockedLed True
-                    systick_delay_ms 2000   -- momentary unlock, like an electric strike
-                    gpio_write unlockedLed False
-                    gpio_write lockedLed True
-                    return Granted
-                else do
-                    let count' = count + 1
-                    writeLockoutCount db count'
-                    if count' >= maxAttempts
-                        then gpio_write lockoutLed True
-                        else return ()
-                    return (Denied (maxAttempts - count'))
+        else verifyAttempt db lockedLed unlockedLed lockoutLed count attempt
 
 -- * Nonsecure-side keypad ---------------------------------------------------
 
