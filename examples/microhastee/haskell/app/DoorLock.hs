@@ -12,9 +12,8 @@ import MicroHasTEE
 foreign export ccall "app_main" main :: IO ()
 #endif
 
--- Board wiring (see firmware/boards/stm32u5/board.c): PC7 = green, PB7 = blue,
--- PG2 = red. Keypad is 4 free GPIOs (PD0..PD3) -- no fixed function yet, to be
--- hard-wired to a breadboard later. Each button is one digit (1-4) of the PIN.
+-- Board wiring (PC7 = green, PB7 = blue, PG2 = red).
+-- Keypad is 4 free GPIOs (PD0..PD3), each button is one digit (1-4) of the PIN.
 type DOORLOCKED_LED   = GPIO N2 G
 type DOORUNLOCKED_LED = GPIO N7 C
 type LOCKOUT_LED      = GPIO N7 B
@@ -27,8 +26,7 @@ type KEY2_EXTI = EXTI N1 D
 type KEY3_EXTI = EXTI N2 D
 type KEY4_EXTI = EXTI N3 D
 
--- released in GPIO/EXTI pairs, key4 down to key1 -- see the note above on why
--- interleaving (rather than 4 gpio_release in a row) is what actually compiles
+-- This is the final security attribution for the Non-secure domain
 type NonsecureEffects =
     Cons KEY4_EXTI (Cons KEY4_GPIO (
     Cons KEY3_EXTI (Cons KEY3_GPIO (
@@ -38,8 +36,8 @@ type NonsecureEffects =
 
 type InitialSecure = Cons Unlocked Nil
 
--- app's final state: locked, holding exactly the three LEDs -- door_unlock_attempt
--- is the only thing that will ever drive them
+-- The final security attribution of the Secure domain
+-- It can control the three LEDs
 type SecureEffects = Cons Locked (Cons LOCKOUT_LED (Cons DOORUNLOCKED_LED (Cons DOORLOCKED_LED Nil)))
 
 -- * Secure-side lock logic -------------------------------------------------
@@ -91,9 +89,11 @@ readLockoutCount db = do
 writeLockoutCount :: UDB -> Int -> Secure effects ()
 writeLockoutCount db c = udb_insert db lockoutKey c
 
-door_unlock_attempt :: (Member DOORLOCKED_LED effects, Member DOORUNLOCKED_LED effects, Member LOCKOUT_LED effects)
-                     => UDB -> DOORLOCKED_LED -> DOORUNLOCKED_LED -> LOCKOUT_LED
-                     -> [Int] -> Secure effects UnlockResult
+door_unlock_attempt :: ( Member DOORLOCKED_LED effects
+                       , Member DOORUNLOCKED_LED effects
+                       , Member LOCKOUT_LED effects)
+                    => UDB -> DOORLOCKED_LED -> DOORUNLOCKED_LED -> LOCKOUT_LED
+                    -> [Int] -> Secure effects UnlockResult
 door_unlock_attempt db lockedLed unlockedLed lockoutLed attempt = do
     count <- readLockoutCount db
     if count >= maxAttempts
@@ -123,14 +123,10 @@ door_unlock_attempt db lockedLed unlockedLed lockoutLed attempt = do
 -- * Nonsecure-side keypad ---------------------------------------------------
 
 reportResult :: UART -> UnlockResult -> Nonsecure NonsecureEffects ()
-reportResult uart (Collecting n) =
-    uart_write uart ("key " ++ show n ++ "/4\r\n")
-reportResult uart Granted =
-    uart_write uart "door: unlock granted\r\n"
-reportResult uart (Denied remaining) =
-    uart_write uart ("door: wrong pin, " ++ show remaining ++ " attempt(s) left\r\n")
-reportResult uart LockedOut =
-    uart_write uart "door: locked out\r\n"
+reportResult uart (Collecting n) = uart_write uart ("key " ++ show n ++ "/4\r\n")
+reportResult uart Granted = uart_write uart "door: unlock granted\r\n"
+reportResult uart (Denied remaining) = uart_write uart ("door: wrong pin, " ++ show remaining ++ " attempt(s) left\r\n")
+reportResult uart LockedOut = uart_write uart "door: locked out\r\n"
 
 key_pressed :: UART -> Callable ([Int] -> Secure SecureEffects UnlockResult)
             -> Nonsecure NonsecureEffects (NSRef [Int]) -> Int -> EXTIEdge -> Nonsecure NonsecureEffects ()
