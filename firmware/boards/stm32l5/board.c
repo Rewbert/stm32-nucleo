@@ -121,7 +121,17 @@ static inline void console_init() {
     gpio_init(&pg8, &uart_pin_cfg);
 }
 
-void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t edge, void (*button_callback)(exti_edge_t edge)) {
+static void (*button_user_callback)(button_edge_t edge) = 0;
+
+static void board_button_irq_trampoline(exti_edge_t hw_edge) {
+    /* active-low: PC13 LOW = pressed, PC13 HIGH = released */
+    button_edge_t edge = (hw_edge == EXTI_EDGE_FALLING) ? BUTTON_EDGE_PRESS : BUTTON_EDGE_RELEASE;
+    if (button_user_callback) {
+        button_user_callback(edge);
+    }
+}
+
+void board_button_init(gpio_dev_t *button, gpio_security_t security, button_edge_t edge, void (*button_callback)(button_edge_t edge)) {
     gpio_config_t btn_cfg = {
         .mode      = GPIO_MODE_INPUT,
         .pull      = GPIO_NOPULL,
@@ -130,10 +140,17 @@ void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t
     gpio_init(button, &btn_cfg);
     gpio_set_security(button, security);
 
+    exti_edge_t hw_edge;
+    switch (edge) {
+        case BUTTON_EDGE_PRESS:   hw_edge = EXTI_EDGE_FALLING; break; /* active-low: press drives PC13 LOW */
+        case BUTTON_EDGE_RELEASE: hw_edge = EXTI_EDGE_RISING;  break;
+        default:                  hw_edge = EXTI_EDGE_BOTH;    break;
+    }
+
     exti_config_t exti_cfg = {
         .port             = EXTI_PORT_C, // this stuff is duplicated. I already wrote this stuff in board_init. Need to
         .pin              = 13,          // think about how to remove the deplication
-        .edge             = EXTI_EDGE_FALLING,
+        .edge             = hw_edge,
     };
     exti_init(board_button_exti(BOARD_BUTTON_USER), &exti_cfg);
     exti_set_security(board_button_exti(BOARD_BUTTON_USER), EXTI_SECURE);
@@ -142,7 +159,8 @@ void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t
     nvic_set_priority(irqn, 0);
     nvic_enable_irq(irqn);
 
-    exti_register_callback(board_button_exti(BOARD_BUTTON_USER), button_callback);
+    button_user_callback = button_callback;
+    exti_register_callback(board_button_exti(BOARD_BUTTON_USER), board_button_irq_trampoline);
 }
 
 void board_configure_pll(void) {

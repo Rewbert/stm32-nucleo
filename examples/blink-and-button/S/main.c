@@ -34,9 +34,15 @@ static void sys_init(void) {
     irq_enable();
 }
 
-static void button_callback(exti_edge_t edge) {
+static void button_callback(button_edge_t edge) {
     (void)edge;
     const char msg[] = "hello from the button callback!\r\n";
+    uart_write(board_console(), (const uint8_t *)msg, sizeof(msg) - 1);
+}
+
+static void breadboard_button_callback(exti_edge_t edge) {
+    (void)edge;
+    const char msg[] = "hello from the breadboard button callback!\r\n";
     uart_write(board_console(), (const uint8_t *)msg, sizeof(msg) - 1);
 }
 
@@ -76,7 +82,7 @@ static void inline breadboard_button_init() {
     nvic_set_priority(irqn, 0);
     nvic_enable_irq(irqn);
 
-    exti_register_callback(&bb_exti, button_callback);
+    exti_register_callback(&bb_exti, breadboard_button_callback);
 }
 
 void main(void) {
@@ -94,7 +100,7 @@ void main(void) {
     gpio_set_security(board_led(BOARD_LED_BLUE),  GPIO_NONSECURE);
     gpio_set_security(board_led(BOARD_LED_GREEN), GPIO_NONSECURE);
 
-    board_button_init(board_button(BOARD_BUTTON_USER), GPIO_SECURE, EXTI_EDGE_FALLING, button_callback);
+    board_button_init(board_button(BOARD_BUTTON_USER), GPIO_SECURE, BUTTON_EDGE_PRESS, button_callback);
     breadboard_button_init();
 
     // while (1) {

@@ -28,6 +28,17 @@ typedef enum {
 } board_button_t;
 
 /**
+ * @brief Logical button transition to trigger on, independent of each board's active-high/active-low wiring.
+ *
+ * board_button_init() translates this into the correct physical EXTI edge for the board being built.
+ */
+typedef enum {
+    BUTTON_EDGE_PRESS = 0,
+    BUTTON_EDGE_RELEASE,
+    BUTTON_EDGE_BOTH,
+} button_edge_t;
+
+/**
  * @brief GPIO ports that can be accessed.
  *
  * NOTE: I am not sure how to handle implementing boards that have more or fewer than these..
@@ -89,7 +100,7 @@ pwr_dev_t    *board_pwr(void);
 tzsc_dev_t   *board_tzsc(void);
 timer_dev_t  *board_timer(void);
 
-void board_button_init(gpio_dev_t *button, gpio_security_t security, exti_edge_t edge, void (*button_callback)(exti_edge_t edge));
+void board_button_init(gpio_dev_t *button, gpio_security_t security, button_edge_t edge, void (*button_callback)(button_edge_t edge));
 
 /* Configure PLL for this board's rated clock. Call after board_init(). */
 void board_configure_pll(void);
