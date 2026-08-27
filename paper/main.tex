@@ -1094,6 +1094,12 @@ The current PIN and the wrong-attempt counter are stored persistently in flash.
 This ensures their values survive a power cycle: without persistence, a power cycle would reset the wrong-attempt counter and let an attacker retry indefinitely.
 A page of flash, set aside in the linker script and marked as a persistent segment, implements this.
 
+% maybe now the hardware setup?
+The application targets an STM32U5A5ZJQ Nucleo board.
+The Secure GPIO pins drive a MOSFET transistor that, when enabled, routes power from a 6V source to the solenoid lock.
+The Non-secure GPIO pins connect to a 3x4, 12-key matrix keypad, wired as three columns and four rows.
+Because twelve keys share seven pins, reading the keypad needs more than the single callback shown earlier: the design attributes an EXTI line to each row, and each row's callback reads the state of the three column pins to identify which key produced the interrupt.
+\todo{maybe here, include a diagram of the hardware setup}
 
 \subsection{Trusted Computing Base}
 
