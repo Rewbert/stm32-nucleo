@@ -7,18 +7,15 @@
 #include "drivers/systick.h"
 #include "drivers/irq.h"
 #include "drivers/rcc.h"
-#include "drivers/exti.h"
-#include "drivers/nvic.h"
 
-/* Arduino A2 == PC3 (UM2861 Table 17, Zio connector CN9) — the MOSFET gate.
- * File-scope so the button's EXTI callback below can reach it. */
+/* The Arduino A2 pin is bound to the boards PC3, and is connected
+ * to the the MOSFET gate.
+ */
 static board_gpio_backend_t gate_backend;
 static gpio_dev_t gate;
 
-/* U5 Nucleo-144 user button (PC13) is active-high: an external pull-down
- * holds it low, and pressing it drives the pin high (see board.c). */
-static void button_edge_changed(exti_edge_t edge) {
-    gpio_level_t level = (edge == EXTI_EDGE_RISING) ? GPIO_HIGH : GPIO_LOW;
+static void button_edge_changed(button_edge_t edge) {
+    gpio_level_t level = (edge == BUTTON_EDGE_PRESS) ? GPIO_HIGH : GPIO_LOW;
     gpio_write(&gate, level);
     gpio_write(board_led(BOARD_LED_GREEN), level);
 }
@@ -40,41 +37,19 @@ void main(void) {
     rcc_enable(board_rcc(), RCC_GPIOC);
 
     board_gpio_create(&gate, BOARD_GPIO_PORT_C, 3, &gate_backend);
-    gpio_config_t gate_cfg = {
+    gpio_config_t output_nopull_cfg = {
         .mode      = GPIO_MODE_OUTPUT,
         .pull      = GPIO_NOPULL,
         .alternate = GPIO_AF0,
     };
-    gpio_init(&gate, &gate_cfg);
-    gpio_write(&gate, GPIO_LOW); /* keep the MOSFET off until driven on purpose */
+    gpio_init(&gate, &output_nopull_cfg);
+    gpio_init(board_led(BOARD_LED_GREEN), &output_nopull_cfg);
 
-    gpio_config_t led_cfg = {
-        .mode      = GPIO_MODE_OUTPUT,
-        .pull      = GPIO_NOPULL,
-        .alternate = GPIO_AF0,
-    };
-    gpio_init(board_led(BOARD_LED_GREEN), &led_cfg);
+    gpio_write(&gate, GPIO_LOW); /* keep the MOSFET off until driven on purpose */
     gpio_write(board_led(BOARD_LED_GREEN), GPIO_LOW);
 
-    gpio_config_t button_cfg = {
-        .mode      = GPIO_MODE_INPUT,
-        .pull      = GPIO_PULLDOWN,
-        .alternate = GPIO_AF0,
-    };
-    gpio_init(board_button(BOARD_BUTTON_USER), &button_cfg);
-
-    exti_config_t button_exti_cfg = {
-        .port = EXTI_PORT_C,
-        .pin  = 13,
-        .edge = EXTI_EDGE_BOTH, /* need both: press turns the gate/LED on, release turns them off */
-    };
-    exti_init(board_button_exti(BOARD_BUTTON_USER), &button_exti_cfg);
-
-    int button_irq = exti_irqn(board_button_exti(BOARD_BUTTON_USER));
-    nvic_set_priority(button_irq, 0);
-    nvic_enable_irq(button_irq);
-
-    exti_register_callback(board_button_exti(BOARD_BUTTON_USER), button_edge_changed);
+    /* No nonsecure image on this board yet, so GPIO_SECURE is a no-op here. */
+    board_button_init(board_button(BOARD_BUTTON_USER), GPIO_SECURE, BUTTON_EDGE_BOTH, button_edge_changed);
 
     irq_enable();
 
