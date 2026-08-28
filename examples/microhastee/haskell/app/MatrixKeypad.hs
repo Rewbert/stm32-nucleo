@@ -71,22 +71,46 @@ codeLength = 4
 timeoutTicks :: Int
 timeoutTicks = 5000
 
--- | Scans the whole matrix once and loops forever, collecting keys into a
--- PIN-style code buffer:
+-- | (code collected so far, last raw scan result -- for edge detection,
+-- tick of the last accepted press -- for the timeout). Lives in one NSRef
+-- so the scan loop below carries no state of its own.
+type KeypadState = ([Char], Maybe Char, Int)
+
+initialKeypadState :: KeypadState
+initialKeypadState = ([], Nothing, 0)
+
+-- | Pure decision step, kept separate from the Nonsecure/IO shell: given the
+-- current tick count, this scan's raw key reading, and the current state,
+-- decides the next state and (if any) the line to print.
 --
 --   * a key is accepted exactly once, on the scan where it first reads as
 --     pressed (comparing against the previous scan's result) -- not via
 --     timing-based debounce;
---   * once 'codeLength' keys have been accepted, prints the code and starts
---     a fresh buffer;
+--   * once 'codeLength' keys have been accepted, the code is emitted and
+--     the buffer starts over;
 --   * if the buffer is non-empty and more than 'timeoutTicks' pass between
 --     accepted presses, the buffer is discarded and a timeout is reported.
-scanMatrix :: UART
+stepKeypad :: Int -> Maybe Char -> KeypadState -> (KeypadState, Maybe String)
+stepKeypad now raw (code, lastKey, lastPress)
+    | not (null code) && (now - lastPress) > timeoutTicks =
+        (([], raw, now), Just "timeout: reset state\r\n")
+    | sameKey raw lastKey =
+        ((code, raw, lastPress), Nothing)
+    | otherwise = case raw of
+        Nothing -> ((code, raw, lastPress), Nothing)
+        Just c ->
+            let code' = code ++ [c]
+            in if length code' >= codeLength
+                then (([], raw, now), Just ("entered code: " ++ code' ++ "\r\n"))
+                else ((code', raw, now), Nothing)
+
+-- | Scans the whole matrix once, advances the keypad state machine, and
+-- loops forever.
+scanMatrix :: UART -> NSRef KeypadState
            -> ROW0_GPIO -> ROW1_GPIO -> ROW2_GPIO -> ROW3_GPIO
            -> COL0_GPIO -> COL1_GPIO -> COL2_GPIO
-           -> [Char] -> Maybe Char -> Int
            -> Nonsecure NonsecureEffects ()
-scanMatrix uart row0 row1 row2 row3 col0 col1 col2 code lastKey lastPress = do
+scanMatrix uart stateRef row0 row1 row2 row3 col0 col1 col2 = do
     k0 <- scanRow row0 col0 col1 col2 '1' '2' '3'
     k1 <- scanRow row1 col0 col1 col2 '4' '5' '6'
     k2 <- scanRow row2 col0 col1 col2 '7' '8' '9'
@@ -94,35 +118,30 @@ scanMatrix uart row0 row1 row2 row3 col0 col1 col2 code lastKey lastPress = do
     let raw = firstPressed [k0, k1, k2, k3]
 
     now <- systick_ticks
+    st <- readNSRef stateRef
+    let (st', msg) = stepKeypad now raw st
+    writeNSRef stateRef st'
+    case msg of
+        Nothing -> return ()
+        Just m  -> uart_write uart m
 
-    if not (null code) && (now - lastPress) > timeoutTicks
-        then do
-            uart_write uart "timeout: reset state\r\n"
-            scanMatrix uart row0 row1 row2 row3 col0 col1 col2 [] raw now
-        else if sameKey raw lastKey
-            then scanMatrix uart row0 row1 row2 row3 col0 col1 col2 code raw lastPress
-            else case raw of
-                Nothing -> scanMatrix uart row0 row1 row2 row3 col0 col1 col2 code raw lastPress
-                Just c ->
-                    let code' = code ++ [c]
-                    in if length code' >= codeLength
-                        then do
-                            uart_write uart ("entered code: " ++ code' ++ "\r\n")
-                            scanMatrix uart row0 row1 row2 row3 col0 col1 col2 [] raw now
-                        else scanMatrix uart row0 row1 row2 row3 col0 col1 col2 code' raw now
+    scanMatrix uart stateRef row0 row1 row2 row3 col0 col1 col2
 
 -- | Rows idle high; each is driven low in turn to scan. Set once, then hand
--- off to the scan loop.
-runKeypad :: UART
+-- off to the scan loop. Takes the ref-creating action returned by
+-- 'initialNSRef' (run here, once) rather than an already-created ref, so
+-- 'app' below doesn't need a nested plain 'do' inside its 'Ix.do' block.
+runKeypad :: UART -> Nonsecure NonsecureEffects (NSRef KeypadState)
           -> ROW0_GPIO -> ROW1_GPIO -> ROW2_GPIO -> ROW3_GPIO
           -> COL0_GPIO -> COL1_GPIO -> COL2_GPIO
           -> Nonsecure NonsecureEffects ()
-runKeypad uart row0 row1 row2 row3 col0 col1 col2 = do
+runKeypad uart stateRefAction row0 row1 row2 row3 col0 col1 col2 = do
+    stateRef <- stateRefAction
     gpio_write row0 True
     gpio_write row1 True
     gpio_write row2 True
     gpio_write row3 True
-    scanMatrix uart row0 row1 row2 row3 col0 col1 col2 [] Nothing 0
+    scanMatrix uart stateRef row0 row1 row2 row3 col0 col1 col2
 
 -- * Setup ---------------------------------------------------------------------
 
@@ -176,11 +195,13 @@ app = Ix.do
     gpio_release col1
     gpio_release col2
 
+    stateRefAction <- initialNSRef initialKeypadState
+
     lock_configuration
 
     irq_enable
 
-    nonsecure $ runKeypad uart row0 row1 row2 row3 col0 col1 col2
+    nonsecure $ runKeypad uart stateRefAction row0 row1 row2 row3 col0 col1 col2
 
 main :: IO ()
 main = runSetup app
