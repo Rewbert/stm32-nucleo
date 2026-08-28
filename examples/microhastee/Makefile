@@ -52,6 +52,7 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/app/MicroHasTEE.hs \
   $(HASKELL_DIR)/app/HW.hs \
   $(HASKELL_DIR)/app/DoorLock.hs \
+  $(HASKELL_DIR)/app/MatrixKeypad.hs \
   $(HASKELL_DIR)/app/SimpleExample.hs \
   $(HASKELL_DIR)/app/HAL.hs \
   $(HASKELL_DIR)/app/HAL/Drivers/SysTick.hs \
@@ -78,7 +79,7 @@ CABAL=mcabal
 # MAIN_HS alone (e.g. all <-> simple) wouldn't be noticed on its own.
 # check-main-hs (a prerequisite of all/simple, below) records which module was
 # last built and deletes gen2.c to force a regen whenever that changes.
-MAIN_HS ?= DoorLock
+MAIN_HS ?= MatrixKeypad
 MAIN_HS_RECORD := build/$(APP)/.main-hs
 
 .PHONY: check-main-hs

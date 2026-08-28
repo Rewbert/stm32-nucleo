@@ -14,10 +14,16 @@
 static board_gpio_backend_t gate_backend;
 static gpio_dev_t gate;
 
+#define UNLOCK_MS 3000
+static volatile uint32_t unlock_until = 0;
+
 static void button_edge_changed(button_edge_t edge) {
-    gpio_level_t level = (edge == BUTTON_EDGE_PRESS) ? GPIO_HIGH : GPIO_LOW;
-    gpio_write(&gate, level);
-    gpio_write(board_led(BOARD_LED_GREEN), level);
+    if (edge != BUTTON_EDGE_PRESS) {
+        return;
+    }
+    unlock_until = systick_get_ticks() + UNLOCK_MS;
+    gpio_write(&gate, GPIO_HIGH);
+    gpio_write(board_led(BOARD_LED_GREEN), GPIO_HIGH);
 }
 
 void main(void) {
@@ -55,5 +61,10 @@ void main(void) {
 
     uart_write(board_console(), "booted\n\r", 8);
     while (1) {
+        if (unlock_until != 0 && systick_get_ticks() >= unlock_until) {
+            gpio_write(&gate, GPIO_LOW);
+            gpio_write(board_led(BOARD_LED_GREEN), GPIO_LOW);
+            unlock_until = 0;
+        }
     }
 }

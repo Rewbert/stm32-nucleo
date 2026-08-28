@@ -3,7 +3,8 @@
 module Effectful.HAL.SysTick (
     systick_configure,
     systick_get_ticks,
-    CanDelay(..)
+    CanDelay(..),
+    CanGetTicks(..)
 ) where
 
 import qualified Control.Monad.IxMonad as Ix
@@ -34,3 +35,15 @@ instance CanDelay Secure where
 
 instance CanDelay Nonsecure where
     systick_delay_ms i = nonsecureLiftIO $ HAL.systick_delay_ms i
+
+-- | Reads the tick counter from within a running Secure/Nonsecure computation
+-- (unlike 'systick_get_ticks' above, which only runs during Setup). Named
+-- distinctly to avoid clashing with that Setup-phase binding in this module.
+class CanGetTicks m where
+    systick_ticks :: m effects Int
+
+instance CanGetTicks Secure where
+    systick_ticks = secureLiftIO HAL.systick_get_ticks
+
+instance CanGetTicks Nonsecure where
+    systick_ticks = nonsecureLiftIO HAL.systick_get_ticks
