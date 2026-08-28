@@ -1,0 +1,383 @@
+Read targets file. Possible targets: ["mhs","unix","unix_lto","unix_x86","debug","emscripten","emscripten_web","tcc","windows","environment"]
+flags = Flags {verbose = 2, runIt = False, mhsdir = "/home/robert/.mcabal/bin/../mhs-0.16.6.0/packages/mhs-0.16.6.0/data", srcPaths = [".","lib","app"], output = "gen.c", loading = False, speed = False, readCache = False, writeCache = False, useTicks = False, doCPP = False, cppArgs = ["-DSECURE"], cArgs = [], lArgs = [], compress = False, base64 = False, buildPkg = Nothing, listPkg = Nothing, pkgPaths = ["/home/robert/.mcabal/bin/../mhs-0.16.6.0","/home/robert/.mcabal-user/mhs-0.16.6.0"], installPkg = False, preload = [], target = "unix", dumpFlags = [], useStdin = False, noLink = True, fPgm = Nothing, fArgs = [], doF = False, interactive = False, evalArg = Nothing, editor = Nothing, iPrint = Nothing, config = [("mhs",[("packageDbPath","$MHSPKG:$HOME/.mcabal-user/mhs-$VERSION")]),("unix",[("cc","cc"),("ccflags","-w -Wall -O3 "),("cclibs"," -lm"),("conf","unix")]),("unix_lto",[("cc","cc"),("ccflags","-w -Wall -O3 -flto "),("cclibs"," -lm"),("conf","unix")]),("unix_x86",[("cc","cc"),("ccflags","-w -Wall -O3 -flto -march=native "),("cclibs"," -lm"),("conf","unix")]),("debug",[("cc","cc"),("ccflags","-w -Wall -g"),("cclibs","-lm"),("conf","unix")]),("emscripten",[("cc","emcc"),("ccflags","-O3 -sEXPORTED_RUNTIME_METHODS=stringToNewUTF8 -sALLOW_MEMORY_GROWTH -sTOTAL_STACK=5MB -sNODERAWFS -sSINGLE_FILE -DUSE_SYSTEM_RAW -sEXIT_RUNTIME -Wno-address-of-packed-member"),("cclibs","-lm"),("conf","unix")]),("emscripten_web",[("cc","emcc"),("ccflags","-O3 -sASYNCIFY -sEXPORTED_FUNCTIONS=['_main','_set_input_char'] -sEXPORTED_RUNTIME_METHODS=['FS','ccall'] -sFORCE_FILESYSTEM=1 -sALLOW_MEMORY_GROWTH -sTOTAL_STACK=5MB -DUSE_WEB_INPUT -Wno-address-of-packed-member"),("cclibs","-lm"),("conf","unix")]),("tcc",[("cc","tcc"),("ccflags","-D__TCC__=1"),("cclibs","-lm"),("conf","unix")]),("windows",[("cc","cl > NUL /nologo"),("ccflags","-O2"),("cclibs",""),("conf","windows"),("cout","-Fe")]),("environment",[("cc","$CC"),("ccflags","$MHSCCFLAGS"),("cclibs","$MHSCCLIBS"),("conf","$MHSCONF")])], embedFFIs = [], embedPkgs = []}
+[from -]
+importing app/DoorLock.hsRun cpphs: "cpphs --strip -D__MHS__ -I/home/robert/.mcabal/bin/../mhs-0.16.6.0/packages/mhs-0.16.6.0/data/src/runtime '-DSECURE' /tmp/mhsinBq0Ndp.hs -O/tmp/mhsoutxp1peD.hs"
+
+ [from app/DoorLock.hs]
+ importing PreludeLoading package /home/robert/.mcabal/bin/../mhs-0.16.6.0/packages/base-0.16.6.0.pkg
+
+ importing cached Mhs.Builtin
+ importing cached Data.Proxy
+ importing cached Control.DeepSeq
+ [from app/DoorLock.hs]
+ importing Control.Monad.IxMonad
+  importing cached Prelude
+  importing cached Mhs.Builtin
+  importing cached Control.Monad.IO.Class
+  importing done Control.Monad.IxMonad, 149ms  (9 + 0 + 140)
+ importing cached Control.Monad.IO.Class
+ [from app/DoorLock.hs]
+ importing MicroHasTEERun cpphs: "cpphs --strip -D__MHS__ -I/home/robert/.mcabal/bin/../mhs-0.16.6.0/packages/mhs-0.16.6.0/data/src/runtime '-DSECURE' /tmp/mhsinSCyNWk.hs -O/tmp/mhsout9QQBDz.hs"
+
+  importing cached Prelude
+  importing cached Mhs.Builtin
+  [from MicroHasTEE]
+  importing Effectful.HAL
+   importing cached Prelude
+   importing cached Mhs.Builtin
+   [from Effectful.HAL]
+   importing Effectful.HAL.GPIORun cpphs: "cpphs --strip -D__MHS__ -I/home/robert/.mcabal/bin/../mhs-0.16.6.0/packages/mhs-0.16.6.0/data/src/runtime '-DSECURE' /tmp/mhsinbo4O2S.hs -O/tmp/mhsoutDlMDJj.hs"
+
+    importing cached Prelude
+    importing cached Mhs.Builtin
+    importing cached Data.Proxy
+    importing cached Control.Monad.IxMonad
+    [from Effectful.HAL.GPIO]
+    importing Effectful.Internal.Setup
+     importing cached Prelude
+     importing cached Mhs.Builtin
+     importing cached Data.Word
+     importing cached Foreign.C.Types
+     importing cached Foreign.Ptr
+     importing cached Foreign.StablePtr
+     [from Effectful.Internal.Setup]
+     importing Control.Monad.State
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached Control.Monad.IO.Class
+      [from Control.Monad.State]
+      importing Control.Monad.State.Class
+       importing cached Prelude
+       importing cached Mhs.Builtin
+       importing done Control.Monad.State.Class, 154ms  (12 + 0 + 142)
+      importing done Control.Monad.State, 288ms  (35 + 0 + 253)
+     importing cached Control.Monad.State.Class
+     importing cached Control.Monad.IO.Class
+     importing cached Control.Monad.IxMonad
+     [from Effectful.Internal.Setup]
+     importing Effectful.TypeLevel.List
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached Data.Kind
+      importing done Effectful.TypeLevel.List, 162ms  (15 + 0 + 147)
+     [from Effectful.Internal.Setup]
+     importing Effectful.TypeLevel.Lock
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing done Effectful.TypeLevel.Lock, 103ms  (2 + 1 + 100)
+     importing done Effectful.Internal.Setup, 553ms  (65 + 0 + 488)
+    [from Effectful.HAL.GPIO]
+    importing Effectful.Internal.Secure
+     importing cached Prelude
+     importing cached Mhs.Builtin
+     importing cached Data.Word
+     importing cached Data.IORef
+     importing cached Foreign.Storable
+     importing cached Foreign.Marshal.Alloc
+     importing cached Foreign.Marshal.Utils
+     importing cached Foreign.StablePtr
+     importing cached Foreign.Ptr
+     importing cached Foreign.C.Types
+     importing cached Effectful.TypeLevel.List
+     importing cached Effectful.TypeLevel.Lock
+     importing cached Effectful.Internal.Setup
+     importing cached Control.Monad.IxMonad
+     importing cached Control.Monad.IO.Class
+     importing cached Control.Monad.State
+     importing cached Control.DeepSeq
+     importing done Effectful.Internal.Secure, 578ms  (92 + 0 + 486)
+    [from Effectful.HAL.GPIO]
+    importing Effectful.TypeLevel.Number
+     importing cached Prelude
+     importing cached Mhs.Builtin
+     importing done Effectful.TypeLevel.Number, 114ms  (9 + 0 + 105)
+    importing cached Effectful.TypeLevel.List
+    importing cached Effectful.TypeLevel.Lock
+    [from Effectful.HAL.GPIO]
+    importing HAL
+     importing cached Prelude
+     importing cached Mhs.Builtin
+     [from HAL]
+     importing HAL.Drivers.SysTick
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached Data.Word
+      importing done HAL.Drivers.SysTick, 78ms  (7 + 0 + 71)
+     [from HAL]
+     importing HAL.Drivers.GPIO
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached Data.Word
+      importing cached Foreign.C.Types
+      [from HAL.Drivers.GPIO]
+      importing Foreign.HAL.Utils
+       importing cached Prelude
+       importing cached Mhs.Builtin
+       importing cached Foreign.C.Types
+       importing done Foreign.HAL.Utils, 58ms  (6 + 0 + 52)
+      importing cached Foreign.Marshal.Alloc
+      importing cached Foreign.Marshal.Utils
+      importing cached Foreign.Ptr
+      importing cached Foreign.Storable
+      importing done HAL.Drivers.GPIO, 623ms  (90 + 0 + 533)
+     [from HAL]
+     importing HAL.Drivers.UART
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached Data.Word
+      importing cached Foreign.C.String
+      importing cached Foreign.C.Types
+      importing cached Foreign.HAL.Utils
+      importing cached Foreign.Marshal.Alloc
+      importing cached Foreign.Marshal.Utils
+      importing cached Foreign.Ptr
+      importing cached Foreign.Storable
+      importing done HAL.Drivers.UART, 361ms  (47 + 0 + 314)
+     [from HAL]
+     importing HAL.Drivers.RCC
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached Data.Word
+      importing cached Foreign.C.Types
+      importing cached Foreign.HAL.Utils
+      importing cached Foreign.Ptr
+      importing cached Foreign.Storable
+      [from HAL.Drivers.RCC]
+      importing HAL.Drivers.FLASH
+       importing cached Prelude
+       importing cached Mhs.Builtin
+       importing cached Data.Word
+       importing cached Foreign.Ptr
+       importing done HAL.Drivers.FLASH, 122ms  (6 + 0 + 116)
+      [from HAL.Drivers.RCC]
+      importing HAL.Drivers.PWR
+       importing cached Prelude
+       importing cached Mhs.Builtin
+       importing cached Foreign.C.Types
+       importing cached Foreign.HAL.Utils
+       importing cached Foreign.Ptr
+       importing done HAL.Drivers.PWR, 169ms  (15 + 0 + 154)
+      importing done HAL.Drivers.RCC, 446ms  (55 + 0 + 391)
+     importing cached HAL.Drivers.PWR
+     importing cached HAL.Drivers.FLASH
+     [from HAL]
+     importing HAL.Drivers.EXTI
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached Data.Word
+      importing cached Foreign.C.Types
+      importing cached Foreign.Marshal.Utils
+      importing cached Foreign.Ptr
+      importing cached Foreign.Storable
+      importing cached HAL.Drivers.GPIO
+      importing done HAL.Drivers.EXTI, 415ms  (50 + 0 + 365)
+     [from HAL]
+     importing HAL.Drivers.NVIC
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached Foreign.C.Types
+      importing done HAL.Drivers.NVIC, 110ms  (8 + 0 + 102)
+     [from HAL]
+     importing HAL.Drivers.TZSC
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached Foreign.C.Types
+      importing cached Foreign.HAL.Utils
+      importing cached Foreign.Ptr
+      importing cached Foreign.Storable
+      importing done HAL.Drivers.TZSC, 227ms  (28 + 0 + 199)
+     [from HAL]
+     importing HAL.Drivers.IRQ
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing done HAL.Drivers.IRQ, 56ms  (3 + 0 + 53)
+     [from HAL]
+     importing HAL.Drivers.UDB
+      importing cached Mhs.Builtin
+      importing cached Prelude
+      importing cached Data.Hashable
+      importing cached Control.DeepSeq
+      importing cached Data.Word
+      importing cached Foreign.Marshal.Alloc
+      importing cached Foreign.Ptr
+      importing cached Foreign.Storable
+      [from HAL.Drivers.UDB]
+      importing HAL.Drivers.UDB.Internal
+       importing cached Prelude
+       importing cached Mhs.Builtin
+       importing cached Data.Word
+       importing cached Foreign.C.Types
+       importing cached Foreign.Marshal.Alloc
+       importing cached Foreign.Ptr
+       importing cached Foreign.Storable
+       importing done HAL.Drivers.UDB.Internal, 433ms  (44 + 0 + 389)
+      importing done HAL.Drivers.UDB, 304ms  (42 + 0 + 262)
+     [from HAL]
+     importing HAL.Board.Board
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached Foreign.C.Types
+      importing cached Foreign.HAL.Utils
+      importing cached Foreign.Marshal.Alloc
+      importing cached Foreign.Ptr
+      importing cached Data.Word
+      importing cached HAL.Drivers.EXTI
+      importing cached HAL.Drivers.FLASH
+      importing cached HAL.Drivers.GPIO
+      importing cached HAL.Drivers.PWR
+      importing cached HAL.Drivers.RCC
+      importing cached HAL.Drivers.TZSC
+      importing cached HAL.Drivers.UART
+      importing done HAL.Board.Board, 355ms  (28 + 0 + 327)
+     [from HAL]
+     importing HAL.Board.LED
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached HAL.Drivers.GPIO
+      importing cached Foreign.C.Types
+      importing cached Foreign.HAL.Utils
+      importing cached Foreign.Ptr
+      importing cached Foreign.Storable
+      importing done HAL.Board.LED, 178ms  (15 + 0 + 163)
+     [from HAL]
+     importing HAL.Board.Button
+      importing cached Prelude
+      importing cached Mhs.Builtin
+      importing cached HAL.Drivers.EXTI
+      importing cached HAL.Drivers.GPIO
+      importing cached Foreign.C.Types
+      importing cached Foreign.HAL.Utils
+      importing cached Foreign.Ptr
+      importing cached Foreign.Storable
+      importing done HAL.Board.Button, 284ms  (14 + 0 + 270)
+     importing done HAL, 53ms  (6 + 0 + 47)
+    importing done Effectful.HAL.GPIO, 368ms  (73 + 0 + 295)
+   [from Effectful.HAL]
+   importing Effectful.HAL.UARTRun cpphs: "cpphs --strip -D__MHS__ -I/home/robert/.mcabal/bin/../mhs-0.16.6.0/packages/mhs-0.16.6.0/data/src/runtime '-DSECURE' /tmp/mhsinyeZ1wt.hs -O/tmp/mhsoutJHruav.hs"
+
+    importing cached Prelude
+    importing cached Mhs.Builtin
+    importing cached Control.Monad.IxMonad
+    importing cached Effectful.Internal.Setup
+    importing cached Effectful.Internal.Secure
+    importing cached Effectful.TypeLevel.List
+    importing cached Effectful.TypeLevel.Lock
+    importing cached HAL
+    importing done Effectful.HAL.UART, 230ms  (19 + 0 + 211)
+   [from Effectful.HAL]
+   importing Effectful.HAL.TZSCRun cpphs: "cpphs --strip -D__MHS__ -I/home/robert/.mcabal/bin/../mhs-0.16.6.0/packages/mhs-0.16.6.0/data/src/runtime '-DSECURE' /tmp/mhsin62zB5k.hs -O/tmp/mhsoutsgFrvz.hs"
+
+    importing cached Prelude
+    importing cached Mhs.Builtin
+    importing cached Control.Monad.IxMonad
+    importing cached Effectful.Internal.Setup
+    importing cached Effectful.Internal.Secure
+    importing cached Effectful.HAL.UART
+    importing cached Effectful.TypeLevel.List
+    importing cached Effectful.TypeLevel.Lock
+    importing cached HAL
+    importing done Effectful.HAL.TZSC, 260ms  (30 + 0 + 230)
+   [from Effectful.HAL]
+   importing Effectful.HAL.SysTickRun cpphs: "cpphs --strip -D__MHS__ -I/home/robert/.mcabal/bin/../mhs-0.16.6.0/packages/mhs-0.16.6.0/data/src/runtime '-DSECURE' /tmp/mhsinoUak06.hs -O/tmp/mhsoutC3kxe3.hs"
+
+    importing cached Prelude
+    importing cached Mhs.Builtin
+    importing cached Control.Monad.IxMonad
+    importing cached Effectful.Internal.Setup
+    importing cached Effectful.Internal.Secure
+    importing cached Effectful.TypeLevel.List
+    importing cached Effectful.TypeLevel.Lock
+    importing cached HAL
+    importing done Effectful.HAL.SysTick, 200ms  (16 + 0 + 184)
+   [from Effectful.HAL]
+   importing Effectful.HAL.BoardRun cpphs: "cpphs --strip -D__MHS__ -I/home/robert/.mcabal/bin/../mhs-0.16.6.0/packages/mhs-0.16.6.0/data/src/runtime '-DSECURE' /tmp/mhsinUExTWo.hs -O/tmp/mhsoutgOL6k0.hs"
+
+    importing cached Prelude
+    importing cached Mhs.Builtin
+    importing cached Control.Monad.IxMonad
+    importing cached Effectful.Internal.Setup
+    importing cached Effectful.TypeLevel.List
+    importing cached Effectful.TypeLevel.Lock
+    importing cached HAL
+    importing done Effectful.HAL.Board, 228ms  (8 + 0 + 220)
+   [from Effectful.HAL]
+   importing Effectful.HAL.RCC
+    importing cached Prelude
+    importing cached Mhs.Builtin
+    importing cached Control.Monad.IxMonad
+    importing cached Effectful.Internal.Setup
+    importing cached Effectful.TypeLevel.List
+    importing cached Effectful.TypeLevel.Lock
+    importing cached HAL
+    importing done Effectful.HAL.RCC, 198ms  (14 + 0 + 184)
+   [from Effectful.HAL]
+   importing Effectful.HAL.NVIC
+    importing cached Prelude
+    importing cached Mhs.Builtin
+    importing cached Effectful.Internal.Setup
+    importing cached Effectful.TypeLevel.List
+    importing cached Effectful.TypeLevel.Lock
+    importing cached HAL
+    importing done Effectful.HAL.NVIC, 169ms  (8 + 0 + 161)
+   [from Effectful.HAL]
+   importing Effectful.HAL.IRQ
+    importing cached Prelude
+    importing cached Mhs.Builtin
+    importing cached Control.Monad.IxMonad
+    importing cached Effectful.Internal.Setup
+    importing cached Effectful.TypeLevel.List
+    importing cached Effectful.TypeLevel.Lock
+    importing cached HAL
+    importing done Effectful.HAL.IRQ, 165ms  (5 + 0 + 160)
+   [from Effectful.HAL]
+   importing Effectful.HAL.EXTIRun cpphs: "cpphs --strip -D__MHS__ -I/home/robert/.mcabal/bin/../mhs-0.16.6.0/packages/mhs-0.16.6.0/data/src/runtime '-DSECURE' /tmp/mhsinm6ZERH.hs -O/tmp/mhsoutDjivng.hs"
+
+    importing cached Prelude
+    importing cached Mhs.Builtin
+    importing cached Data.Proxy
+    importing cached Foreign.C.Types
+    importing cached Control.Monad.IxMonad
+    importing cached Effectful.Internal.Setup
+    importing cached Effectful.Internal.Secure
+    importing cached Effectful.HAL.GPIO
+    importing cached Effectful.TypeLevel.Number
+    importing cached Effectful.TypeLevel.List
+    importing cached Effectful.TypeLevel.Lock
+    importing cached HAL
+    importing done Effectful.HAL.EXTI, 414ms  (48 + 0 + 366)
+   [from Effectful.HAL]
+   importing Effectful.HAL.UDBRun cpphs: "cpphs --strip -D__MHS__ -I/home/robert/.mcabal/bin/../mhs-0.16.6.0/packages/mhs-0.16.6.0/data/src/runtime '-DSECURE' /tmp/mhsinG0FPrB.hs -O/tmp/mhsout4v1DsR.hs"
+
+    importing cached Prelude
+    importing cached Mhs.Builtin
+    importing cached Data.Hashable
+    importing cached Control.DeepSeq
+    importing cached Control.Monad.IxMonad
+    importing cached Effectful.Internal.Setup
+    importing cached Effectful.Internal.Secure
+    importing cached Effectful.TypeLevel.List
+    importing cached Effectful.TypeLevel.Lock
+    importing cached HAL
+    importing done Effectful.HAL.UDB, 288ms  (15 + 0 + 273)
+   importing done Effectful.HAL, 64ms  (7 + 0 + 57)
+  [from MicroHasTEE]
+  importing Effectful.Setup
+   importing cached Prelude
+   importing cached Mhs.Builtin
+   importing cached Effectful.Internal.Setup
+   importing done Effectful.Setup, 39ms  (3 + 0 + 36)
+  importing cached Effectful.TypeLevel.List
+  importing cached Effectful.TypeLevel.Lock
+  importing cached Effectful.TypeLevel.Number
+  [from MicroHasTEE]
+  importing Effectful.Secure
+   importing cached Prelude
+   importing cached Mhs.Builtin
+   importing cached Effectful.Internal.Secure
+   importing done Effectful.Secure, 41ms  (4 + 0 + 37)
+  importing done MicroHasTEE, 57ms  (6 + 0 + 51)
+ importing done app/DoorLock.hs, 1303ms  (148 + 0 + 1155)
+total import time      10671ms
+top level defns:       62756 (unpruned 7394)
+final pass              1087ms
+generate stub: ./app/DoorLock_stub.h

@@ -34,6 +34,11 @@ struct button {
 struct button row[NUM_ROWS];
 struct button col[NUM_COLS];
 
+/* col[1] (PE11) and col[2] (PE9) share port E, so their reads are batched
+ * into a single gpio_port_read() rather than two individual gpio_read()s. */
+board_gpio_port_backend_t col_e_backend;
+gpio_port_dev_t col_e_port;
+
 static const board_gpio_port_t row_port[NUM_ROWS] = {
     BOARD_GPIO_PORT_G, BOARD_GPIO_PORT_G, BOARD_GPIO_PORT_F, BOARD_GPIO_PORT_E,
 };
@@ -78,6 +83,8 @@ static void configure_gpio(void) {
         gpio_init(&col[i].gpio, &col_cfg);
         // do I default write it to something?
     }
+
+    board_gpio_port_create(&col_e_port, BOARD_GPIO_PORT_E, &col_e_backend);
 }
 
 /**
@@ -88,21 +95,30 @@ static void configure_gpio(void) {
  * @return uint8_t 0 if no key was pressed, and otherwise the ASCII
  */
 uint8_t scan_matrix() {
+    gpio_dev_t *col_e_devs[2] = { &col[1].gpio, &col[2].gpio };
+    gpio_level_t col_e_levels[2];
+
     for(int i = 0; i < NUM_ROWS; i++) {
         gpio_dev_t *row_gpio = &row[i].gpio;
         gpio_write(row_gpio, GPIO_LOW);
 
-        for(int j = 0; j < NUM_COLS; j++) {
-            gpio_dev_t *col_gpio = &col[j].gpio;
-            gpio_level_t level = gpio_read(col_gpio);
+        gpio_level_t col0_level = gpio_read(&col[0].gpio);
+        gpio_port_read(&col_e_port, col_e_devs, col_e_levels, 2);
 
-            if(level == GPIO_LOW) {
-                gpio_write(row_gpio, GPIO_HIGH);
-                return keymap[i][j];
-            }
+        uint8_t press = 0;
+        if(col0_level == GPIO_LOW) {
+            press = keymap[i][0];
+        } else if(col_e_levels[0] == GPIO_LOW) {
+            press = keymap[i][1];
+        } else if(col_e_levels[1] == GPIO_LOW) {
+            press = keymap[i][2];
         }
 
         gpio_write(row_gpio, GPIO_HIGH);
+
+        if(press) {
+            return press;
+        }
     }
     return 0;
 }
