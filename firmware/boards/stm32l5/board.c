@@ -28,6 +28,17 @@
 #include "backends/stm32l5/timer.h"
 #include "drivers/nvic.h"
 
+static GPIO_TypeDef * const gpio_port_map[] = {
+    [BOARD_GPIO_PORT_A] = GPIO_CMSIS(A),
+    [BOARD_GPIO_PORT_B] = GPIO_CMSIS(B),
+    [BOARD_GPIO_PORT_C] = GPIO_CMSIS(C),
+    [BOARD_GPIO_PORT_D] = GPIO_CMSIS(D),
+    [BOARD_GPIO_PORT_E] = GPIO_CMSIS(E),
+    [BOARD_GPIO_PORT_F] = GPIO_CMSIS(F),
+    [BOARD_GPIO_PORT_G] = GPIO_CMSIS(G),
+    [BOARD_GPIO_PORT_H] = GPIO_CMSIS(H),
+};
+
 /**
  * @brief I saw this online, a C11 macro to do compiletime checks. If the backend stm32l5 gpio type get's too large
  * the check will fail already at compile time!
@@ -35,16 +46,24 @@
 _Static_assert(sizeof(board_gpio_backend_t) >= sizeof(stm32l5_gpio_backend_t), "BOARD_GPIO_BACKEND_SIZE is too small for stm32l5_gpio_backend_t");
 
 void board_gpio_create(gpio_dev_t *dev, board_gpio_port_t port, uint8_t pin, board_gpio_backend_t *backend) {
-    static GPIO_TypeDef * const port_map[] = { [BOARD_GPIO_PORT_A] = GPIO_CMSIS(A),
-                                               [BOARD_GPIO_PORT_B] = GPIO_CMSIS(B),
-                                               [BOARD_GPIO_PORT_C] = GPIO_CMSIS(C),
-                                               [BOARD_GPIO_PORT_D] = GPIO_CMSIS(D),
-                                               [BOARD_GPIO_PORT_E] = GPIO_CMSIS(E),
-                                               [BOARD_GPIO_PORT_F] = GPIO_CMSIS(F),
-                                               [BOARD_GPIO_PORT_G] = GPIO_CMSIS(G),
-                                               [BOARD_GPIO_PORT_H] = GPIO_CMSIS(H),
-                                             };
-    stm32l5_gpio_create(dev, port_map[port], pin, (stm32l5_gpio_backend_t *)backend->_opaque);
+    stm32l5_gpio_create(dev, gpio_port_map[port], pin, (stm32l5_gpio_backend_t *)backend->_opaque);
+}
+
+_Static_assert(sizeof(board_gpio_port_backend_t) >= sizeof(stm32l5_gpio_port_backend_t),
+               "BOARD_GPIO_PORT_BACKEND_SIZE is too small for stm32l5_gpio_port_backend_t");
+
+void board_gpio_port_create(gpio_port_dev_t *dev, board_gpio_port_t port, board_gpio_port_backend_t *backend) {
+    stm32l5_gpio_port_create(dev, gpio_port_map[port], (stm32l5_gpio_port_backend_t *)backend->_opaque);
+}
+
+board_gpio_port_t board_gpio_get_port(gpio_dev_t *dev) {
+    stm32l5_gpio_backend_t *backend = (stm32l5_gpio_backend_t *) dev->backend;
+    for (int i = 0; i < 8; i++) {
+        if (gpio_port_map[i] == backend->gpio) {
+            return (board_gpio_port_t) i;
+        }
+    }
+    return BOARD_GPIO_PORT_A; /* unreachable for a dev created by board_gpio_create */
 }
 
 _Static_assert(sizeof(board_exti_backend_t) >= sizeof(stm32l5_exti_backend_t), "BOARD_EXTI_BACKEND_SIZE is too small for stm32l5_exti_backend_t");

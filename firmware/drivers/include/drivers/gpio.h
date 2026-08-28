@@ -1,6 +1,7 @@
 #ifndef DRIVERS_GPIO_H
 #define DRIVERS_GPIO_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 /**
@@ -79,6 +80,7 @@ typedef struct {
     void (*write)(struct gpio_dev *dev, gpio_level_t level);
     gpio_level_t (*read)(struct gpio_dev *dev);
     void (*toggle)(struct gpio_dev *dev);
+    uint8_t (*pin)(struct gpio_dev *dev);
 } gpio_driver_api_t;
 
 /* The device driver for GPIO */
@@ -108,6 +110,30 @@ static inline gpio_level_t gpio_read(gpio_dev_t *dev) {
 
 static inline void gpio_toggle(gpio_dev_t *dev) {
     dev->api->toggle(dev);
+}
+
+static inline uint8_t gpio_pin(gpio_dev_t *dev) {
+    return dev->api->pin(dev);
+}
+
+struct gpio_port_dev;
+
+typedef struct {
+    void (*write)(struct gpio_port_dev *dev, struct gpio_dev **devs, gpio_level_t *levels, size_t n);
+    void (*read)(struct gpio_port_dev *dev, struct gpio_dev **devs, gpio_level_t *out, size_t n);
+} gpio_port_driver_api_t;
+
+typedef struct gpio_port_dev {
+    const gpio_port_driver_api_t *api;
+    void *backend;
+} gpio_port_dev_t;
+
+static inline void gpio_port_write(gpio_port_dev_t *dev, gpio_dev_t **devs, gpio_level_t *levels, size_t n) {
+    dev->api->write(dev, devs, levels, n);
+}
+
+static inline void gpio_port_read(gpio_port_dev_t *dev, gpio_dev_t **devs, gpio_level_t *out, size_t n) {
+    dev->api->read(dev, devs, out, n);
 }
 
 #endif // DRIVERS_GPIO_H

@@ -97,6 +97,11 @@ static void stm32u5_gpio_toggle(struct gpio_dev *dev) {
     backend->gpio->ODR ^= (0x1U << backend->pin);
 }
 
+static uint8_t stm32u5_gpio_pin(struct gpio_dev *dev) {
+    stm32u5_gpio_backend_t *backend = (stm32u5_gpio_backend_t*) dev->backend;
+    return backend->pin;
+}
+
 /* Wrapping up */
 
 static const gpio_driver_api_t stm32u5_gpio_api = {
@@ -105,6 +110,7 @@ static const gpio_driver_api_t stm32u5_gpio_api = {
     .write        = stm32u5_gpio_write,
     .read         = stm32u5_gpio_read,
     .toggle       = stm32u5_gpio_toggle,
+    .pin          = stm32u5_gpio_pin,
 };
 
 void stm32u5_gpio_create(gpio_dev_t *dev,
@@ -115,5 +121,46 @@ void stm32u5_gpio_create(gpio_dev_t *dev,
     backend_storage->pin  = pin;
 
     dev->api     = &stm32u5_gpio_api;
+    dev->backend = backend_storage;
+}
+
+/* Port-level (batched) operations */
+
+static void stm32u5_gpio_port_write(struct gpio_port_dev *dev, struct gpio_dev **devs, gpio_level_t *levels, size_t n) {
+    stm32u5_gpio_port_backend_t *backend = (stm32u5_gpio_port_backend_t*) dev->backend;
+    uint32_t set_mask = 0, reset_mask = 0;
+
+    for (size_t i = 0; i < n; i++) {
+        uint32_t bit = 0x1U << gpio_pin(devs[i]);
+        if (levels[i] == GPIO_HIGH) {
+            set_mask |= bit;
+        } else {
+            reset_mask |= bit;
+        }
+    }
+
+    backend->gpio->BSRR = set_mask | (reset_mask << 16);
+}
+
+static void stm32u5_gpio_port_read(struct gpio_port_dev *dev, struct gpio_dev **devs, gpio_level_t *out, size_t n) {
+    stm32u5_gpio_port_backend_t *backend = (stm32u5_gpio_port_backend_t*) dev->backend;
+    uint32_t idr = backend->gpio->IDR;
+
+    for (size_t i = 0; i < n; i++) {
+        out[i] = (idr & (0x1U << gpio_pin(devs[i]))) ? GPIO_HIGH : GPIO_LOW;
+    }
+}
+
+static const gpio_port_driver_api_t stm32u5_gpio_port_api = {
+    .write = stm32u5_gpio_port_write,
+    .read  = stm32u5_gpio_port_read,
+};
+
+void stm32u5_gpio_port_create(gpio_port_dev_t *dev,
+                              GPIO_TypeDef *port,
+                              stm32u5_gpio_port_backend_t *backend_storage) {
+    backend_storage->gpio = port;
+
+    dev->api     = &stm32u5_gpio_port_api;
     dev->backend = backend_storage;
 }

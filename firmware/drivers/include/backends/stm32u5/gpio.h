@@ -15,4 +15,12 @@ void stm32u5_gpio_create(gpio_dev_t *dev,
                          uint8_t pin,
                          stm32u5_gpio_backend_t *backend);
 
+typedef struct {
+    GPIO_TypeDef *gpio;
+} stm32u5_gpio_port_backend_t;
+
+void stm32u5_gpio_port_create(gpio_port_dev_t *dev,
+                              GPIO_TypeDef *port,
+                              stm32u5_gpio_port_backend_t *backend);
+
 #endif // BACKENDS_STM32U5_GPIO_H

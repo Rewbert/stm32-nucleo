@@ -62,6 +62,12 @@ typedef struct {
     uint8_t _opaque[BOARD_GPIO_BACKEND_SIZE];
 } board_gpio_backend_t;
 
+#define BOARD_GPIO_PORT_BACKEND_SIZE 4
+typedef struct {
+    /* Do not access this member yourself */
+    uint8_t _opaque[BOARD_GPIO_PORT_BACKEND_SIZE];
+} board_gpio_port_backend_t;
+
 #define BOARD_EXTI_BACKEND_SIZE 1
 typedef struct {
     /* Do not access this member yourself */
@@ -75,8 +81,22 @@ typedef struct {
 void board_gpio_create(gpio_dev_t *dev, board_gpio_port_t port, uint8_t pin, board_gpio_backend_t *backend);
 
 /**
+ * @brief Create a GPIO port device, for batched whole-port operations across
+ * gpio_dev_t instances that share the same port.
+ *
+ */
+void board_gpio_port_create(gpio_port_dev_t *dev, board_gpio_port_t port, board_gpio_port_backend_t *backend);
+
+/**
+ * @brief Return which board_gpio_port_t a gpio_dev_t was created on. dev must
+ * have been created by board_gpio_create() for this board.
+ *
+ */
+board_gpio_port_t board_gpio_get_port(gpio_dev_t *dev);
+
+/**
  * @brief Create an EXTI device
- * 
+ *
  */
 void board_exti_create(exti_dev_t *dev, board_exti_backend_t *backend, uint8_t pin);
 
