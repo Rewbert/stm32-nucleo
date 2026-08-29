@@ -147,25 +147,45 @@ door_unlock_attempt db gate lockoutLed attempt = do
 -- * Nonsecure-side keypad ----------------------------------------------------
 
 -- | Drive one row low, sample the three columns, restore the row high, and
--- report which key (if any) that row's press corresponds to.
+-- report which column (if any) is pressed in that row.
 scanRow :: Member (GPIO pin port) NonsecureEffects
         => GPIO pin port -> COL0_GPIO -> COL1_GPIO -> COL2_GPIO
-        -> Char -> Char -> Char -> Nonsecure NonsecureEffects (Maybe Char)
-scanRow rowGpio col0 col1 col2 k0 k1 k2 = do
+        -> Nonsecure NonsecureEffects (Maybe Int)
+scanRow rowGpio col0 col1 col2 = do
     gpio_write rowGpio False
     c0 <- gpio_read col0
     c1 <- gpio_read col1
     c2 <- gpio_read col2
     gpio_write rowGpio True
-    return $ if not c0 then Just k0
-             else if not c1 then Just k1
-             else if not c2 then Just k2
+    return $ if not c0 then Just 0
+             else if not c1 then Just 1
+             else if not c2 then Just 2
              else Nothing
 
-firstPressed :: [Maybe Char] -> Maybe Char
+firstPressed :: [Maybe a] -> Maybe a
 firstPressed [] = Nothing
 firstPressed (Just c : _) = Just c
 firstPressed (Nothing : rest) = firstPressed rest
+
+-- | Position of a pressed key within the matrix, as 0-indexed (row, column).
+-- Carries no notion of what the key means -- that's for 'keySymbol' to say.
+data KeyPos = KeyPos Int Int
+
+-- | Maps a key's matrix position to the symbol printed on it.
+keySymbol :: KeyPos -> Char
+keySymbol (KeyPos 0 0) = '1'
+keySymbol (KeyPos 0 1) = '2'
+keySymbol (KeyPos 0 2) = '3'
+keySymbol (KeyPos 1 0) = '4'
+keySymbol (KeyPos 1 1) = '5'
+keySymbol (KeyPos 1 2) = '6'
+keySymbol (KeyPos 2 0) = '7'
+keySymbol (KeyPos 2 1) = '8'
+keySymbol (KeyPos 2 2) = '9'
+keySymbol (KeyPos 3 0) = '*'
+keySymbol (KeyPos 3 1) = '0'
+keySymbol (KeyPos 3 2) = '#'
+keySymbol (KeyPos _ _) = ' '
 
 -- | Avoids relying on an Eq (Maybe Char) instance, which MicroHs's Prelude
 -- subset may not provide -- only Eq Char is needed here.
@@ -226,19 +246,32 @@ reportResult uart Granted            = uart_write uart "unlock granted\r\n"
 reportResult uart (Denied remaining) = uart_write uart ("wrong pin, " ++ show remaining ++ " attempt(s) left\r\n")
 reportResult uart LockedOut          = uart_write uart "locked out\r\n"
 
--- | Scans the whole matrix once, advances the keypad state machine, and
--- loops forever. A completed code is sent across the secure gateway
--- ('unlockFn') for verification; a timeout is just reported locally.
-scanMatrix :: UART -> NSRef KeypadState -> Callable ([Char] -> Secure SecureEffects UnlockResult)
+-- | Scans the whole matrix once and reports the position of the pressed
+-- key, if any. Resolving that position to a symbol, or deciding what to do
+-- about it, is left to the caller.
+scanMatrix :: ROW0_GPIO -> ROW1_GPIO -> ROW2_GPIO -> ROW3_GPIO
+           -> COL0_GPIO -> COL1_GPIO -> COL2_GPIO
+           -> Nonsecure NonsecureEffects (Maybe KeyPos)
+scanMatrix row0 row1 row2 row3 col0 col1 col2 = do
+    k0 <- scanRow row0 col0 col1 col2
+    k1 <- scanRow row1 col0 col1 col2
+    k2 <- scanRow row2 col0 col1 col2
+    k3 <- scanRow row3 col0 col1 col2
+    return $ firstPressed
+        [ fmap (KeyPos 0) k0, fmap (KeyPos 1) k1
+        , fmap (KeyPos 2) k2, fmap (KeyPos 3) k3
+        ]
+
+-- | Scans the matrix, advances the keypad state machine, and loops forever.
+-- A completed code is sent across the secure gateway ('unlockFn') for
+-- verification; a timeout is just reported locally.
+keypadLoop :: UART -> NSRef KeypadState -> Callable ([Char] -> Secure SecureEffects UnlockResult)
            -> ROW0_GPIO -> ROW1_GPIO -> ROW2_GPIO -> ROW3_GPIO
            -> COL0_GPIO -> COL1_GPIO -> COL2_GPIO
            -> Nonsecure NonsecureEffects ()
-scanMatrix uart stateRef unlockFn row0 row1 row2 row3 col0 col1 col2 = do
-    k0 <- scanRow row0 col0 col1 col2 '1' '2' '3'
-    k1 <- scanRow row1 col0 col1 col2 '4' '5' '6'
-    k2 <- scanRow row2 col0 col1 col2 '7' '8' '9'
-    k3 <- scanRow row3 col0 col1 col2 '*' '0' '#'
-    let raw = firstPressed [k0, k1, k2, k3]
+keypadLoop uart stateRef unlockFn row0 row1 row2 row3 col0 col1 col2 = do
+    pos <- scanMatrix row0 row1 row2 row3 col0 col1 col2
+    let raw = fmap keySymbol pos
 
     now <- systick_ticks
     st <- readNSRef stateRef
@@ -251,7 +284,7 @@ scanMatrix uart stateRef unlockFn row0 row1 row2 row3 col0 col1 col2 = do
             result <- sg (unlockFn <.> code)
             reportResult uart result
 
-    scanMatrix uart stateRef unlockFn row0 row1 row2 row3 col0 col1 col2
+    keypadLoop uart stateRef unlockFn row0 row1 row2 row3 col0 col1 col2
 
 -- | Rows idle high; each is driven low in turn to scan. Set once, then hand
 -- off to the scan loop. Takes the ref-creating action returned by
@@ -267,7 +300,7 @@ runKeypad uart stateRefAction unlockFn row0 row1 row2 row3 col0 col1 col2 = do
     gpio_write row1 True
     gpio_write row2 True
     gpio_write row3 True
-    scanMatrix uart stateRef unlockFn row0 row1 row2 row3 col0 col1 col2
+    keypadLoop uart stateRef unlockFn row0 row1 row2 row3 col0 col1 col2
 
 -- * Setup ---------------------------------------------------------------------
 
