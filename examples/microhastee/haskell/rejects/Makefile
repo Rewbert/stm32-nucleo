@@ -49,9 +49,11 @@ LOGDIR      := .logs
 # build (make / make simple) -- both swap files into the same hardcoded
 # $(HASKELL_DIR)/.mhscache and would race.
 CACHE       := .reject-cache/.mhscache
-LIB_SRC     := $(wildcard $(HASKELL_DIR)/app/Effectful/*.hs $(HASKELL_DIR)/app/Effectful/*/*.hs \
-                           $(HASKELL_DIR)/app/HAL.hs $(HASKELL_DIR)/app/HAL/*.hs $(HASKELL_DIR)/app/HAL/*/*.hs) \
-               $(HASKELL_DIR)/app/MicroHasTEE.hs
+LIB_SRC     := $(wildcard $(HASKELL_DIR)/src/Control/*/*.hs $(HASKELL_DIR)/src/Control/*/*/*.hs \
+                           $(HASKELL_DIR)/src/Foreign/*/*.hs \
+                           $(HASKELL_DIR)/src/Effectful/*.hs $(HASKELL_DIR)/src/Effectful/*/*.hs \
+                           $(HASKELL_DIR)/src/HAL.hs $(HASKELL_DIR)/src/HAL/*.hs $(HASKELL_DIR)/src/HAL/*/*.hs) \
+               $(HASKELL_DIR)/src/MicroHasTEE.hs
 
 .PHONY: all check show clean
 
@@ -60,7 +62,7 @@ all: check
 $(CACHE): $(LIB_SRC)
 	mkdir -p $(dir $(CACHE))
 	rm -f $(HASKELL_DIR)/.mhscache
-	cd $(HASKELL_DIR) && $(MHS_BIN) -CW -ilib -iapp -c -o.reject-seed.c app/MicroHasTEE.hs
+	cd $(HASKELL_DIR) && $(MHS_BIN) -CW -isrc -iapp -c -o.reject-seed.c src/MicroHasTEE.hs
 	cp -f $(HASKELL_DIR)/.mhscache $(CACHE)
 	rm -f $(HASKELL_DIR)/.mhscache $(HASKELL_DIR)/.reject-seed.c
 
@@ -72,7 +74,7 @@ check: $(CACHE)
 	for f in $(SOURCES); do \
 	  total=$$((total+1)); \
 	  log=$(LOGDIR)/$$f.log; \
-	  if (cd $(HASKELL_DIR) && $(MHS_BIN) -CR -ilib -iapp -c -o$(SCRATCH) rejects/$$f) >$$log 2>&1; then \
+	  if (cd $(HASKELL_DIR) && $(MHS_BIN) -CR -isrc -iapp -c -o$(SCRATCH) rejects/$$f) >$$log 2>&1; then \
 	    echo "FAIL (incorrectly ACCEPTED): $$f"; \
 	    failed=$$((failed+1)); \
 	  else \
@@ -93,7 +95,7 @@ show: $(CACHE)
 	@cp -f $(CACHE) $(HASKELL_DIR)/.mhscache
 	@for f in $(SOURCES); do \
 	  echo "=== $$f ==="; \
-	  (cd $(HASKELL_DIR) && $(MHS_BIN) -CR -ilib -iapp -c -o$(SCRATCH) rejects/$$f) 2>&1 | tail -n +1; \
+	  (cd $(HASKELL_DIR) && $(MHS_BIN) -CR -isrc -iapp -c -o$(SCRATCH) rejects/$$f) 2>&1 | tail -n +1; \
 	  echo; \
 	done; \
 	rm -f $(HASKELL_DIR)/$(SCRATCH) $(HASKELL_DIR)/.mhscache

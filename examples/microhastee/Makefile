@@ -28,48 +28,51 @@ SECURE_IMPLIB_FLAGS := -Wl,--cmse-implib,--out-implib=$(SECURE_LIB)
 
 HASKELL_DIR := $(APP)/haskell
 HASKELL_SRC = \
-  $(HASKELL_DIR)/app/Effectless/NonSecure.hs \
-  $(HASKELL_DIR)/app/Effectless/Secure.hs \
-  $(HASKELL_DIR)/app/Effectless/Setup.hs \
-  $(HASKELL_DIR)/app/Effectful/Internal/NonSecure.hs \
-  $(HASKELL_DIR)/app/Effectful/Internal/Secure.hs \
-  $(HASKELL_DIR)/app/Effectful/Internal/Setup.hs \
-  $(HASKELL_DIR)/app/Effectful/TypeLevel/List.hs \
-  $(HASKELL_DIR)/app/Effectful/TypeLevel/Number.hs \
-  $(HASKELL_DIR)/app/Effectful/HAL/GPIO.hs \
-  $(HASKELL_DIR)/app/Effectful/HAL/UART.hs \
-  $(HASKELL_DIR)/app/Effectful/HAL/TZSC.hs \
-  $(HASKELL_DIR)/app/Effectful/HAL/SysTick.hs \
-  $(HASKELL_DIR)/app/Effectful/HAL/Board.hs \
-  $(HASKELL_DIR)/app/Effectful/HAL/RCC.hs \
-  $(HASKELL_DIR)/app/Effectful/HAL/NVIC.hs \
-  $(HASKELL_DIR)/app/Effectful/HAL/EXTI.hs \
-  $(HASKELL_DIR)/app/Effectful/HAL/UDB.hs \
-  $(HASKELL_DIR)/app/Effectful/HAL.hs \
-  $(HASKELL_DIR)/app/Effectful/NonSecure.hs \
-  $(HASKELL_DIR)/app/Effectful/Secure.hs \
-  $(HASKELL_DIR)/app/Effectful/Setup.hs \
-  $(HASKELL_DIR)/app/MicroHasTEE.hs \
-  $(HASKELL_DIR)/app/HW.hs \
+  $(HASKELL_DIR)/src/Control/Monad/IO/Class.hs \
+  $(HASKELL_DIR)/src/Control/Monad/IxMonad.hs \
+  $(HASKELL_DIR)/src/Control/Monad/State/Class.hs \
+  $(HASKELL_DIR)/src/Control/Monad/State.hs \
+  $(HASKELL_DIR)/src/Foreign/HAL/Utils.hs \
+  $(HASKELL_DIR)/src/Effectful/Internal/NonSecure.hs \
+  $(HASKELL_DIR)/src/Effectful/Internal/Secure.hs \
+  $(HASKELL_DIR)/src/Effectful/Internal/Setup.hs \
+  $(HASKELL_DIR)/src/Effectful/TypeLevel/List.hs \
+  $(HASKELL_DIR)/src/Effectful/TypeLevel/Lock.hs \
+  $(HASKELL_DIR)/src/Effectful/TypeLevel/Number.hs \
+  $(HASKELL_DIR)/src/Effectful/HAL/GPIO.hs \
+  $(HASKELL_DIR)/src/Effectful/HAL/UART.hs \
+  $(HASKELL_DIR)/src/Effectful/HAL/TZSC.hs \
+  $(HASKELL_DIR)/src/Effectful/HAL/SysTick.hs \
+  $(HASKELL_DIR)/src/Effectful/HAL/Board.hs \
+  $(HASKELL_DIR)/src/Effectful/HAL/RCC.hs \
+  $(HASKELL_DIR)/src/Effectful/HAL/NVIC.hs \
+  $(HASKELL_DIR)/src/Effectful/HAL/EXTI.hs \
+  $(HASKELL_DIR)/src/Effectful/HAL/IRQ.hs \
+  $(HASKELL_DIR)/src/Effectful/HAL/UDB.hs \
+  $(HASKELL_DIR)/src/Effectful/HAL.hs \
+  $(HASKELL_DIR)/src/Effectful/NonSecure.hs \
+  $(HASKELL_DIR)/src/Effectful/Secure.hs \
+  $(HASKELL_DIR)/src/Effectful/Setup.hs \
+  $(HASKELL_DIR)/src/MicroHasTEE.hs \
+  $(HASKELL_DIR)/src/HAL.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/SysTick.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/GPIO.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/UART.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/RCC.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/PWR.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/FLASH.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/EXTI.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/NVIC.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/TZSC.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/IRQ.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/UDB/Internal.hs \
+  $(HASKELL_DIR)/src/HAL/Drivers/UDB.hs \
+  $(HASKELL_DIR)/src/HAL/Board/Board.hs \
+  $(HASKELL_DIR)/src/HAL/Board/LED.hs \
+  $(HASKELL_DIR)/src/HAL/Board/Button.hs \
   $(HASKELL_DIR)/app/DoorLock.hs \
   $(HASKELL_DIR)/app/MatrixKeypad.hs \
-  $(HASKELL_DIR)/app/SimpleExample.hs \
-  $(HASKELL_DIR)/app/HAL.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/SysTick.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/GPIO.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/UART.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/RCC.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/PWR.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/FLASH.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/EXTI.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/NVIC.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/TZSC.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/IRQ.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/UDB/Internal.hs \
-  $(HASKELL_DIR)/app/HAL/Drivers/UDB.hs \
-  $(HASKELL_DIR)/app/HAL/Board/Board.hs \
-  $(HASKELL_DIR)/app/HAL/Board/LED.hs \
-  $(HASKELL_DIR)/app/HAL/Board/Button.hs
+  $(HASKELL_DIR)/app/SimpleExample.hs
 
 CABAL=mcabal
 
@@ -101,7 +104,7 @@ MHS_CACHE_NS := build/$(APP)/mhs-cache-ns/.mhscache
 $(APP)/S/gen2.c: $(HASKELL_SRC)
 	mkdir -p $(dir $(MHS_CACHE_S))
 	if [ -f $(MHS_CACHE_S) ]; then cp -f $(MHS_CACHE_S) $(HASKELL_DIR)/.mhscache; else rm -f $(HASKELL_DIR)/.mhscache; fi
-	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -DSECURE -C -ilib -iapp -c -ogen.c app/$(MAIN_HS).hs && cp gen.c ../S/gen2.c && rm gen.c
+	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -DSECURE -C -isrc -iapp -c -ogen.c app/$(MAIN_HS).hs && cp gen.c ../S/gen2.c && rm gen.c
 	cp -f $(HASKELL_DIR)/.mhscache $(MHS_CACHE_S)
 
 # Order-only on S/gen2.c: both variants swap the same $(HASKELL_DIR)/.mhscache
@@ -109,7 +112,7 @@ $(APP)/S/gen2.c: $(HASKELL_SRC)
 $(APP)/NS/gen2.c: $(HASKELL_SRC) | $(APP)/S/gen2.c
 	mkdir -p $(dir $(MHS_CACHE_NS))
 	if [ -f $(MHS_CACHE_NS) ]; then cp -f $(MHS_CACHE_NS) $(HASKELL_DIR)/.mhscache; else rm -f $(HASKELL_DIR)/.mhscache; fi
-	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -C -ilib -iapp -ogen.c app/$(MAIN_HS).hs && cp gen.c ../NS/gen2.c && rm gen.c
+	cd $(HASKELL_DIR) && $(MHS_BIN_ABS) -C -isrc -iapp -ogen.c app/$(MAIN_HS).hs && cp gen.c ../NS/gen2.c && rm gen.c
 	cp -f $(HASKELL_DIR)/.mhscache $(MHS_CACHE_NS)
 
 # --- Secure application ---
