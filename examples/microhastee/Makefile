@@ -71,6 +71,8 @@ HASKELL_SRC = \
   $(HASKELL_DIR)/src/HAL/Board/LED.hs \
   $(HASKELL_DIR)/src/HAL/Board/Button.hs \
   $(HASKELL_DIR)/app/DoorLock.hs \
+  $(HASKELL_DIR)/app/MatrixKeypad/Secure.hs \
+  $(HASKELL_DIR)/app/MatrixKeypad/NonSecure.hs \
   $(HASKELL_DIR)/app/MatrixKeypad.hs \
   $(HASKELL_DIR)/app/SimpleExample.hs
 
