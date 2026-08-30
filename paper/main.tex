@@ -1075,26 +1075,25 @@ The Non-secure image is then built.
 
 \section{Evaluation}
 
-MicroHasTEE is a prototype implementation, and we evaluate it primarily through a case study.
-The purpose of the case study is to establish feasibility of the framework itself, and to illustrate how the security configuration is enforced\todo{rephrase}.
-After we have presented the case study, we establish the trusted computing base, analyze the case study's resource requirements (flash and SRAM), and \todo{present some initial performance evaluations}.
+We evaluate MicroHasTEE through a door-lock case study that exercises peripheral attribution, persistent Secure state, and a typed cross-boundary call.
+We then identify the trusted computing base and measure the flash and SRAM requirements of the resulting firmware.
 
 \subsection{Case Study: A Secure Door Lock}
 
 % describe what the application is, without implementation details
 % how might a user interact with the application, physically?
-The implemented case study is a secure lock: the user enters a 4-digit PIN on the keypad, and a correct PIN unlocks a physical lock for a few seconds before it re-latches.
-A wrong PIN is recorded, but nothing else happens.
-After a predetermined number of consecutive wrong attempts, the lock locks itself so that even a correct PIN no longer opens it.
+The case study implements a PIN-controlled solenoid lock on an STM32U5A5ZJQ Nucleo board.
+The user enters a four-character PIN on a \(4 \times 3\) matrix keypad.
+A correct PIN energizes the solenoid for three seconds, while an incorrect PIN consumes one attempt.
+After three consecutive failures, the Secure service rejects every subsequent request, including requests containing the correct PIN.
 
-% here should come the security attribution
-The GPIO pins that interact with the keypad are attributed to the Non-secure domain, as is the UART, so a display can show the keypad's current state.
-The GPIO pins that control the physical lock are attributed to the Secure domain and can only be used by the \inlinehaskell{Secure} MicroHasTEE-monad.
+The Non-secure firmware owns the seven keypad GPIO pins and the UART used to report status.
+The Secure firmware retains the solenoid-gate GPIO and the lockout-indicator GPIO.
+It also stores the PIN and failed-attempt counter in a flash page reserved by the linker script.
+Persistent storage prevents a power cycle from restoring an attacker's attempts.
 
-% here comes the persistency detail
-The PIN and the wrong-attempt counter are stored persistently in flash. 
-This ensures their values survive a power cycle: without persistence, a power cycle would reset the wrong-attempt counter and let an attacker retry indefinitely.
-A page of flash, set aside in the linker script and marked as a persistent segment, implements this.
+A Secure GPIO drives the MOSFET that switches the 6 V supply to the solenoid.
+We first describe the Secure service, then the Non-secure keypad client, and finally the shared setup that connects them.
 
 % maybe now the hardware setup?
 The application targets an STM32U5A5ZJQ Nucleo board.
@@ -1122,63 +1121,33 @@ Each unlock request returns an \inlinehaskell{UnlockResult} that distinguishes a
       = Granted
       | Denied Int   -- attempts remaining
       | LockedOut
-      deriving (Show, Eq)
+      deriving (Show, Eq) -- NFData instance omitted
 \end{lstlisting}
 
 \inlinehaskell{Granted} indicates that the lock was actuated, \inlinehaskell{Denied n} reports the number of attempts remaining, and \inlinehaskell{LockedOut} indicates that the submitted PIN was not checked.
 
-We present the implementation bottom-up, beginning with the operations for successful and failed attempts.
-For a successful attempt, \inlinehaskell{grantAccess} drives the gate high for \inlinehaskell{unlockMs} milliseconds and then drives it low:
+Three helpers implement the access-control policy.
+Their types require the Secure GPIO capabilities used by each operation:
 
 \begin{lstlisting}[style=haskell]
-  grantAccess :: Member GATE effects
-              => GATE -> Secure effects ()
-  grantAccess gate = do
-      gpio_write gate True
-      systick_delay_ms unlockMs
-      gpio_write gate False
+  grantAccess
+      :: Member GATE effects
+      => GATE -> Secure effects ()
+
+  consumeAttempt
+      :: Member LOCKOUT effects
+      => UDB -> LOCKOUT -> Int
+      -> Secure effects Int
+
+  verifyAttempt
+      :: (Member GATE effects, Member LOCKOUT effects)
+      => UDB -> GATE -> LOCKOUT -> Int -> [Char]
+      -> Secure effects UnlockResult
 \end{lstlisting}
 
-For an incorrect PIN, \inlinehaskell{consumeAttempt} increments and persists the failure count.
-When the count reaches \inlinehaskell{maxAttempts}, it also activates the lockout indicator.
-The persistent store \inlinehaskell{UDB}, short for \textit{micro-database}, provides an interface similar to \inlinehaskell{Data.Map}; we omit its implementation:
-
-\begin{lstlisting}[style=haskell]
-  consumeAttempt :: Member LOCKOUT effects
-                 => UDB -> LOCKOUT -> Int
-                 -> Secure effects Int
-  consumeAttempt db lockoutLed count = do
-      let count' = count + 1
-      writeLockoutCount db count'
-      if count' >= maxAttempts
-          then setLockoutIndicator lockoutLed True
-          else return ()
-      return count'
-\end{lstlisting}
-
-The \inlinehaskell{verifyAttempt} function combines these two operations.
-It reads the stored PIN and compares it with the PIN supplied by the Non-secure firmware:
-
-\begin{lstlisting}[style=haskell]
-  verifyAttempt :: ( Member GATE effects
-                   , Member LOCKOUT effects)
-                => UDB -> GATE -> LOCKOUT -> Int
-                -> [Char] -> Secure effects UnlockResult
-  verifyAttempt db gate lockoutLed count attempt = do
-      pin <- readPin db
-      if attempt == pin
-          then do
-              resetLockoutCount db
-              grantAccess gate
-              return Granted
-          else do
-              count' <- consumeAttempt db lockoutLed count
-              return (Denied (maxAttempts - count'))
-\end{lstlisting}
-
-If the PINs match, \inlinehaskell{verifyAttempt} resets the failure count, grants access, and returns \inlinehaskell{Granted}.
-Otherwise, it records the failed attempt and returns \inlinehaskell{Denied} with the number of attempts remaining.
-The outer service, \inlinehaskell{door_unlock_attempt}, handles requests that arrive after lockout:
+The function \inlinehaskell{grantAccess} pulses the solenoid gate, while \inlinehaskell{consumeAttempt} persists a failed attempt and activates the lockout indicator when the counter reaches \inlinehaskell{maxAttempts}.
+The function \inlinehaskell{verifyAttempt} compares the submitted PIN with the stored PIN and selects between these operations.
+The \inlinehaskell{Member} constraints require the corresponding GPIO capabilities to remain in the Secure ledger.
 
 \begin{lstlisting}[style=haskell]
   door_unlock_attempt :: ( Member GATE effects
@@ -1221,9 +1190,9 @@ The \inlinehaskell{NonsecureEffects} list records that these pins and the UART a
 \end{lstlisting}
 
 A \(4 \times 3\) matrix keypad uses seven GPIO pins rather than twelve.
-Because each GPIO represents either a row or a column, a callback cannot identify a key by itself.
-The Non-secure firmware therefore scans the matrix.
-The \inlinehaskell{scanRow} computation drives one row low, reads the three column inputs, and then restores the row high:
+Reading one column input does not identify a key by itself, because the key's position depends on both its row and its column.
+The Non-secure firmware therefore drives the rows in turn while sampling the columns.
+The function \inlinehaskell{scanRow} implements this behaviour.
 
 \begin{lstlisting}[style=haskell]
   scanRow :: Member (GPIO pin port) NonsecureEffects
@@ -1241,28 +1210,11 @@ The \inlinehaskell{scanRow} computation drives one row low, reads the three colu
                else Nothing
 \end{lstlisting}
 
-The \inlinehaskell{scanRow} function returns the zero-based index of the first low column, or \inlinehaskell{Nothing} if no key in that row is pressed.
-The \inlinehaskell{scanMatrix} function applies \inlinehaskell{scanRow} to successive rows and returns the first detected key as a zero-based row-column pair, or \inlinehaskell{Nothing} if no key is pressed:
-
-\begin{lstlisting}[style=haskell]
-  data KeyPos = KeyPos Int Int
-
-  scanMatrix :: ROW0 -> ROW1 -> ROW2 -> ROW3
-             -> COL0 -> COL1 -> COL2
-             -> Nonsecure NonsecureEffects (Maybe KeyPos)
-  scanMatrix row0 row1 row2 row3 col0 col1 col2 =
-         fmap (fmap (KeyPos 0)) (scanRow row0 col0 col1 col2)
-     <|> fmap (fmap (KeyPos 1)) (scanRow row1 col0 col1 col2)
-     <|> fmap (fmap (KeyPos 2)) (scanRow row2 col0 col1 col2)
-     <|> fmap (fmap (KeyPos 3)) (scanRow row3 col0 col1 col2)
-\end{lstlisting}
-
-The nested \inlinehaskell{fmap} applications combine each fixed row index with the optional column index returned by \inlinehaskell{scanRow}.
-Here, \inlinehaskell{(<|>)} is a short-circuiting composition operator for \inlinehaskell{Nonsecure effects (Maybe a)} computations: it evaluates the second computation only if the first returns \inlinehaskell{Nothing}.
-
+The \inlinehaskell{scanRow} function returns the zero-based index of the first active column, or \inlinehaskell{Nothing} if that row contains no pressed key.
+The \inlinehaskell{scanMatrix} function applies \inlinehaskell{scanRow} to each row until it detects a key, then combines the row and column indices into a \inlinehaskell{KeyPos}.
 The rest of the Non-secure application uses \inlinehaskell{scanMatrix} to record key presses.
 When it has collected four keys, it supplies the resulting code to the callable Secure service.
-The relevant cross-boundary operation can be isolated as follows:
+The following helper isolates the cross-boundary call:
 
 \begin{lstlisting}[style=haskell]
   submitAttempt
@@ -1274,16 +1226,14 @@ The relevant cross-boundary operation can be isolated as follows:
       sg (unlockFn <.> code)
 \end{lstlisting}
 
-The type of \inlinehaskell{unlockFn} captures the remaining interface of \inlinehaskell{door_unlock_attempt} after the database and Secure GPIO handles have been supplied during setup.
+After setup supplies the database and Secure GPIO handles, the type of \inlinehaskell{unlockFn} retains only the PIN argument of \inlinehaskell{door_unlock_attempt}.
 Applying \inlinehaskell{code} with \inlinehaskell{<.>} produces a fully applied handle of type \inlinehaskell{Callable (Secure SecureEffects UnlockResult)}.
-The function \inlinehaskell{sg} invokes the registered service in the Secure domain and returns its \inlinehaskell{UnlockResult} to the Non-secure computation, which reports the result over UART.
-The Non-secure application can therefore request an unlock attempt, but it never receives the Secure GPIO handles and cannot operate the lock directly.
+The function \inlinehaskell{sg} invokes the registered service and returns its result to the Non-secure caller, which reports it over UART.
 
 \paragraph{Shared Setup}
 
-The shared setup initializes the peripherals and assigns them to the two participants.
-It releases the UART and keypad pins to the Non-secure domain, while the Secure domain retains the database, gate, and lockout indicator.
-The final steps connect the two applications:
+The shared setup initializes the peripherals, releases the UART and keypad pins to the Non-secure ledger, and retains the gate and lockout-indicator pins in the Secure ledger.
+After initializing the persistent database and Non-secure keypad state, it connects the two applications:
 
 \begin{lstlisting}[style=haskell]
   lock_configuration
@@ -1300,8 +1250,9 @@ The final steps connect the two applications:
 \end{lstlisting}
 
 The call to \inlinehaskell{lock_configuration} fixes both effect ledgers before \inlinehaskell{callable} registers the Secure service.
-The setup supplies the database and Secure GPIO handles to \inlinehaskell{door_unlock_attempt}, so the resulting handle accepts only the PIN entered by the user.
-Finally, \inlinehaskell{nonsecure} passes this handle and the released peripheral handles to \inlinehaskell{runKeypad}.
+The setup partially applies \inlinehaskell{door_unlock_attempt} to the database and Secure GPIO handles, leaving the submitted PIN as its only argument.
+Finally, \inlinehaskell{nonsecure} passes the resulting handle and the released peripheral handles to \inlinehaskell{runKeypad}.
+Together, the effect ledgers and callable interface let the Non-secure firmware read the keypad and request an unlock decision without receiving either Secure GPIO handle.
 
 \subsection{Trusted Computing Base}
 
