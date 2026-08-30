@@ -140,7 +140,8 @@
     NONE, OUTPUT, INPUT, NOPULL, PULLUP, PULLDOWN, AF0,
     BOTH, FALLING, RISING, RCC_GPIOC, RCC_GPIOG, StateT, SetupState,
     Ptr, BFILE, ExtiCallback, CallableDummy, Word8, CInt, NonsecureEffects,
-    COL0, COL1, COL2, ROW0, ROW1, ROW2, ROW3, KeyPos, GATE, LOCKOUT, SecureEffects
+    COL0, COL1, COL2, ROW0, ROW1, ROW2, ROW3, KeyPos, GATE, LOCKOUT, SecureEffects,
+    UnlockResult, Granted, Denied, LockedOut, Eq, UDB, Char
   },
   morekeywords=[1]{
     do, if, then, else, case, of, class, data, newtype, instance,
@@ -1099,75 +1100,11 @@ A page of flash, set aside in the linker script and marked as a persistent segme
 The application targets an STM32U5A5ZJQ Nucleo board.
 The Secure GPIO pins drive a MOSFET transistor that, when enabled, routes power from a 6V source to the solenoid lock.
 The Non-secure GPIO pins connect to a 3x4, 12-key matrix keypad, wired as three columns and four rows.
-Below follows some descriptions of what each domain is responsible for and what they implement, but the complete code is omitted for brevity.
-\todo{maybe put it in appendix?}
-
-% briefly on the Non-secure side
-\paragraph{Non-secure Application}
-The Non-secure firmware polls the keypad, collects four key presses, and submits the resulting code to the Secure firmware for verification.
-The following type aliases identify the GPIO pins connected to the keypad.
-The \inlinehaskell{NonsecureEffects} list records that these pins and the UART are available to Non-secure computations:
-
-\begin{lstlisting}[style=haskell]
-  type ROW0 = GPIO 11 E
-  type ROW1 = GPIO 8  G
-  type ROW2 = GPIO 7  G
-  type ROW3 = GPIO 13 E
-  type COL0 = GPIO 14 F
-  type COL1 = GPIO 9  E
-  type COL2 = GPIO 15 F
-
-  type NonsecureEffects = '[ COL2, COL1, COL0
-                           , ROW3, ROW2, ROW1
-                           , ROW0, UART]
-\end{lstlisting}
-
-A \(4 \times 3\) matrix keypad uses seven GPIO pins rather than twelve.
-Because each GPIO represents either a row or a column, a callback cannot identify a key by itself.
-The Non-secure firmware therefore scans the matrix.
-The \inlinehaskell{scanRow} computation drives one row low, reads the three column inputs, and then restores the row high:
-
-\begin{lstlisting}[style=haskell]
-  scanRow :: Member (GPIO pin port) NonsecureEffects
-          => GPIO pin port -> COL0 -> COL1 -> COL2
-          -> Nonsecure NonsecureEffects (Maybe Int)
-  scanRow rowGpio col0 col1 col2 = do
-      gpio_write rowGpio False
-      c0 <- gpio_read col0
-      c1 <- gpio_read col1
-      c2 <- gpio_read col2
-      gpio_write rowGpio True
-      return $ if not c0 then Just 0
-               else if not c1 then Just 1
-               else if not c2 then Just 2
-               else Nothing
-\end{lstlisting}
-
-The \inlinehaskell{scanRow} function returns the zero-based index of the first low column, or \inlinehaskell{Nothing} if no key in that row is pressed.
-The \inlinehaskell{scanMatrix} function applies \inlinehaskell{scanRow} to successive rows and returns the first detected key as a zero-based row-column pair, or \inlinehaskell{Nothing} if no key is pressed:
-
-\begin{lstlisting}[style=haskell]
-  data KeyPos = KeyPos Int Int
-
-  scanMatrix :: ROW0 -> ROW1 -> ROW2 -> ROW3
-             -> COL0 -> COL1 -> COL2
-             -> Nonsecure NonsecureEffects (Maybe KeyPos)
-  scanMatrix row0 row1 row2 row3 col0 col1 col2 =
-         fmap (fmap (KeyPos 0)) (scanRow row0 col0 col1 col2)
-     <|> fmap (fmap (KeyPos 1)) (scanRow row1 col0 col1 col2)
-     <|> fmap (fmap (KeyPos 2)) (scanRow row2 col0 col1 col2)
-     <|> fmap (fmap (KeyPos 3)) (scanRow row3 col0 col1 col2)
-\end{lstlisting}
-
-The nested \inlinehaskell{fmap} applications combine each fixed row index with the optional column index returned by \inlinehaskell{scanRow}.
-Here, \inlinehaskell{(<|>)} is a short-circuiting composition operator for \inlinehaskell{Nonsecure effects (Maybe a)} computations: it evaluates the second computation only if the first returns \inlinehaskell{Nothing}.
-%The remaining Non-secure code maps the resulting \inlinehaskell{KeyPos} to a keypad symbol and submits each completed four-symbol code to the Secure firmware.
-
-\todo{Write more here, specifically saying that we have a Callable handle that takes the code and operates the lock}
+We first describe the Secure service that enforces the access-control policy, then the Non-secure client that reads the keypad, and finally the shared setup that connects them.
 
 \paragraph{Secure Application}
 
-The Non-secure firmware submits each collected PIN to the Secure firmware, which verifies the PIN, enforces the lockout policy, and controls the solenoid.
+The Secure firmware implements the security-critical core of the application: it verifies submitted PINs, enforces the lockout policy, and controls the solenoid.
 The Secure firmware owns two GPIO pins: \inlinehaskell{GATE} drives the MOSFET that controls the solenoid, while \inlinehaskell{LOCKOUT} drives the lockout indicator.
 The \inlinehaskell{SecureEffects} list contains these GPIO capabilities and \inlinehaskell{Locked}, which records that security attribution has been finalized:
 
@@ -1262,9 +1199,109 @@ If the count has reached \inlinehaskell{maxAttempts}, it activates the lockout i
 All of these functions execute in the \inlinehaskell{Secure} monad, but that fact alone does not expose them to the Non-secure firmware.
 During shared setup, \inlinehaskell{callable} registers \inlinehaskell{door_unlock_attempt} as a Secure service and returns a \inlinehaskell{Callable} handle that the Non-secure firmware invokes through \inlinehaskell{sg}.
 
+% briefly on the Non-secure side
+\paragraph{Non-secure Application}
+
+The Non-secure firmware polls the keypad, collects four key presses, and uses a \inlinehaskell{Callable} handle to submit the resulting PIN to the Secure service.
+The following type aliases identify the GPIO pins connected to the keypad.
+The \inlinehaskell{NonsecureEffects} list records that these pins and the UART are available to Non-secure computations:
+
+\begin{lstlisting}[style=haskell]
+  type ROW0 = GPIO 11 E
+  type ROW1 = GPIO 8  G
+  type ROW2 = GPIO 7  G
+  type ROW3 = GPIO 13 E
+  type COL0 = GPIO 14 F
+  type COL1 = GPIO 9  E
+  type COL2 = GPIO 15 F
+
+  type NonsecureEffects = '[ COL2, COL1, COL0
+                           , ROW3, ROW2, ROW1
+                           , ROW0, UART]
+\end{lstlisting}
+
+A \(4 \times 3\) matrix keypad uses seven GPIO pins rather than twelve.
+Because each GPIO represents either a row or a column, a callback cannot identify a key by itself.
+The Non-secure firmware therefore scans the matrix.
+The \inlinehaskell{scanRow} computation drives one row low, reads the three column inputs, and then restores the row high:
+
+\begin{lstlisting}[style=haskell]
+  scanRow :: Member (GPIO pin port) NonsecureEffects
+          => GPIO pin port -> COL0 -> COL1 -> COL2
+          -> Nonsecure NonsecureEffects (Maybe Int)
+  scanRow rowGpio col0 col1 col2 = do
+      gpio_write rowGpio False
+      c0 <- gpio_read col0
+      c1 <- gpio_read col1
+      c2 <- gpio_read col2
+      gpio_write rowGpio True
+      return $ if not c0 then Just 0
+               else if not c1 then Just 1
+               else if not c2 then Just 2
+               else Nothing
+\end{lstlisting}
+
+The \inlinehaskell{scanRow} function returns the zero-based index of the first low column, or \inlinehaskell{Nothing} if no key in that row is pressed.
+The \inlinehaskell{scanMatrix} function applies \inlinehaskell{scanRow} to successive rows and returns the first detected key as a zero-based row-column pair, or \inlinehaskell{Nothing} if no key is pressed:
+
+\begin{lstlisting}[style=haskell]
+  data KeyPos = KeyPos Int Int
+
+  scanMatrix :: ROW0 -> ROW1 -> ROW2 -> ROW3
+             -> COL0 -> COL1 -> COL2
+             -> Nonsecure NonsecureEffects (Maybe KeyPos)
+  scanMatrix row0 row1 row2 row3 col0 col1 col2 =
+         fmap (fmap (KeyPos 0)) (scanRow row0 col0 col1 col2)
+     <|> fmap (fmap (KeyPos 1)) (scanRow row1 col0 col1 col2)
+     <|> fmap (fmap (KeyPos 2)) (scanRow row2 col0 col1 col2)
+     <|> fmap (fmap (KeyPos 3)) (scanRow row3 col0 col1 col2)
+\end{lstlisting}
+
+The nested \inlinehaskell{fmap} applications combine each fixed row index with the optional column index returned by \inlinehaskell{scanRow}.
+Here, \inlinehaskell{(<|>)} is a short-circuiting composition operator for \inlinehaskell{Nonsecure effects (Maybe a)} computations: it evaluates the second computation only if the first returns \inlinehaskell{Nothing}.
+
+The rest of the Non-secure application uses \inlinehaskell{scanMatrix} to record key presses.
+When it has collected four keys, it supplies the resulting code to the callable Secure service.
+The relevant cross-boundary operation can be isolated as follows:
+
+\begin{lstlisting}[style=haskell]
+  submitAttempt
+      :: Callable
+           ([Char] -> Secure SecureEffects UnlockResult)
+      -> [Char]
+      -> Nonsecure NonsecureEffects UnlockResult
+  submitAttempt unlockFn code =
+      sg (unlockFn <.> code)
+\end{lstlisting}
+
+The type of \inlinehaskell{unlockFn} captures the remaining interface of \inlinehaskell{door_unlock_attempt} after the database and Secure GPIO handles have been supplied during setup.
+Applying \inlinehaskell{code} with \inlinehaskell{<.>} produces a fully applied handle of type \inlinehaskell{Callable (Secure SecureEffects UnlockResult)}.
+The function \inlinehaskell{sg} invokes the registered service in the Secure domain and returns its \inlinehaskell{UnlockResult} to the Non-secure computation, which reports the result over UART.
+The Non-secure application can therefore request an unlock attempt, but it never receives the Secure GPIO handles and cannot operate the lock directly.
+
 \paragraph{Shared Setup}
 
-\todo{Here, put an abbreviation of the setup phase}
+The shared setup initializes the peripherals and assigns them to the two participants.
+It releases the UART and keypad pins to the Non-secure domain, while the Secure domain retains the database, gate, and lockout indicator.
+The final steps connect the two applications:
+
+\begin{lstlisting}[style=haskell]
+  lock_configuration
+
+  unlockFn <- callable $
+      door_unlock_attempt db gate lockoutLed
+
+  irq_enable
+
+  nonsecure $
+      runKeypad uart stateRefAction unlockFn
+                row0 row1 row2 row3
+                col0 col1 col2
+\end{lstlisting}
+
+The call to \inlinehaskell{lock_configuration} fixes both effect ledgers before \inlinehaskell{callable} registers the Secure service.
+The setup supplies the database and Secure GPIO handles to \inlinehaskell{door_unlock_attempt}, so the resulting handle accepts only the PIN entered by the user.
+Finally, \inlinehaskell{nonsecure} passes this handle and the released peripheral handles to \inlinehaskell{runKeypad}.
 
 \subsection{Trusted Computing Base}
 
