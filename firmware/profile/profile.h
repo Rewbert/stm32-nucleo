@@ -41,10 +41,16 @@ typedef struct {
 
 /**
  * @brief Enable the GPIOB clock, configure the 4 profiling pins as outputs,
- * all low, and attribute them to `security`. Call once from secure code,
- * after board_init().
+ * all low, and release them to the non-secure world. Call once from secure
+ * code, after board_init() -- this is what makes the pins usable from both
+ * worlds.
+ *
+ * Call once from non-secure code too, also after board_init(): the
+ * non-secure call sets up its own `gpio_dev_t`s for the same (by then
+ * non-secure) pins so non-secure code can call profile_emit(). The release
+ * step is a no-op when compiled into the non-secure image.
  */
-void profile_init(profile_dev_t *prof, gpio_security_t security);
+void profile_init(profile_dev_t *prof);
 
 /**
  * @brief Drive the profiling pins to the low nibble of `code` in a single

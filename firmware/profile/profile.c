@@ -4,7 +4,7 @@
 
 static const uint8_t profile_pins[PROFILE_NUM_PINS] = { 8, 9, 10, 11 }; /* PB8..PB11 */
 
-void profile_init(profile_dev_t *prof, gpio_security_t security) {
+void profile_init(profile_dev_t *prof) {
     rcc_enable(board_rcc(), RCC_GPIOB);
 
     gpio_config_t out_cfg = {
@@ -16,7 +16,10 @@ void profile_init(profile_dev_t *prof, gpio_security_t security) {
     for (int i = 0; i < PROFILE_NUM_PINS; i++) {
         board_gpio_create(&prof->pins[i], BOARD_GPIO_PORT_B, profile_pins[i], &prof->pin_backends[i]);
         gpio_init(&prof->pins[i], &out_cfg);
-        gpio_set_security(&prof->pins[i], security);
+        /* No-op when compiled into the non-secure image (gpio_set_security's
+         * backend is #if HAL_SECURE-gated) -- only the secure call actually
+         * releases the pins. */
+        gpio_set_security(&prof->pins[i], GPIO_NONSECURE);
         gpio_write(&prof->pins[i], GPIO_LOW);
         prof->pin_ptrs[i] = &prof->pins[i];
     }
