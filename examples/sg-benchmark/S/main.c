@@ -14,16 +14,22 @@
 #include "drivers/irq.h"
 
 #include "firmware/boards/board.h"
+#include "firmware/profile/profile.h"
 
 #include "sg_benchmark.h"
+#include "sg_gpio.h"
 
 #define MAX_SG_INPUT_LEN 64
 
+profile_dev_t g_profile;
+
 NONSECURE_CALLABLE void nsc_noop(void) {
+    profile_emit(&g_profile, 2);
 }
 
 NONSECURE_CALLABLE void nsc_sg_call(const sg_input_t *in,
                                      uint8_t *out_buf, int out_capacity, int *out_len) {
+    profile_emit(&g_profile, 5);
     if (!cmse_check_address_range(out_len, sizeof(*out_len), CMSE_NONSECURE | CMSE_MPU_READWRITE)) {
         return;
     }
@@ -61,6 +67,7 @@ NONSECURE_CALLABLE void nsc_sg_call(const sg_input_t *in,
     /* Stand-in for "the handler does something with the call" -- deliberately
      * trivial so the measured time stays dominated by the crossing and
      * verification cost, not by this. */
+    profile_emit(&g_profile, 6);
     uint32_t checksum = 0;
     for (int i = 0; i < in_len; i++) {
         checksum = (checksum * 31u) + secure_copy[i];
@@ -68,10 +75,13 @@ NONSECURE_CALLABLE void nsc_sg_call(const sg_input_t *in,
 
     memcpy(out_buf, &checksum, sizeof checksum);
     *out_len = (int)sizeof checksum;
+    profile_emit(&g_profile, 7);
 }
 
 void main(void) {
     board_init();
+    profile_init(&g_profile);
+
     board_configure_pll();
     systick_configure(board_sysclk_hz() / 1000u);
 
@@ -86,6 +96,8 @@ void main(void) {
     };
     gpio_init(board_led(BOARD_LED_GREEN), &led_cfg);
     gpio_set_security(board_led(BOARD_LED_GREEN), GPIO_NONSECURE);
+
+    sg_gpio_init();
 
     uart_config_t uart_cfg = {
         .baudrate    = 115200,
