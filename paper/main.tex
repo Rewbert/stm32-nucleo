@@ -756,7 +756,6 @@ When the call is made, the parameters are passed from the Non-secure domain to t
 
 Finally, when the callbacks have been installed and the Secure services have been made callable, we invoke the Non-secure application.
 This is done through the \inlinehaskell{nonsecure} function.
-\todo{I should see if I cannot change the code to allow invokaton of nonsecure to happen only once...}
 
 \begin{lstlisting}[style=haskell]
   nonsecure :: Member Locked s
@@ -1352,10 +1351,6 @@ If the program runs out of free heap cells, the MicroHs runtime does not try to 
 The Secure and Non-secure images both require this amount of memory, so across both domains our application requires ~440 KiB of SRAM.
 The STM32U5A5ZJQ we use has 2.5 MiB of SRAM, well above our requirements.
 
-\subsection{NSC Latency}
-
-\todo{How long does a NSC call take? Compare with a native C call, to measure the cost.}
-
 \section{Related Work}
 
 \paragraph{TF-M}
@@ -1431,36 +1426,26 @@ It uses information-flow control to keep data from flowing through the program i
 A program first undergoes partitioning, and a second compiler pass then checks that the interactions between the two resulting programs are not ill-formed.
 
 \paragraph{LispBM}
-LismBM is a noteworthy example of a Lisp interpreter written specifically for MCUs, without necessarily targeting a trusted execution environment.
+LispBM is a noteworthy example of a Lisp interpreter written specifically for MCUs, without necessarily targeting a trusted execution environment.
 It optimizes for performance in a resource-constrained environment and implements many features and extensions not commonly found in Lisp.
 The VESC community has widely adopted it, using it to program motor controllers and build UIs for physical displays.
 
-\section{Discussion}
-
-The project HasTEE did not use MicroHs, and instead used the de-facto Haskell compiler, GHC.
-They targeted a more conventional platform than a MCU, such as a laptop.
-Its TCB was, in effect, significantly larger.
-The GHC runtime system alone exceeds 50000 SLoC.
-
 \section{Conclusions \& Future Work}
 
-MicroHasTEE can reliably reject a whole class of attribution-related bugs, turning runtime errors into compile-time errors.
-We have shown that a high-level functional language can be used to program resource-constrainted MCUs, as well as running it in TrustZone-M.
+For programs expressed through its public interface, MicroHasTEE checks that peripheral attribution, resource use, interrupt placement, and cross-domain interfaces agree before the firmware is deployed.
+The door-lock case study illustrates this by assigning capabilities for the keypad and UART to the Non-secure participant, while the GPIO controlling the solenoid is attributed Secure.
+The type checker rejects programs whose configuration is inconsistent, catching bugs before deployment.
 
-Evaluation\todo{yet to be done} shows that there is a significant performance cost associated with using MicroHasTEE.
-The prototype is compiled with a non-optimising compiler, and deployed to a runtime that uses a simple but small bytecode interpreter.
-For these reasons we are not surprised by the results.
-A more mature implementation of MicroHasTEE should strive to use a more efficient runtime, but none exists today.
+By analysing the case study we show that the programming framework is feasible on the STM32U5A5ZJQ used in this work.
+Both firmware images require roughly 230 KiB of flash each, and 220 KiB of SRAM.
+These requirements fit comfortably within the 4 MiB of flash and 2.5 MiB of SRAM of the device used in this work, but still indicate that a somewhat well-provisioned device is necessary.
 
-Trying to optimise a program for memory usage is a task not seldomly undertaken by embedded developers.
-We won't say too much about this, but point out one apple that hangs particularly low.
-The compiled program is written to flash in a buffer, in a serialized format.
-The program begins execution by parsing this format and building the program graph in SRAM.
-Once this initial graph is constructed, the buffer from which it was built is no longer needed.
+Our evaluation covers one application on one STM32U5 device and exercises only a subset of the implemented peripherals.
+It provides neither a formal soundness proof nor measurements of execution time, energy consumption, or real-time behaviour.
+The results support claims about static consistency, feasibility, and memory requirements, but do not establish production readiness.
 
-In our case study, this buffer accounted for almost a third of all the flash necessary.
-Rather than writing the serialized format to flash, we could instread send it to to the runtime system via UART.
-We would then not require an in-flash copy of the program, and would save almost 70 KiB.
+Further evaluation should characterize gateway latency, worst-case execution time, and energy consumption against an equivalent C implementation.
+MicroHasTEE nevertheless demonstrates that a shared typed program can make cross-domain peripheral agreement a compile-time property on bare-metal TrustZone-M.
 
 %%
 %% The acknowledgments section is defined using the "acks" environment
