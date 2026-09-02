@@ -331,8 +331,7 @@ A door-lock case study demonstrates feasibility, with firmware images occupying 
 
 \section{Introduction}
 
-Arm TrustZone for Armv8-M, or TrustZone-M, partitions a microcontroller into hardware-isolated Secure and Non-secure states.
-It also lets Secure firmware expose explicitly declared entry points to Non-secure code.
+Arm TrustZone for Armv8-M, or TrustZone-M, partitions a microcontroller into hardware-isolated Secure and Non-secure states and permits transitions through explicitly exposed Secure entry points~\cite{armTrustZoneM}.
 TrustZone-M does not, however, determine which state owns each peripheral, GPIO pin, or SRAM region.
 Vendors implement these assignments through device-specific security hardware.
 On the STM32U5 Nucleo board used in this work, memory-mapped security registers, including those of ST's Global TrustZone Controller (GTZC), encode the security attribution of peripherals and SRAM.
@@ -410,10 +409,10 @@ Secure startup code must configure the architectural and STM32-specific attribut
 The two images can therefore link successfully even when the linker and hardware configurations disagree.
 Such a mismatch typically triggers a fault only when firmware accesses the affected region.
 
-On the STM32U5, ST's \textit{Implementation Defined Attribution Unit} (IDAU) assigns fixed security attributes to address ranges.
+On the STM32U5, ST's \textit{Implementation Defined Attribution Unit} (IDAU) assigns fixed security attributes to address ranges~\cite{stm32u5ReferenceManual}.
 The Cortex-M33 supplements this fixed mapping with a programmable \textit{Security Attribution Unit} (SAU).
 For each CPU access, the processor combines the IDAU and SAU results and selects the more restrictive attribute.
-The processor orders these attributes as Secure \(>\) Non-secure, Non-secure Callable \(>\) Non-secure.
+The processor orders these attributes as Secure \(>\) Non-secure, Non-secure Callable \(>\) Non-secure~\cite{armTrustZoneM}.
 
 The IDAU and SAU classify only transactions issued by the CPU, while other bus masters can access SRAM without passing through them.
 ST therefore protects each SRAM bank at its memory interface with a block-based memory protection controller (MPCBB).
@@ -447,7 +446,7 @@ Instead, it assumes that this platform configuration correctly isolates the two 
 
 Armv8-M defines the Secure and Non-secure states, memory attribution, and the mechanisms for transferring control between the two states.
 STM32 microcontrollers supplement these architectural mechanisms with controls that assign security attributes to memory-mapped peripherals.
-The \textit{Global TrustZone Controller} (GTZC) includes a \textit{TrustZone Security Controller} (TZSC), which configures the security attribution of supported peripherals.
+The \textit{Global TrustZone Controller} (GTZC) includes a \textit{TrustZone Security Controller} (TZSC), which configures the security attribution of supported peripherals~\cite{stm32u5ReferenceManual}.
 Although the GTZC provides additional protection and monitoring mechanisms, we focus here on the TZSC's role in peripheral attribution.
 
 Each peripheral controlled by the TZSC has a corresponding bit in a security configuration register.
@@ -462,7 +461,7 @@ Only Secure software can modify these security attributes.
 \subsection{Interrupt Attribution}
 
 Peripheral attribution does not by itself determine where interrupts from that peripheral execute.
-Armv8-M assigns each external interrupt a target security state through the Interrupt Target Non-secure State (\texttt{ITNS}) registers in the Nested Vectored Interrupt Controller (NVIC).
+Armv8-M assigns each external interrupt a target security state through the Interrupt Target Non-secure State (\texttt{ITNS}) registers in the Nested Vectored Interrupt Controller (NVIC)~\cite{armTrustZoneM}.
 Secure software configures this target, and the processor uses either the Secure or the Non-secure vector table when it takes the interrupt.
 
 STM32 devices may also attribute the interrupt source independently of its NVIC target.
@@ -477,7 +476,7 @@ The Secure and Non-secure firmware images occupy disjoint regions of flash and S
 This isolation is asymmetric: Secure software can access Non-secure resources, whereas Non-secure software cannot directly access Secure memory or peripherals.
 Secure firmware can nevertheless expose selected entry functions to Non-secure callers without exposing its remaining code and data.
 
-Secure firmware declares an entry function using the CMSE \inlinec{cmse_nonsecure_entry} attribute.
+Secure firmware declares an entry function using the CMSE \inlinec{cmse_nonsecure_entry} attribute~\cite{armCmse}.
 The compiler marks the function as a Secure entry point, and the Secure linker creates a corresponding secure gateway veneer in a Non-secure Callable region.
 The veneer consists of an \texttt{SG} instruction followed by a branch to the entry function in Secure memory.
 Non-secure code calls the exported gateway symbol as an ordinary function.
@@ -537,7 +536,7 @@ The control flow of this call from Non-secure to Secure code is shown in \cref{f
 \end{figure}
 
 A Secure entry function must treat pointer arguments received from Non-secure code as untrusted.
-Before dereferencing a pointer, it must verify that the entire referenced range lies in Non-secure memory, has the permissions required by the operation, and does not wrap around the address space when its size is added.
+Before dereferencing a pointer, it must verify that the entire referenced range lies in Non-secure memory, has the permissions required by the operation, and does not wrap around the address space when its size is added~\cite{armCmse}.
 After validating an input range, Secure code copies its contents into Secure memory and performs subsequent checks and computations on that copy, preventing later modifications to the original buffer from changing the value being processed.
 
 This section describes several relatively small mechanisms.
@@ -1388,7 +1387,7 @@ The STM32U5A5ZJQ we use has 2.5 MiB of SRAM, well above our requirements.
 
 \paragraph{TF-M}
 TrustZone-M by itself gives nothing more than two address spaces and a fault when execution in one space reaches into the other.
-TF-M uses these mechanisms to implement a full trusted execution environment.
+TF-M~\cite{tfm} uses these mechanisms to implement a full trusted execution environment.
 MicroHasTEE does not claim to be a trusted execution environment.
 Instead, it adopts the minimal model TrustZone-M provides on its own.
 MicroHasTEE models the two domains and ensures they remain separated, except through designated NSC gateways.
@@ -1430,13 +1429,11 @@ A developer can therefore still write Non-secure code that assumes access to a p
 MicroHasTEE closes this gap by checking both participants against one shared, compile-time account of attribution, turning such a disagreement into a compile-time error rather than a fault discovered on hardware.
 
 \paragraph{Rust}
-The Rust programming language supports TrustZone-M natively.
-The Rust compiler, \texttt{rustc}, recognizes TrustZone-M and emits the special assembly instructions that switch between the two domains.
-It also emits veneers in the Non-secure Callable region so that a Non-secure application can invoke Secure services.
-Rust does not, however, configure the security attribution.
-The developer must still write the register-manipulating code that configures the SAU and IDAU and attributes peripherals.
-The developer must also link the two images together, by exporting a Secure library for the Non-secure application to use.
-Rust faithfully implements the CMSE toolchain contract as two calling conventions, much like arm-none-eabi-gcc does.
+Rust provides experimental TrustZone-M support for Armv8-M targets through an unstable CMSE calling convention~\cite{rustCmse}.
+For a function declared with the \texttt{cmse-nonsecure-entry} ABI, \texttt{rustc} emits the required entry symbol and Secure return sequence, and the linker uses that symbol to generate a Secure gateway veneer.
+This support covers the compiler and linker boundary but does not configure security attribution.
+Developers must still configure the architectural SAU and device-specific mechanisms such as the STM32 GTZC, peripheral attribution, and interrupt attribution~\cite{armTrustZoneM,stm32u5ReferenceManual}.
+As with C, they must also coordinate the Secure and Non-secure firmware images and their shared interface.
 
 \paragraph{HasTEE}
 HasTEE\cite{DBLP:conf/haskell/SarkarKRC23} is a Haskell framework for confidential computing on Intel SGX.
@@ -1444,10 +1441,10 @@ Its multiparty programming model inspired MicroHasTEE's own design.
 HasTEE targeted SGX enclaves on conventional machines, such as laptops, whereas MicroHasTEE targets TrustZone-M on a microcontroller.
 HasTEE also relied on a patched GHC runtime system to run Haskell inside the enclave, whereas MicroHasTEE compiles and runs the upstream MicroHs runtime system on bare metal in both TrustZone-M states.
 
-HasTEE's partitioning model builds on Haste.App, a multitier Haskell framework that assigns computations to client and server tiers~\cite{ekblad2014seamless}.
+HasTEE's partitioning model builds on Haste.App, a multitier Haskell framework that assigns computations to client and server tiers~\cite{DBLP:conf/haskell/EkbladC14}.
 MicroHasTEE adopts the same broad structure, with hardware-defined Secure and Non-secure tiers.
 Choreographic programming instead treats endpoints symmetrically and describes their communication explicitly in a global program.
-HasChor embeds this approach in Haskell and obtains per-endpoint behaviour through endpoint projection~\cite{shen2023haschor}.
+HasChor embeds this approach in Haskell and obtains per-endpoint behaviour through endpoint projection~\cite{DBLP:journals/pacmpl/ShenKK23}.
 Its original implementation does not statically remove all code belonging to other endpoints; Krook and Hammersberg show how GHC rewrite rules and specialisation can partition both HasChor and Haste.App programs~\cite{DBLP:conf/haskell/KrookH24}.
 MicroHasTEE differs from both approaches by making hardware-resource attribution and gateway authority, rather than general network communication, its central statically tracked properties.\\
 
@@ -1466,7 +1463,7 @@ It uses information-flow control to keep data from flowing through the program i
 A program first undergoes partitioning, and a second compiler pass then checks that the interactions between the two resulting programs are not ill-formed.
 
 \paragraph{LispBM}
-LispBM is a noteworthy example of a functional language, Lisp,  whose interpreter is written specifically for MCUs, without necessarily targeting a trusted execution environment.
+LispBM~\cite{lispbm} is a noteworthy example of a functional language, Lisp,  whose interpreter is written specifically for MCUs, without necessarily targeting a trusted execution environment.
 It optimizes for performance in a resource-constrained environment and implements many features and extensions not commonly found in Lisp.
 The VESC community has widely adopted it, using it to program motor controllers and build UIs for physical displays.
 
