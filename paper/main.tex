@@ -579,7 +579,7 @@ During setup, the program attributes tracked peripherals, GPIO pins, and interru
 Before setup begins, the linker scripts and Secure startup code have already established the fixed flash and SRAM partition.
 
 MicroHasTEE represents resource ownership with a pair of type-level capability ledgers, one for each participant.
-The \inlinehaskell{Setup} monad describes a transition from one pair of ledgers to another.
+The \inlinehaskell{Setup} type is an indexed monad~\cite{DBLP:journals/jfp/Atkey09} whose indices describe the ledgers before and after a setup computation.
 
 \begin{lstlisting}[style=haskell]
   data Setup nsPre sPre nsPost sPost a
@@ -1442,7 +1442,14 @@ Rust faithfully implements the CMSE toolchain contract as two calling convention
 HasTEE\cite{DBLP:conf/haskell/SarkarKRC23} is a Haskell framework for confidential computing on Intel SGX.
 Its multiparty programming model inspired MicroHasTEE's own design.
 HasTEE targeted SGX enclaves on conventional machines, such as laptops, whereas MicroHasTEE targets TrustZone-M on a microcontroller.
-HasTEE also relied on a patched GHC runtime system to run Haskell inside the enclave, whereas MicroHasTEE compiles and runs the upstream MicroHs runtime system on bare metal in both TrustZone-M states.\\
+HasTEE also relied on a patched GHC runtime system to run Haskell inside the enclave, whereas MicroHasTEE compiles and runs the upstream MicroHs runtime system on bare metal in both TrustZone-M states.
+
+HasTEE's partitioning model builds on Haste.App, a multitier Haskell framework that assigns computations to client and server tiers~\cite{ekblad2014seamless}.
+MicroHasTEE adopts the same broad structure, with hardware-defined Secure and Non-secure tiers.
+Choreographic programming instead treats endpoints symmetrically and describes their communication explicitly in a global program.
+HasChor embeds this approach in Haskell and obtains per-endpoint behaviour through endpoint projection~\cite{shen2023haschor}.
+Its original implementation does not statically remove all code belonging to other endpoints; Krook and Hammersberg show how GHC rewrite rules and specialisation can partition both HasChor and Haste.App programs~\cite{DBLP:conf/haskell/KrookH24}.
+MicroHasTEE differs from both approaches by making hardware-resource attribution and gateway authority, rather than general network communication, its central statically tracked properties.\\
 
 There are relatively few projects where a high-level managed language like Haskell is used to run code in TrustZone-M.
 If we instead look at TrustZone-A or Intel SGX, we find more such projects.
@@ -1462,6 +1469,10 @@ A program first undergoes partitioning, and a second compiler pass then checks t
 LispBM is a noteworthy example of a functional language, Lisp,  whose interpreter is written specifically for MCUs, without necessarily targeting a trusted execution environment.
 It optimizes for performance in a resource-constrained environment and implements many features and extensions not commonly found in Lisp.
 The VESC community has widely adopted it, using it to program motor controllers and build UIs for physical displays.
+
+\paragraph{Synchron}
+Synchron provides a functional-language virtual machine and high-level API for concurrent embedded programs on STM32F4 and NRF52 microcontrollers~\cite{DBLP:conf/ecoop/SarkarSS22}.
+MicroHasTEE likewise executes a managed functional language on a microcontroller, but it targets paired TrustZone-M images and statically tracks their division of peripheral authority.
 
 \section{Conclusions \& Future Work}
 
